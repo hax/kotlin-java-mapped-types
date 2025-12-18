@@ -1,20 +1,28 @@
 #!/usr/bin/env node
 /**
- * Fetch Kotlin type definitions from type database
+ * Fetch Kotlin type definitions
+ * Primary: from official Kotlin API documentation
+ * Fallback: from local type database
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { KOTLIN_TYPES } from './kotlin-types-db';
+import { KOTLIN_TYPES } from './kotlin-types-db.js';
+import { getKotlinTypeInfo } from './fetch-kotlin-api.js';
 
 /**
- * Generate Kotlin type definition from database
+ * Generate Kotlin type definition from fetched or cached data
  */
 async function generateKotlinDefinition(kotlinType: string): Promise<string> {
-  const typeInfo = KOTLIN_TYPES[kotlinType];
+  // Try to fetch from official documentation first
+  console.log(`Attempting to fetch ${kotlinType} from official Kotlin API docs...`);
+  const fetchedInfo = await getKotlinTypeInfo(kotlinType);
+  
+  // Use fetched info if available, otherwise fall back to database
+  const typeInfo = fetchedInfo || KOTLIN_TYPES[kotlinType];
   
   if (!typeInfo) {
-    // Fallback for types not in database
+    // Last resort: generate fallback definition
     return generateFallbackDefinition(kotlinType);
   }
   

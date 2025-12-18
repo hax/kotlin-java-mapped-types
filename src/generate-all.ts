@@ -5,9 +5,9 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { generateJavaDefinition } from './fetch-java-definition';
-import { generateKotlinDefinition } from './fetch-kotlin-definition';
-import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details';
+import { generateJavaDefinition } from './fetch-java-definition.js';
+import { generateKotlinDefinition } from './fetch-kotlin-definition.js';
+import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details.js';
 import * as yaml from 'yaml';
 
 // Mapped types from Kotlin documentation

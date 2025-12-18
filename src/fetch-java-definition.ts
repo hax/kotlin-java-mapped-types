@@ -1,20 +1,28 @@
 #!/usr/bin/env node
 /**
- * Fetch Java type definitions from type database
+ * Fetch Java type definitions
+ * Primary: from official Java API documentation
+ * Fallback: from local type database
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { JAVA_TYPES, MethodSignature } from './java-types-db';
+import { JAVA_TYPES, MethodSignature } from './java-types-db.js';
+import { getJavaTypeInfo } from './fetch-java-api.js';
 
 /**
- * Generate Java type definition from database
+ * Generate Java type definition from fetched or cached data
  */
 async function generateJavaDefinition(javaType: string): Promise<string> {
-  const typeInfo = JAVA_TYPES[javaType];
+  // Try to fetch from official documentation first
+  console.log(`Attempting to fetch ${javaType} from official Java API docs...`);
+  const fetchedInfo = await getJavaTypeInfo(javaType);
+  
+  // Use fetched info if available, otherwise fall back to database
+  const typeInfo = fetchedInfo || JAVA_TYPES[javaType];
   
   if (!typeInfo) {
-    // Fallback for types not in database
+    // Last resort: generate fallback definition
     return generateFallbackDefinition(javaType);
   }
   

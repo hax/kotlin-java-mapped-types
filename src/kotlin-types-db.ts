@@ -1,6 +1,14 @@
 /**
  * Kotlin type signatures database
- * Based on official Kotlin API documentation
+ * 
+ * NOTE: This is a FALLBACK cache based on official Kotlin API documentation.
+ * The primary source should be fetching from official API docs at runtime.
+ * See fetch-kotlin-api.ts for the fetching logic.
+ * 
+ * This database is used when:
+ * 1. Official API documentation is unavailable
+ * 2. Network fetch fails
+ * 3. For development/testing without network access
  */
 
 export interface PropertySignature {

@@ -63,8 +63,8 @@ TYPE_DEFINITIONS = {
     },
     'java.lang.String': {
         'type': 'class',
-        'methods': ['charAt', 'compareTo', 'concat', 'contains', 'equals', 'equalsIgnoreCase', 
-                   'hashCode', 'indexOf', 'isEmpty', 'length', 'replace', 'split', 
+        'methods': ['charAt', 'compareTo', 'concat', 'contains', 'endsWith', 'equals', 'equalsIgnoreCase', 
+                   'hashCode', 'indexOf', 'isEmpty', 'lastIndexOf', 'length', 'replace', 'split', 
                    'startsWith', 'substring', 'toLowerCase', 'toUpperCase', 'trim', 'toString'],
         'is_interface': False
     },
@@ -367,8 +367,24 @@ def sanitize_dir_name(type_name):
 def generate_java_definition(java_type, definition):
     """Generate Java type definition content."""
     lines = []
-    package = '.'.join(java_type.split('.')[:-1])
-    class_name = java_type.split('.')[-1]
+    # For nested classes like java.util.Map.Entry, we need to handle the package correctly
+    # Package should be everything except the class name (including parent classes)
+    parts = java_type.split('.')
+    if len(parts) > 1:
+        # For java.util.Map.Entry, class_name = "Entry", package = "java.util"
+        # We need to find where the package ends and classes begin
+        # Heuristic: if a part starts with uppercase, it's a class
+        package_parts = []
+        for part in parts[:-1]:  # Exclude the last part (the actual class)
+            if part and part[0].isupper():
+                # This is a parent class, not a package
+                break
+            package_parts.append(part)
+        package = '.'.join(package_parts) if package_parts else ''
+        class_name = java_type.split('.')[-1]
+    else:
+        package = ''
+        class_name = java_type
     
     # Add header comment
     lines.append("// Java type definition")

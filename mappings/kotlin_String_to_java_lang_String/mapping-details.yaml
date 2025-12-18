@@ -26,8 +26,14 @@ method_mappings:
 - kotlin_method: startsWith
   java_method: startsWith
   note: Direct method mapping
+- kotlin_method: endsWith
+  java_method: endsWith
+  note: Direct method mapping
 - kotlin_method: indexOf
   java_method: indexOf
+  note: Direct method mapping
+- kotlin_method: lastIndexOf
+  java_method: lastIndexOf
   note: Direct method mapping
 - kotlin_method: contains
   java_method: contains

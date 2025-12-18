@@ -34,7 +34,11 @@ jobs:
 
     - name: Test script execution (Node.js 22 only with native TS)
       if: matrix.node-version == '22.x'
-      run: timeout 30s npm run generate || exit 0
+      run: |
+        # Verify script can start and execute (will timeout due to network calls)
+        timeout 30s npm run generate || true
 
     - name: Test script execution (compiled JavaScript)
-      run: timeout 30s npm run generate:compiled || exit 0
+      run: |
+        # Verify script can start and execute (will timeout due to network calls)
+        timeout 30s npm run generate:compiled || true

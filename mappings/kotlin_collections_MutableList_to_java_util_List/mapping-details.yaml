@@ -1,0 +1,58 @@
+kotlin_type: kotlin.collections.MutableList
+java_type: java.util.List
+property_mappings:
+- kotlin_property: size
+  java_method: size
+  note: Kotlin property maps to Java method
+method_mappings:
+- kotlin_method: add
+  java_method: add
+  note: Direct method mapping
+- kotlin_method: addAll
+  java_method: addAll
+  note: Direct method mapping
+- kotlin_method: clear
+  java_method: clear
+  note: Direct method mapping
+- kotlin_method: contains
+  java_method: contains
+  note: Direct method mapping
+- kotlin_method: containsAll
+  java_method: containsAll
+  note: Direct method mapping
+- kotlin_method: get
+  java_method: get
+  note: Direct method mapping
+- kotlin_method: indexOf
+  java_method: indexOf
+  note: Direct method mapping
+- kotlin_method: isEmpty
+  java_method: isEmpty
+  note: Direct method mapping
+- kotlin_method: iterator
+  java_method: iterator
+  note: Direct method mapping
+- kotlin_method: lastIndexOf
+  java_method: lastIndexOf
+  note: Direct method mapping
+- kotlin_method: listIterator
+  java_method: listIterator
+  note: Direct method mapping
+- kotlin_method: remove
+  java_method: remove
+  note: Direct method mapping
+- kotlin_method: removeAll
+  java_method: removeAll
+  note: Direct method mapping
+- kotlin_method: removeAt
+  java_method: remove
+  note: Kotlin removeAt(index) maps to Java remove(int index) overload
+- kotlin_method: retainAll
+  java_method: retainAll
+  note: Direct method mapping
+- kotlin_method: set
+  java_method: set
+  note: Direct method mapping
+- kotlin_method: subList
+  java_method: subList
+  note: Direct method mapping

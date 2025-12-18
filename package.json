@@ -1,0 +1,25 @@
+{
+  "name": "kotlin-java-mapped-types",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "This project documents the mapped types between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types).",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "generate": "node --experimental-strip-types src/generate-all.ts",
+    "generate:mapping-details": "node --experimental-strip-types src/generate-mapping-details.ts",
+    "generate:mapped-types": "node --experimental-strip-types src/generate-mapped-types-yaml.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.0.3",
+    "cheerio": "^1.1.2",
+    "yaml": "^2.8.2"
+  }
+}

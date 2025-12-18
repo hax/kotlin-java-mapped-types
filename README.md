@@ -1,163 +1,133 @@
-# kotlin-java-mapped-types
+# Kotlin-Java Mapped Types
 
-This project documents the mapped types between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types).
+Documentation generator for Kotlin-Java type mappings with TypeScript/Node.js.
 
 ## Overview
 
-When Kotlin and Java types are used in interop scenarios, they are mapped bidirectionally. This project provides:
-1. A comprehensive YAML file listing all mapped types
-2. For each mapping pair, a directory containing:
-   - Java type definition
-   - Kotlin type definition
-   - Detailed mapping YAML showing how methods and properties map between the types
+This project generates comprehensive documentation for the 32 type mappings between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types).
 
-## Structure
+Type information is fetched directly from official API documentation:
+- **Java types**: [Android Developer Documentation](https://developer.android.com/reference/)
+- **Kotlin types**: [Kotlin API Reference](https://kotlinlang.org/api/core/kotlin-stdlib/)
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js >= 22.0.0 (for native TypeScript support)
+
+### Installation
+
+```bash
+npm install
+```
+
+### Generate Mappings
+
+```bash
+# Generate all type mappings
+npm run generate
+
+# Generate only mapping details from existing definitions
+npm run generate:mapping-details
+
+# Aggregate all mappings into mapped-types.yaml
+npm run generate:mapped-types
+```
+
+## Project Structure
 
 ```
 .
-├── mapped-types.yaml          # Main YAML file with all type mappings
-├── generate_mappings.py       # Script to generate mapping directories
-└── mappings/                  # Generated mapping directories
-    ├── kotlin_<type>_to_java_<type>/
-    │   ├── java-definition.java      # Java type definition
-    │   ├── kotlin-definition.kt      # Kotlin type definition
-    │   └── mapping-details.yaml      # Detailed method/property mappings
-    └── ...
+├── src/                          # TypeScript source files
+│   ├── fetch-java-api.ts        # Fetch from Android docs
+│   ├── fetch-kotlin-api.ts      # Fetch from Kotlin docs
+│   ├── fetch-java-definition.ts # Generate Java definitions
+│   ├── fetch-kotlin-definition.ts # Generate Kotlin definitions
+│   ├── generate-mapping-details.ts # Create signature mappings
+│   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
+│   └── generate-all.ts          # Main orchestrator
+├── mappings/                     # Generated mapping directories
+│   └── <kotlin_Type>_to_<java_Type>/
+│       ├── java-definition.java     # Java type with signatures
+│       ├── kotlin-definition.kt     # Kotlin type with signatures
+│       └── mapping-details.yaml     # Signature-to-signature mappings
+└── mapped-types.yaml             # Master mapping file (generated)
+```
+
+## Type Definitions
+
+Type definitions are generated with complete method/function signatures fetched from official documentation.
+
+### Java Example
+
+```java
+package java.lang;
+
+public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
+    public char charAt(int index);
+    public int length();
+    public String substring(int beginIndex);
+    // ...
+}
+```
+
+### Kotlin Example
+
+```kotlin
+package kotlin
+
+class String : Comparable<String>, CharSequence {
+    val length: Int
+    operator fun get(index: Int): Char
+    fun substring(startIndex: Int): String
+    // ...
+}
+```
+
+## Mapping Details
+
+Mappings use direct signature-to-signature comparison:
+
+```yaml
+- kotlin: "val length: Int"
+  java: public int length()
+- kotlin: "operator fun get(index: Int): Char"
+  java: public char charAt(int index)
+```
+
+## Master YAML
+
+The `mapped-types.yaml` file aggregates all mappings with kind and name only:
+
+```yaml
+mappings:
+  - kotlin:
+      kind: class
+      name: kotlin.String
+    java:
+      kind: class
+      name: java.lang.String
 ```
 
 ## Mapped Types
 
-The project covers 32 type mappings between Kotlin and Java:
+The project covers 32 type mappings:
 
-### Primitive Types
-- `kotlin.Byte` ↔ `java.lang.Byte`
-- `kotlin.Short` ↔ `java.lang.Short`
-- `kotlin.Int` ↔ `java.lang.Integer`
-- `kotlin.Long` ↔ `java.lang.Long`
-- `kotlin.Char` ↔ `java.lang.Character`
-- `kotlin.Float` ↔ `java.lang.Float`
-- `kotlin.Double` ↔ `java.lang.Double`
-- `kotlin.Boolean` ↔ `java.lang.Boolean`
+- **Primitives** (8): Byte, Short, Int, Long, Char, Float, Double, Boolean
+- **Common Types** (4): Any, String, CharSequence, Throwable
+- **Interfaces** (4): Cloneable, Comparable, Enum, Annotation
+- **Read-only Collections** (8): Iterator, Iterable, Collection, Set, List, ListIterator, Map, Map.Entry
+- **Mutable Collections** (8): MutableIterator, MutableIterable, MutableCollection, MutableSet, MutableList, MutableListIterator, MutableMap, MutableMap.MutableEntry
 
-### Common Types
-- `kotlin.Any` ↔ `java.lang.Object`
-- `kotlin.String` ↔ `java.lang.String`
-- `kotlin.CharSequence` ↔ `java.lang.CharSequence`
-- `kotlin.Throwable` ↔ `java.lang.Throwable`
+## How It Works
 
-### Interfaces
-- `kotlin.Cloneable` ↔ `java.lang.Cloneable`
-- `kotlin.Comparable` ↔ `java.lang.Comparable`
-- `kotlin.Enum` ↔ `java.lang.Enum`
-- `kotlin.Annotation` ↔ `java.lang.annotation.Annotation`
+1. **Fetch Type Information**: Scripts fetch type signatures from official Android and Kotlin API documentation
+2. **Generate Definitions**: Create Java and Kotlin definition files with complete signatures
+3. **Compare Signatures**: Parse definitions and match signatures between languages
+4. **Generate Mappings**: Create YAML files documenting the mappings
+5. **Aggregate**: Combine all mapping information into `mapped-types.yaml`
 
-### Collections (Read-only)
-- `kotlin.collections.Iterator` ↔ `java.util.Iterator`
-- `kotlin.collections.Iterable` ↔ `java.lang.Iterable`
-- `kotlin.collections.Collection` ↔ `java.util.Collection`
-- `kotlin.collections.Set` ↔ `java.util.Set`
-- `kotlin.collections.List` ↔ `java.util.List`
-- `kotlin.collections.ListIterator` ↔ `java.util.ListIterator`
-- `kotlin.collections.Map` ↔ `java.util.Map`
-- `kotlin.collections.Map.Entry` ↔ `java.util.Map.Entry`
+## License
 
-### Collections (Mutable)
-- `kotlin.collections.MutableIterator` ↔ `java.util.Iterator`
-- `kotlin.collections.MutableIterable` ↔ `java.lang.Iterable`
-- `kotlin.collections.MutableCollection` ↔ `java.util.Collection`
-- `kotlin.collections.MutableSet` ↔ `java.util.Set`
-- `kotlin.collections.MutableList` ↔ `java.util.List`
-- `kotlin.collections.MutableListIterator` ↔ `java.util.ListIterator`
-- `kotlin.collections.MutableMap` ↔ `java.util.Map`
-- `kotlin.collections.MutableMap.MutableEntry` ↔ `java.util.Map.Entry`
-
-## Detailed Mappings
-
-Each mapping directory contains a `mapping-details.yaml` file that shows:
-
-### Important Note on Read-only vs Mutable Collections
-
-Java does not distinguish between read-only and mutable collections - there's only one `List`, `Set`, `Map`, etc. Kotlin, however, has separate read-only and mutable versions (e.g., `List` vs `MutableList`).
-
-When viewing the mappings:
-- **Java definitions** show the complete Java interface including all methods (both read and write operations)
-- **Kotlin definitions** show only the methods available in the Kotlin type
-- **Read-only Kotlin types** (like `kotlin.collections.List`) map to the same Java type as their mutable counterparts but only expose read operations
-- **Mutable Kotlin types** (like `kotlin.collections.MutableList`) map to the same Java type and expose all operations
-
-For example, both `kotlin.collections.List` and `kotlin.collections.MutableList` map to `java.util.List`, but:
-- The read-only `kotlin.collections.List` only exposes methods like `get()`, `size()`, etc.
-- The mutable `kotlin.collections.MutableList` exposes additional methods like `add()`, `remove()`, `set()`, etc.
-
-### Property to Method Mappings
-Kotlin properties often map to Java methods. For example:
-- `kotlin.String.length` (property) → `java.lang.String.length()` (method)
-- `kotlin.collections.List.size` (property) → `java.util.List.size()` (method)
-- `kotlin.collections.Map.Entry.key` (property) → `java.util.Map.Entry.getKey()` (method)
-
-### Method Mappings
-Some Kotlin methods have different names than their Java equivalents:
-- `kotlin.String.get()` → `java.lang.String.charAt()` (operator function)
-
-### Direct Mappings
-Most methods map directly with the same name:
-- `equals()`, `hashCode()`, `toString()` map directly between types
-
-## Usage
-
-To regenerate the mappings:
-
-```bash
-python3 generate_mappings.py
-```
-
-This will read `mapped-types.yaml` and generate all mapping directories under `mappings/`.
-
-## Example
-
-For the `kotlin.collections.List` ↔ `java.util.List` mapping:
-
-**Java Definition** (`java-definition.java`):
-```java
-package java.util;
-
-public interface List extends java.util.Collection {
-    // size()
-    // get()
-    // add()
-    // ...
-}
-```
-
-**Kotlin Definition** (`kotlin-definition.kt`):
-```kotlin
-package kotlin.collections
-
-interface List : kotlin.collections.Collection {
-    val size: Any // property
-    fun get() // method
-    fun add() // method
-    // ...
-}
-```
-
-**Mapping Details** (`mapping-details.yaml`):
-```yaml
-kotlin_type: kotlin.collections.List
-java_type: java.util.List
-property_mappings:
-- kotlin_property: size
-  java_method: size
-  note: Kotlin property maps to Java method
-method_mappings:
-- kotlin_method: get
-  java_method: get
-  note: Direct method mapping
-# ...
-```
-
-## References
-
-- [Kotlin Java Interop Documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types)
-- [Kotlin Collections Documentation](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/)
-- [Java API Documentation](https://docs.oracle.com/en/java/javase/11/docs/api/)
+ISC

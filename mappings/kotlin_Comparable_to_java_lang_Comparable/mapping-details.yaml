@@ -1,0 +1,7 @@
+kotlin_type: kotlin.Comparable
+java_type: java.lang.Comparable
+property_mappings: []
+method_mappings:
+- kotlin_method: compareTo
+  java_method: compareTo
+  note: Direct method mapping

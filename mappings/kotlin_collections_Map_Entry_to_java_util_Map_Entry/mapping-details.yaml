@@ -1,0 +1,10 @@
+kotlin_type: kotlin.collections.Map.Entry
+java_type: java.util.Map.Entry
+property_mappings:
+- kotlin_property: key
+  java_method: getKey
+  note: Kotlin property maps to Java getter method
+- kotlin_property: value
+  java_method: getValue
+  note: Kotlin property maps to Java getter method
+method_mappings: []

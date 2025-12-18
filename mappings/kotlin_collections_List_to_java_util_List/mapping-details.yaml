@@ -1,0 +1,34 @@
+kotlin_type: kotlin.collections.List
+java_type: java.util.List
+property_mappings:
+- kotlin_property: size
+  java_method: size
+  note: Kotlin property maps to Java method
+method_mappings:
+- kotlin_method: contains
+  java_method: contains
+  note: Direct method mapping
+- kotlin_method: containsAll
+  java_method: containsAll
+  note: Direct method mapping
+- kotlin_method: get
+  java_method: get
+  note: Direct method mapping
+- kotlin_method: indexOf
+  java_method: indexOf
+  note: Direct method mapping
+- kotlin_method: isEmpty
+  java_method: isEmpty
+  note: Direct method mapping
+- kotlin_method: iterator
+  java_method: iterator
+  note: Direct method mapping
+- kotlin_method: lastIndexOf
+  java_method: lastIndexOf
+  note: Direct method mapping
+- kotlin_method: listIterator
+  java_method: listIterator
+  note: Direct method mapping
+- kotlin_method: subList
+  java_method: subList
+  note: Direct method mapping

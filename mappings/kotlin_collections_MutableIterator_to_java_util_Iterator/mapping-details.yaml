@@ -1,0 +1,13 @@
+kotlin_type: kotlin.collections.MutableIterator
+java_type: java.util.Iterator
+property_mappings: []
+method_mappings:
+- kotlin_method: hasNext
+  java_method: hasNext
+  note: Direct method mapping
+- kotlin_method: next
+  java_method: next
+  note: Direct method mapping
+- kotlin_method: remove
+  java_method: remove
+  note: Direct method mapping

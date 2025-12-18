@@ -1,0 +1,15 @@
+package kotlin.collections
+
+interface MutableCollection : kotlin.collections.Collection {
+    val size: Any // property
+    fun add() // method
+    fun addAll() // method
+    fun clear() // method
+    fun contains() // method
+    fun containsAll() // method
+    fun isEmpty() // method
+    fun iterator() // method
+    fun remove() // method
+    fun removeAll() // method
+    fun retainAll() // method
+}

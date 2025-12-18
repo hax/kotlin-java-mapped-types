@@ -1,0 +1,7 @@
+kotlin_type: kotlin.collections.Iterable
+java_type: java.lang.Iterable
+property_mappings: []
+method_mappings:
+- kotlin_method: iterator
+  java_method: iterator
+  note: Direct method mapping

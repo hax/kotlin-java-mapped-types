@@ -1,0 +1,49 @@
+kotlin_type: kotlin.String
+java_type: java.lang.String
+property_mappings:
+- kotlin_property: length
+  java_method: length
+  note: Kotlin property maps to Java method
+method_mappings:
+- kotlin_method: get
+  java_method: charAt
+  note: Kotlin operator fun get maps to Java charAt method
+- kotlin_method: compareTo
+  java_method: compareTo
+  note: Direct method mapping
+- kotlin_method: equals
+  java_method: equals
+  note: Direct method mapping
+- kotlin_method: hashCode
+  java_method: hashCode
+  note: Direct method mapping
+- kotlin_method: toString
+  java_method: toString
+  note: Direct method mapping
+- kotlin_method: substring
+  java_method: substring
+  note: Direct method mapping
+- kotlin_method: startsWith
+  java_method: startsWith
+  note: Direct method mapping
+- kotlin_method: indexOf
+  java_method: indexOf
+  note: Direct method mapping
+- kotlin_method: contains
+  java_method: contains
+  note: Direct method mapping
+- kotlin_method: replace
+  java_method: replace
+  note: Direct method mapping
+- kotlin_method: toLowerCase
+  java_method: toLowerCase
+  note: Direct method mapping
+- kotlin_method: toUpperCase
+  java_method: toUpperCase
+  note: Direct method mapping
+- kotlin_method: trim
+  java_method: trim
+  note: Direct method mapping
+- kotlin_method: split
+  java_method: split
+  note: Direct method mapping

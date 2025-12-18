@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Parse type definition files and generate mapping details
+ * Uses signature-based comparison as requested
  */
 
 import * as fs from 'fs/promises';
@@ -40,24 +41,20 @@ function parseJavaDefinition(content: string): ParsedType {
     }
     
     // Parse class/interface declaration
-    if (trimmed.startsWith('public class ') || trimmed.startsWith('public interface ') || 
-        trimmed.startsWith('public final class ')) {
-      const match = trimmed.match(/public\s+(?:final\s+)?(class|interface)\s+(\w+)/);
+    if (trimmed.includes(' class ') || trimmed.includes(' interface ')) {
+      const match = trimmed.match(/(?:public\s+)?(?:final\s+)?(class|interface)\s+(\w+)/);
       if (match) {
         kind = match[1] as 'class' | 'interface';
         className = match[2];
       }
     }
     
-    // Parse method signatures
-    const methodMatch = trimmed.match(/^public\s+(?:static\s+)?(\w+(?:<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\);/);
+    // Parse method signatures - capture full signature
+    const methodMatch = trimmed.match(/^((?:public|protected|private|static|final)\s+)+(.+?)\s+(\w+)\s*\(([^)]*)\);/);
     if (methodMatch) {
-      const returnType = methodMatch[1];
-      const methodName = methodMatch[2];
-      const params = methodMatch[3];
       members.push({
         kind: 'method',
-        name: methodName,
+        name: methodMatch[3],
         signature: trimmed.replace(/;$/, '')
       });
     }
@@ -86,8 +83,8 @@ function parseKotlinDefinition(content: string): ParsedType {
     }
     
     // Parse class/interface declaration
-    if (trimmed.startsWith('class ') || trimmed.startsWith('interface ')) {
-      const match = trimmed.match(/^(class|interface)\s+(\w+)/);
+    if (trimmed.match(/^(?:open\s+)?(class|interface)\s+/)) {
+      const match = trimmed.match(/^(?:open\s+)?(class|interface)\s+(\w+)/);
       if (match) {
         kind = match[1] as 'class' | 'interface';
         className = match[2];
@@ -95,23 +92,24 @@ function parseKotlinDefinition(content: string): ParsedType {
     }
     
     // Parse property signatures
-    const propMatch = trimmed.match(/^val\s+(\w+):\s*(.+)/);
-    if (propMatch) {
+    if (trimmed.match(/^(?:override\s+)?(?:var|val)\s+/)) {
       members.push({
         kind: 'property',
-        name: propMatch[1],
+        name: trimmed.match(/(?:var|val)\s+(\w+)/)?.[1] || '',
         signature: trimmed
       });
     }
     
     // Parse function signatures
-    const funcMatch = trimmed.match(/^(?:operator\s+|override\s+)?fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
-    if (funcMatch) {
-      members.push({
-        kind: 'function',
-        name: funcMatch[1],
-        signature: trimmed
-      });
+    if (trimmed.match(/^(?:override\s+)?(?:operator\s+)?fun\s+/)) {
+      const funcMatch = trimmed.match(/fun\s+(\w+)/);
+      if (funcMatch) {
+        members.push({
+          kind: 'function',
+          name: funcMatch[1],
+          signature: trimmed
+        });
+      }
     }
   }
   
@@ -119,39 +117,42 @@ function parseKotlinDefinition(content: string): ParsedType {
 }
 
 /**
- * Compare Java and Kotlin types to generate mapping
+ * Compare Java and Kotlin types to generate signature-based mapping
+ * Per user requirement: use signature matching instead of grouping by property/method
  */
 function generateMapping(javaType: ParsedType, kotlinType: ParsedType) {
   const mappings: Array<{ kotlin: string; java: string }> = [];
   
-  // Map Kotlin properties and functions to Java methods
+  // Map each Kotlin member to corresponding Java member(s)
   for (const kotlinMember of kotlinType.members) {
     for (const javaMember of javaType.members) {
-      // Simple name matching for now
-      // In a real implementation, this would use more sophisticated matching
+      let isMatch = false;
+      
+      // Direct name matching
       if (kotlinMember.name === javaMember.name) {
-        mappings.push({
-          kotlin: kotlinMember.signature,
-          java: javaMember.signature
-        });
-      } else if (kotlinMember.kind === 'property') {
-        // Try to match property to getter method
+        isMatch = true;
+      }
+      // Property to getter method (e.g., Kotlin 'message' -> Java 'getMessage')
+      else if (kotlinMember.kind === 'property') {
         const getterName = 'get' + kotlinMember.name.charAt(0).toUpperCase() + kotlinMember.name.slice(1);
         if (javaMember.name === getterName) {
-          mappings.push({
-            kotlin: kotlinMember.signature,
-            java: javaMember.signature
-          });
+          isMatch = true;
         }
-        // Also try direct name match for methods like size(), length()
-        if (javaMember.name === kotlinMember.name) {
-          mappings.push({
-            kotlin: kotlinMember.signature,
-            java: javaMember.signature
-          });
+      }
+      // Special cases
+      else if (kotlinMember.name === 'get' && javaMember.name === 'charAt') {
+        // Kotlin String.get() maps to Java String.charAt()
+        isMatch = true;
+      }
+      else if (kotlinMember.name === 'removeAt' && javaMember.name === 'remove') {
+        // Kotlin removeAt(index) maps to Java remove(int)
+        // Need to check if it's the index-based overload
+        if (javaMember.signature.includes('int index') || javaMember.signature.includes('int,')) {
+          isMatch = true;
         }
-      } else if (kotlinMember.name === 'get' && javaMember.name === 'charAt') {
-        // Special case: Kotlin get() maps to Java charAt()
+      }
+      
+      if (isMatch) {
         mappings.push({
           kotlin: kotlinMember.signature,
           java: javaMember.signature

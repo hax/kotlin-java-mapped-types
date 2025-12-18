@@ -1,7 +1,7 @@
 // Kotlin type definition
 // This shows only the methods and properties available in Kotlin
 
-package kotlin.collections.MutableMap
+package kotlin.collections
 
 interface MutableEntry : kotlin.collections.Map.Entry {
     val key: Any // property

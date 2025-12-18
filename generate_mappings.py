@@ -413,8 +413,21 @@ def generate_java_definition(java_type, definition):
 def generate_kotlin_definition(kotlin_type, definition):
     """Generate Kotlin type definition content."""
     lines = []
-    package = '.'.join(kotlin_type.rsplit('.', 1)[:-1]) if '.' in kotlin_type else ''
-    class_name = kotlin_type.rsplit('.', 1)[-1]
+    # For nested classes like kotlin.collections.Map.Entry, handle package correctly
+    # Package should be everything up to the first uppercase letter (class name)
+    parts = kotlin_type.split('.')
+    if len(parts) > 1:
+        package_parts = []
+        for part in parts[:-1]:  # Exclude the last part (the actual class)
+            if part and part[0].isupper():
+                # This is a parent class, not a package
+                break
+            package_parts.append(part)
+        package = '.'.join(package_parts) if package_parts else ''
+        class_name = kotlin_type.split('.')[-1]
+    else:
+        package = ''
+        class_name = kotlin_type
     
     # Add header comment
     lines.append("// Kotlin type definition")

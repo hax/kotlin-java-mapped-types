@@ -370,6 +370,7 @@ def generate_java_definition(java_type, definition):
     # For nested classes like java.util.Map.Entry, we need to handle the package correctly
     # Package should be everything except the class name (including parent classes)
     parts = java_type.split('.')
+    is_nested = False
     if len(parts) > 1:
         # For java.util.Map.Entry, class_name = "Entry", package = "java.util"
         # We need to find where the package ends and classes begin
@@ -378,6 +379,7 @@ def generate_java_definition(java_type, definition):
         for part in parts[:-1]:  # Exclude the last part (the actual class)
             if part and part[0].isupper():
                 # This is a parent class, not a package
+                is_nested = True
                 break
             package_parts.append(part)
         package = '.'.join(package_parts) if package_parts else ''
@@ -389,6 +391,8 @@ def generate_java_definition(java_type, definition):
     # Add header comment
     lines.append("// Java type definition")
     lines.append("// This shows the complete Java API including all methods")
+    if is_nested:
+        lines.append(f"// Note: {class_name} is a nested interface/class within the parent type")
     lines.append("")
     
     if package:
@@ -416,11 +420,13 @@ def generate_kotlin_definition(kotlin_type, definition):
     # For nested classes like kotlin.collections.Map.Entry, handle package correctly
     # Package should be everything up to the first uppercase letter (class name)
     parts = kotlin_type.split('.')
+    is_nested = False
     if len(parts) > 1:
         package_parts = []
         for part in parts[:-1]:  # Exclude the last part (the actual class)
             if part and part[0].isupper():
                 # This is a parent class, not a package
+                is_nested = True
                 break
             package_parts.append(part)
         package = '.'.join(package_parts) if package_parts else ''
@@ -432,6 +438,8 @@ def generate_kotlin_definition(kotlin_type, definition):
     # Add header comment
     lines.append("// Kotlin type definition")
     lines.append("// This shows only the methods and properties available in Kotlin")
+    if is_nested:
+        lines.append(f"// Note: {class_name} is a nested interface/class within the parent type")
     lines.append("")
     
     if package:

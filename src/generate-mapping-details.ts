@@ -5,7 +5,6 @@
  */
 
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import * as yaml from 'yaml';
 
 interface ParsedMember {
@@ -190,7 +189,8 @@ async function main() {
   console.log(`Found ${mappings.length} mappings`);
 }
 
-if (require.main === module) {
+// Run if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

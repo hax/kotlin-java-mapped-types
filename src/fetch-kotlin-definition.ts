@@ -3,8 +3,6 @@
  * Fetch Kotlin type definitions from official Kotlin API documentation
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { getKotlinTypeInfo } from './fetch-kotlin-api.js';
 
 /**
@@ -92,7 +90,8 @@ async function main() {
   console.log(definition);
 }
 
-if (require.main === module) {
+// Run if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

@@ -5,7 +5,6 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as yaml from 'yaml';
 
 // Hardcoded mapped types based on official Kotlin documentation
 // https://kotlinlang.org/docs/java-interop.html#mapped-types

@@ -87,6 +87,7 @@ async function main() {
   console.log(`\nDone! Generated ${MAPPED_TYPES.length} type mappings.`);
 }
 
-if (require.main === module) {
+// Run if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }

@@ -3,8 +3,6 @@
  * Fetch Java type definitions from official Android API documentation
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { getJavaTypeInfo } from './fetch-java-api.js';
 
 /**
@@ -78,7 +76,8 @@ async function main() {
   console.log(definition);
 }
 
-if (require.main === module) {
+// Run if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

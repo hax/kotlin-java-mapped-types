@@ -180,8 +180,8 @@ mappings:
       kind: class
       name: java.lang.Throwable
   - kotlin:
-      kind: class
-      name: within
+      kind: interface
+      name: kotlin.collections.Map.Entry
     java:
-      kind: class
-      name: within
+      kind: interface
+      name: java.util.Map.Entry

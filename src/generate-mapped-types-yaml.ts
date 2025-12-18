@@ -102,7 +102,8 @@ async function main() {
   console.log(`\nGenerated ${outputFile} with ${mappings.length} unique mappings`);
 }
 
-if (require.main === module) {
+// Run if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

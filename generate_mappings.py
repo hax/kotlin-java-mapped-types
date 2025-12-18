@@ -370,6 +370,11 @@ def generate_java_definition(java_type, definition):
     package = '.'.join(java_type.split('.')[:-1])
     class_name = java_type.split('.')[-1]
     
+    # Add header comment
+    lines.append("// Java type definition")
+    lines.append("// This shows the complete Java API including all methods")
+    lines.append("")
+    
     if package:
         lines.append(f"package {package};")
         lines.append("")
@@ -394,6 +399,11 @@ def generate_kotlin_definition(kotlin_type, definition):
     lines = []
     package = '.'.join(kotlin_type.rsplit('.', 1)[:-1]) if '.' in kotlin_type else ''
     class_name = kotlin_type.rsplit('.', 1)[-1]
+    
+    # Add header comment
+    lines.append("// Kotlin type definition")
+    lines.append("// This shows only the methods and properties available in Kotlin")
+    lines.append("")
     
     if package:
         lines.append(f"package {package}")

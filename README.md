@@ -75,6 +75,20 @@ The project covers 32 type mappings between Kotlin and Java:
 
 Each mapping directory contains a `mapping-details.yaml` file that shows:
 
+### Important Note on Read-only vs Mutable Collections
+
+Java does not distinguish between read-only and mutable collections - there's only one `List`, `Set`, `Map`, etc. Kotlin, however, has separate read-only and mutable versions (e.g., `List` vs `MutableList`).
+
+When viewing the mappings:
+- **Java definitions** show the complete Java interface including all methods (both read and write operations)
+- **Kotlin definitions** show only the methods available in the Kotlin type
+- **Read-only Kotlin types** (like `kotlin.collections.List`) map to the same Java type as their mutable counterparts but only expose read operations
+- **Mutable Kotlin types** (like `kotlin.collections.MutableList`) map to the same Java type and expose all operations
+
+For example, both `kotlin.collections.List` and `kotlin.collections.MutableList` map to `java.util.List`, but:
+- The read-only `kotlin.collections.List` only exposes methods like `get()`, `size()`, etc.
+- The mutable `kotlin.collections.MutableList` exposes additional methods like `add()`, `remove()`, `set()`, etc.
+
 ### Property to Method Mappings
 Kotlin properties often map to Java methods. For example:
 - `kotlin.String.length` (property) → `java.lang.String.length()` (method)

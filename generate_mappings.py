@@ -525,6 +525,13 @@ def generate_detail_mapping(kotlin_type, java_type):
                 'java_method': 'charAt',
                 'note': 'Kotlin operator fun get maps to Java charAt method'
             })
+        # Special case for Kotlin's removeAt() which maps to Java's remove(int) overload
+        elif method == 'removeAt' and 'remove' in java_methods:
+            mappings['method_mappings'].append({
+                'kotlin_method': 'removeAt',
+                'java_method': 'remove',
+                'note': 'Kotlin removeAt(index) maps to Java remove(int index) overload'
+            })
     
     return mappings
 

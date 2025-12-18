@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 /**
  * Aggregate mapping-details from all directories into mapped-types.yaml
+ * Per user requirement: should only include kind and name, no duplicate mappings
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
 
-interface TypeMapping {
-  kotlin: {
-    kind: string;
-    name: string;
-  };
-  java: {
-    kind: string;
-    name: string;
-  };
+interface TypeInfo {
+  kind: string;
+  name: string;
 }
 
-async function extractTypeInfo(defFile: string): Promise<{ kind: string; name: string } | null> {
+interface TypeMapping {
+  kotlin: TypeInfo;
+  java: TypeInfo;
+}
+
+async function extractTypeInfo(defFile: string): Promise<TypeInfo | null> {
   try {
     const content = await fs.readFile(defFile, 'utf-8');
     const lines = content.split('\n');
@@ -31,12 +31,13 @@ async function extractTypeInfo(defFile: string): Promise<{ kind: string; name: s
       const trimmed = line.trim();
       
       // Parse package
-      if (trimmed.startsWith('package ')) {
-        packageName = trimmed.match(/package\s+([\w.]+)/)?.[1] || '';
+      const pkgMatch = trimmed.match(/^package\s+([\w.]+)/);
+      if (pkgMatch) {
+        packageName = pkgMatch[1];
       }
       
       // Parse class/interface for Java
-      const javaMatch = trimmed.match(/public\s+(?:final\s+)?(class|interface)\s+(\w+)/);
+      const javaMatch = trimmed.match(/(?:public\s+)?(?:final\s+)?(class|interface)\s+(\w+)/);
       if (javaMatch) {
         kind = javaMatch[1];
         name = packageName ? `${packageName}.${javaMatch[2]}` : javaMatch[2];
@@ -44,7 +45,7 @@ async function extractTypeInfo(defFile: string): Promise<{ kind: string; name: s
       }
       
       // Parse class/interface for Kotlin
-      const kotlinMatch = trimmed.match(/^(class|interface)\s+(\w+)/);
+      const kotlinMatch = trimmed.match(/^(?:open\s+)?(class|interface)\s+(\w+)/);
       if (kotlinMatch) {
         kind = kotlinMatch[1];
         name = packageName ? `${packageName}.${kotlinMatch[2]}` : kotlinMatch[2];
@@ -66,6 +67,7 @@ async function main() {
   
   const entries = await fs.readdir(mappingsDir, { withFileTypes: true });
   const mappings: TypeMapping[] = [];
+  const seen = new Set<string>();
   
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
@@ -78,18 +80,26 @@ async function main() {
     const javaInfo = await extractTypeInfo(javaDefFile);
     
     if (kotlinInfo && javaInfo) {
-      mappings.push({
-        kotlin: kotlinInfo,
-        java: javaInfo
-      });
-      console.log(`Found mapping: ${kotlinInfo.name} <-> ${javaInfo.name}`);
+      // Check for duplicate mappings (same Kotlin-Java pair)
+      const key = `${kotlinInfo.name}::${javaInfo.name}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        mappings.push({
+          kotlin: kotlinInfo,
+          java: javaInfo
+        });
+        console.log(`Found mapping: ${kotlinInfo.name} (${kotlinInfo.kind}) <-> ${javaInfo.name} (${javaInfo.kind})`);
+      }
     }
   }
+  
+  // Sort mappings by Kotlin name for consistency
+  mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
   
   const output = yaml.stringify({ mappings });
   await fs.writeFile(outputFile, output, 'utf-8');
   
-  console.log(`\nGenerated ${outputFile} with ${mappings.length} mappings`);
+  console.log(`\nGenerated ${outputFile} with ${mappings.length} unique mappings`);
 }
 
 if (require.main === module) {

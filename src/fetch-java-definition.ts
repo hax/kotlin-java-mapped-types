@@ -1,29 +1,22 @@
 #!/usr/bin/env node
 /**
- * Fetch Java type definitions
- * Primary: from official Java API documentation
- * Fallback: from local type database
+ * Fetch Java type definitions from official Android API documentation
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { JAVA_TYPES, MethodSignature } from './java-types-db.js';
 import { getJavaTypeInfo } from './fetch-java-api.js';
 
 /**
- * Generate Java type definition from fetched or cached data
+ * Generate Java type definition from fetched data
  */
 async function generateJavaDefinition(javaType: string): Promise<string> {
-  // Try to fetch from official documentation first
-  console.log(`Attempting to fetch ${javaType} from official Java API docs...`);
-  const fetchedInfo = await getJavaTypeInfo(javaType);
-  
-  // Use fetched info if available, otherwise fall back to database
-  const typeInfo = fetchedInfo || JAVA_TYPES[javaType];
+  // Fetch from official documentation
+  console.log(`Fetching ${javaType} from official Android API docs...`);
+  const typeInfo = await getJavaTypeInfo(javaType);
   
   if (!typeInfo) {
-    // Last resort: generate fallback definition
-    return generateFallbackDefinition(javaType);
+    throw new Error(`Failed to fetch type information for ${javaType}`);
   }
   
   const parts = javaType.split('.');
@@ -68,30 +61,6 @@ async function generateJavaDefinition(javaType: string): Promise<string> {
     definition += `    ${methodModifiers} ${method.returnType} ${method.name}(${params});\n`;
   }
   
-  definition += `}\n`;
-  
-  return definition;
-}
-
-function generateFallbackDefinition(javaType: string): string {
-  const parts = javaType.split('.');
-  const className = parts[parts.length - 1];
-  let packageName = '';
-  
-  for (let i = 0; i < parts.length - 1; i++) {
-    if (parts[i][0] === parts[i][0].toUpperCase()) {
-      break;
-    }
-    packageName += (packageName ? '.' : '') + parts[i];
-  }
-  
-  let definition = '';
-  if (packageName) {
-    definition += `package ${packageName};\n\n`;
-  }
-  
-  definition += `public interface ${className} {\n`;
-  definition += `    // Type not in database - signatures need to be added\n`;
   definition += `}\n`;
   
   return definition;

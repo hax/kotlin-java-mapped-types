@@ -1,6 +1,6 @@
 /**
- * Fetch Java type signatures from official Java API documentation
- * https://docs.oracle.com/en/java/javase/17/docs/api/
+ * Fetch Java type signatures from official Android documentation
+ * https://developer.android.com/reference/
  */
 
 import * as cheerio from 'cheerio';
@@ -21,24 +21,14 @@ interface JavaTypeInfo {
 }
 
 /**
- * Fetch and parse Java type from official documentation
+ * Fetch and parse Java type from Android documentation
  */
 export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | null> {
   try {
     // Convert type name to URL path
-    // e.g., java.lang.String -> java.base/java/lang/String.html
-    // e.g., java.util.List -> java.base/java/util/List.html
-    const parts = typeName.split('.');
-    const packagePath = parts.slice(0, -1).join('/');
-    const className = parts[parts.length - 1];
-    
-    // Java 17+ uses module structure
-    let moduleName = 'java.base';
-    if (typeName.startsWith('java.util')) {
-      moduleName = 'java.base';
-    }
-    
-    const url = `https://docs.oracle.com/en/java/javase/17/docs/api/${moduleName}/${packagePath}/${className}.html`;
+    // e.g., java.lang.String -> java/lang/String
+    const path = typeName.split('.').join('/');
+    const url = `https://developer.android.com/reference/${path}`;
     
     console.log(`Fetching Java type from: ${url}`);
     
@@ -51,16 +41,45 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     const html = await response.text();
     const $ = cheerio.load(html);
     
-    // Parse the HTML to extract type information
-    // This is a placeholder - actual implementation would parse the Java docs structure
+    // Parse the HTML to extract type information from Android docs
     const typeInfo: JavaTypeInfo = {
       kind: 'interface',
       modifiers: ['public'],
       methods: []
     };
     
-    // Extract method signatures from the documentation
-    // The actual parsing would depend on the HTML structure of Oracle's Java docs
+    // Determine if it's a class or interface
+    const heading = $('h1').first().text();
+    if (heading.includes('class ')) {
+      typeInfo.kind = 'class';
+    } else if (heading.includes('interface ')) {
+      typeInfo.kind = 'interface';
+    }
+    
+    // Extract method signatures
+    // Android docs structure: look for method details in the documentation
+    $('.api-item').each((_, element) => {
+      const $elem = $(element);
+      const signature = $elem.find('.api-signature').text().trim();
+      
+      if (signature) {
+        // Parse signature to extract method info
+        // This is a simplified parsing - real implementation would be more robust
+        const methodMatch = signature.match(/(\w+)\s+(\w+)\s*\(([^)]*)\)/);
+        if (methodMatch) {
+          const returnType = methodMatch[1];
+          const name = methodMatch[2];
+          const params = methodMatch[3] ? methodMatch[3].split(',').map(p => p.trim()) : [];
+          
+          typeInfo.methods.push({
+            modifiers: ['public'],
+            returnType,
+            name,
+            parameters: params
+          });
+        }
+      }
+    });
     
     return typeInfo;
   } catch (error) {
@@ -70,17 +89,8 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
 }
 
 /**
- * Get Java type info - tries to fetch from official docs first,
- * falls back to cached/known types if fetch fails
+ * Get Java type info from official docs
  */
 export async function getJavaTypeInfo(typeName: string): Promise<JavaTypeInfo | null> {
-  // Try to fetch from official documentation
-  const fetchedInfo = await fetchJavaType(typeName);
-  if (fetchedInfo) {
-    return fetchedInfo;
-  }
-  
-  // TODO: Fallback to cached information or return null
-  console.warn(`Could not fetch ${typeName} from official docs, no fallback available`);
-  return null;
+  return await fetchJavaType(typeName);
 }

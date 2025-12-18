@@ -1,29 +1,22 @@
 #!/usr/bin/env node
 /**
- * Fetch Kotlin type definitions
- * Primary: from official Kotlin API documentation
- * Fallback: from local type database
+ * Fetch Kotlin type definitions from official Kotlin API documentation
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { KOTLIN_TYPES } from './kotlin-types-db.js';
 import { getKotlinTypeInfo } from './fetch-kotlin-api.js';
 
 /**
- * Generate Kotlin type definition from fetched or cached data
+ * Generate Kotlin type definition from fetched data
  */
 async function generateKotlinDefinition(kotlinType: string): Promise<string> {
-  // Try to fetch from official documentation first
-  console.log(`Attempting to fetch ${kotlinType} from official Kotlin API docs...`);
-  const fetchedInfo = await getKotlinTypeInfo(kotlinType);
-  
-  // Use fetched info if available, otherwise fall back to database
-  const typeInfo = fetchedInfo || KOTLIN_TYPES[kotlinType];
+  // Fetch from official documentation
+  console.log(`Fetching ${kotlinType} from official Kotlin API docs...`);
+  const typeInfo = await getKotlinTypeInfo(kotlinType);
   
   if (!typeInfo) {
-    // Last resort: generate fallback definition
-    return generateFallbackDefinition(kotlinType);
+    throw new Error(`Failed to fetch type information for ${kotlinType}`);
   }
   
   const parts = kotlinType.split('.');
@@ -82,30 +75,6 @@ async function generateKotlinDefinition(kotlinType: string): Promise<string> {
     definition += `    ${overrideStr}${modStr}fun ${func.name}(${params}): ${func.returnType}\n`;
   }
   
-  definition += `}\n`;
-  
-  return definition;
-}
-
-function generateFallbackDefinition(kotlinType: string): string {
-  const parts = kotlinType.split('.');
-  const className = parts[parts.length - 1];
-  let packageName = '';
-  
-  for (let i = 0; i < parts.length - 1; i++) {
-    if (parts[i][0] === parts[i][0].toUpperCase()) {
-      break;
-    }
-    packageName += (packageName ? '.' : '') + parts[i];
-  }
-  
-  let definition = '';
-  if (packageName) {
-    definition += `package ${packageName}\n\n`;
-  }
-  
-  definition += `interface ${className} {\n`;
-  definition += `    // Type not in database - signatures need to be added\n`;
   definition += `}\n`;
   
   return definition;

@@ -108,15 +108,19 @@ The mapping generation follows these steps:
 
 ### Adding New Type Mappings
 
-To add a new type mapping:
+The mapped types are automatically extracted from the official Kotlin documentation at https://kotlinlang.org/docs/java-interop.html. 
 
-1. Add the mapping to the `MAPPED_TYPES` array in `lib/generate-all.ts`
-2. Run `npm run generate` to fetch and generate all files
-3. The system will automatically:
+To regenerate mappings:
+
+1. Run `npm run generate` to fetch and generate all files
+2. The system will automatically:
+   - Extract type mappings from Kotlin documentation
    - Fetch type information from official docs
    - Generate definition files
    - Create mapping details
    - Update `mapped-types.yaml`
+
+If the documentation structure changes or network access fails, the system will use a fallback list of known mappings.
 
 ### Error Handling
 

@@ -3,7 +3,7 @@
  * Fetch Java type definitions from official Android API documentation
  */
 
-import { getJavaTypeInfo } from './fetch-java-api.js';
+import { getJavaTypeInfo } from './fetch-java-api.ts';
 
 /**
  * Generate Java type definition from fetched data

@@ -11,8 +11,10 @@ This is a documentation generator for Kotlin-Java type mappings. The project gen
 - **Runtime**: Node.js >= 22.0.0 (uses native TypeScript support via `--experimental-strip-types`)
 - **Language**: TypeScript with strict mode enabled
 - **Key Dependencies**:
-  - `cheerio`: HTML parsing for web scraping
-  - `yaml`: YAML file generation
+  - `cheerio`: HTML parsing for web scraping API documentation
+  - `yaml`: YAML file generation (has built-in types)
+  - `typescript`: Type checking (dev dependency)
+  - `@types/node`: Node.js type definitions (dev dependency)
 - **Build**: No build step required - uses Node's experimental native TypeScript stripping
 
 ## Project Structure
@@ -147,5 +149,6 @@ The project documents exactly 32 type mappings in 5 categories:
 When adding dependencies:
 - Prefer minimal, well-maintained packages
 - Check compatibility with Node.js 22+
-- Add type definitions (`@types/*`) as devDependencies if needed
+- Add type definitions (`@types/*`) as devDependencies if the package doesn't include built-in types
 - Use `npm install` (updates package-lock.json)
+- Note: The project uses the `yaml` package (which has built-in types), not `js-yaml`

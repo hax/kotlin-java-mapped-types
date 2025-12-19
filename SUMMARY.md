@@ -51,6 +51,20 @@ Kotlin distinguishes between read-only and mutable collections, but both map to 
 
 The Kotlin compiler ensures type safety at compile time, even though the underlying Java type is the same.
 
+#### Important Note
+
+Java does not distinguish between read-only and mutable collections - there's only one `List`, `Set`, `Map`, etc. Kotlin, however, has separate read-only and mutable versions (e.g., `List` vs `MutableList`).
+
+When viewing the mappings:
+- **Java definitions** show the complete Java interface including all methods (both read and write operations)
+- **Kotlin definitions** show only the methods available in the Kotlin type
+- **Read-only Kotlin types** (like `kotlin.collections.List`) map to the same Java type as their mutable counterparts but only expose read operations
+- **Mutable Kotlin types** (like `kotlin.collections.MutableList`) map to the same Java type and expose all operations
+
+For example, both `kotlin.collections.List` and `kotlin.collections.MutableList` map to `java.util.List`, but:
+- The read-only `kotlin.collections.List` only exposes methods like `get()`, `size()`, etc.
+- The mutable `kotlin.collections.MutableList` exposes additional methods like `add()`, `remove()`, `set()`, etc.
+
 ## API Documentation Sources
 
 ### Java Types

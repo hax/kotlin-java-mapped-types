@@ -112,13 +112,49 @@ mappings:
 
 ## Mapped Types
 
-The project covers 32 type mappings:
+The project covers 32 type mappings between Kotlin and Java:
 
-- **Primitives** (8): Byte, Short, Int, Long, Char, Float, Double, Boolean
-- **Common Types** (4): Any, String, CharSequence, Throwable
-- **Interfaces** (4): Cloneable, Comparable, Enum, Annotation
-- **Read-only Collections** (8): Iterator, Iterable, Collection, Set, List, ListIterator, Map, Map.Entry
-- **Mutable Collections** (8): MutableIterator, MutableIterable, MutableCollection, MutableSet, MutableList, MutableListIterator, MutableMap, MutableMap.MutableEntry
+### Primitive Types
+- `kotlin.Byte` ↔ `java.lang.Byte`
+- `kotlin.Short` ↔ `java.lang.Short`
+- `kotlin.Int` ↔ `java.lang.Integer`
+- `kotlin.Long` ↔ `java.lang.Long`
+- `kotlin.Char` ↔ `java.lang.Character`
+- `kotlin.Float` ↔ `java.lang.Float`
+- `kotlin.Double` ↔ `java.lang.Double`
+- `kotlin.Boolean` ↔ `java.lang.Boolean`
+
+### Common Types
+- `kotlin.Any` ↔ `java.lang.Object`
+- `kotlin.String` ↔ `java.lang.String`
+- `kotlin.CharSequence` ↔ `java.lang.CharSequence`
+- `kotlin.Throwable` ↔ `java.lang.Throwable`
+
+### Interfaces
+- `kotlin.Cloneable` ↔ `java.lang.Cloneable`
+- `kotlin.Comparable` ↔ `java.lang.Comparable`
+- `kotlin.Enum` ↔ `java.lang.Enum`
+- `kotlin.Annotation` ↔ `java.lang.annotation.Annotation`
+
+### Collections (Read-only)
+- `kotlin.collections.Iterator` ↔ `java.util.Iterator`
+- `kotlin.collections.Iterable` ↔ `java.lang.Iterable`
+- `kotlin.collections.Collection` ↔ `java.util.Collection`
+- `kotlin.collections.Set` ↔ `java.util.Set`
+- `kotlin.collections.List` ↔ `java.util.List`
+- `kotlin.collections.ListIterator` ↔ `java.util.ListIterator`
+- `kotlin.collections.Map` ↔ `java.util.Map`
+- `kotlin.collections.Map.Entry` ↔ `java.util.Map.Entry`
+
+### Collections (Mutable)
+- `kotlin.collections.MutableIterator` ↔ `java.util.Iterator`
+- `kotlin.collections.MutableIterable` ↔ `java.lang.Iterable`
+- `kotlin.collections.MutableCollection` ↔ `java.util.Collection`
+- `kotlin.collections.MutableSet` ↔ `java.util.Set`
+- `kotlin.collections.MutableList` ↔ `java.util.List`
+- `kotlin.collections.MutableListIterator` ↔ `java.util.ListIterator`
+- `kotlin.collections.MutableMap` ↔ `java.util.Map`
+- `kotlin.collections.MutableMap.MutableEntry` ↔ `java.util.Map.Entry`
 
 ## How It Works
 

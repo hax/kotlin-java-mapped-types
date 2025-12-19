@@ -8,6 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "generate": "node --experimental-strip-types src/generate-all.ts",
     "generate:mapping-details": "node --experimental-strip-types src/generate-mapping-details.ts",
     "generate:mapped-types": "node --experimental-strip-types src/generate-mapped-types-yaml.ts",
@@ -20,6 +21,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.0.3",
     "cheerio": "^1.1.2",
+    "typescript": "^5.9.3",
     "yaml": "^2.8.2"
   }
 }

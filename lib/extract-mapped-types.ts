@@ -55,8 +55,9 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
               const javaType = $(cells[1]).text().trim();
               
               // Skip empty rows and header rows
+              // Validate that types start with proper package names
               if (kotlinType && javaType && 
-                  kotlinType.includes('kotlin') && javaType.includes('java')) {
+                  /^kotlin\./.test(kotlinType) && /^java\./.test(javaType)) {
                 mappings.push({ kotlin: kotlinType, java: javaType });
               }
             }

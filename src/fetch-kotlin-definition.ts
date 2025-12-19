@@ -3,7 +3,7 @@
  * Fetch Kotlin type definitions from official Kotlin API documentation
  */
 
-import { getKotlinTypeInfo } from './fetch-kotlin-api.js';
+import { getKotlinTypeInfo } from './fetch-kotlin-api.ts';
 
 /**
  * Generate Kotlin type definition from fetched data

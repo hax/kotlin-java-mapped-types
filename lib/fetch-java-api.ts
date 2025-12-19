@@ -57,26 +57,37 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     }
     
     // Extract method signatures
-    // Android docs structure: look for method details in the documentation
-    $('.api-item').each((_, element) => {
-      const $elem = $(element);
-      const signature = $elem.find('.api-signature').text().trim();
+    // Android docs structure: methods are in tables with class 'responsive' or similar
+    // Try multiple selectors to handle different Android documentation versions
+    const methodRows = $('table.responsive tbody tr, table.methods tbody tr, .devsite-table-wrapper table tbody tr');
+    
+    methodRows.each((_, element) => {
+      const $row = $(element);
+      const cells = $row.find('td');
       
-      if (signature) {
-        // Parse signature to extract method info
-        // This is a simplified parsing - real implementation would be more robust
-        const methodMatch = signature.match(/(\w+)\s+(\w+)\s*\(([^)]*)\)/);
-        if (methodMatch) {
-          const returnType = methodMatch[1];
-          const name = methodMatch[2];
-          const params = methodMatch[3] ? methodMatch[3].split(',').map(p => p.trim()) : [];
-          
-          typeInfo.methods.push({
-            modifiers: ['public'],
-            returnType,
-            name,
-            parameters: params
-          });
+      if (cells.length >= 2) {
+        // First cell typically contains return type
+        const returnType = cells.first().text().trim();
+        
+        // Second cell contains method signature (name and parameters)
+        const methodCell = cells.eq(1);
+        const codeText = methodCell.find('code').first().text().trim();
+        
+        if (codeText) {
+          // Parse method name and parameters from code text
+          // Format: methodName(params) or <a>methodName</a>(params)
+          const methodMatch = codeText.match(/(\w+)\s*\(([^)]*)\)/);
+          if (methodMatch) {
+            const name = methodMatch[1];
+            const params = methodMatch[2] ? methodMatch[2].split(',').map(p => p.trim()) : [];
+            
+            typeInfo.methods.push({
+              modifiers: ['public'],
+              returnType,
+              name,
+              parameters: params
+            });
+          }
         }
       }
     });

@@ -110,7 +110,7 @@ The mapping generation follows these steps:
 
 To add a new type mapping:
 
-1. Add the mapping to the `MAPPED_TYPES` array in `src/generate-all.ts`
+1. Add the mapping to the `MAPPED_TYPES` array in `lib/generate-all.ts`
 2. Run `npm run generate` to fetch and generate all files
 3. The system will automatically:
    - Fetch type information from official docs

@@ -39,7 +39,7 @@ npm run generate:mapped-types
 
 ```
 .
-├── src/                          # TypeScript 源文件
+├── lib/                          # TypeScript 源文件
 │   ├── fetch-java-api.ts        # 从 Android 文档获取
 │   ├── fetch-kotlin-api.ts      # 从 Kotlin 文档获取
 │   ├── fetch-java-definition.ts # 生成 Java 定义

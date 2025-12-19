@@ -9,9 +9,9 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "generate": "node --experimental-strip-types src/generate-all.ts",
-    "generate:mapping-details": "node --experimental-strip-types src/generate-mapping-details.ts",
-    "generate:mapped-types": "node --experimental-strip-types src/generate-mapped-types-yaml.ts",
+    "generate": "node --experimental-strip-types lib/generate-all.ts",
+    "generate:mapping-details": "node --experimental-strip-types lib/generate-mapping-details.ts",
+    "generate:mapped-types": "node --experimental-strip-types lib/generate-mapped-types-yaml.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

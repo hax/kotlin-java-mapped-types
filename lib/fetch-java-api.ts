@@ -21,10 +21,12 @@ interface JavaTypeInfo {
 }
 
 // CSS selectors for different Android documentation table structures
+// Covers: table.responsive (common), table.methods (older), .devsite-table-wrapper (newer)
 const METHOD_TABLE_SELECTORS = 'table.responsive tbody tr, table.methods tbody tr, .devsite-table-wrapper table tbody tr';
 
 // Regex to extract method name and parameters from method signature
 // Matches: methodName(param1, param2, ...) or methodName()
+// Note: This is a simplified pattern. Complex generics with nested commas may require more robust parsing.
 const METHOD_SIGNATURE_PATTERN = /(\w+)\s*\(([^)]*)\)/;
 
 /**
@@ -86,6 +88,8 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
           const methodMatch = codeText.match(METHOD_SIGNATURE_PATTERN);
           if (methodMatch) {
             const name = methodMatch[1];
+            // Note: Simple comma split - doesn't handle complex generics like Map<K,V>
+            // For basic types and most common cases, this is sufficient
             const params = methodMatch[2] 
               ? methodMatch[2].split(',').map(p => p.trim()).filter(p => p.length > 0)
               : [];

@@ -20,6 +20,13 @@ interface JavaTypeInfo {
   methods: MethodSignature[];
 }
 
+// CSS selectors for different Android documentation table structures
+const METHOD_TABLE_SELECTORS = 'table.responsive tbody tr, table.methods tbody tr, .devsite-table-wrapper table tbody tr';
+
+// Regex to extract method name and parameters from method signature
+// Matches: methodName(param1, param2, ...) or methodName()
+const METHOD_SIGNATURE_PATTERN = /(\w+)\s*\(([^)]*)\)/;
+
 /**
  * Fetch and parse Java type from Android documentation
  */
@@ -59,7 +66,7 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     // Extract method signatures
     // Android docs structure: methods are in tables with class 'responsive' or similar
     // Try multiple selectors to handle different Android documentation versions
-    const methodRows = $('table.responsive tbody tr, table.methods tbody tr, .devsite-table-wrapper table tbody tr');
+    const methodRows = $(METHOD_TABLE_SELECTORS);
     
     methodRows.each((_, element) => {
       const $row = $(element);
@@ -76,10 +83,12 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
         if (codeText) {
           // Parse method name and parameters from code text
           // Format: methodName(params) or <a>methodName</a>(params)
-          const methodMatch = codeText.match(/(\w+)\s*\(([^)]*)\)/);
+          const methodMatch = codeText.match(METHOD_SIGNATURE_PATTERN);
           if (methodMatch) {
             const name = methodMatch[1];
-            const params = methodMatch[2] ? methodMatch[2].split(',').map(p => p.trim()) : [];
+            const params = methodMatch[2] 
+              ? methodMatch[2].split(',').map(p => p.trim()).filter(p => p.length > 0)
+              : [];
             
             typeInfo.methods.push({
               modifiers: ['public'],

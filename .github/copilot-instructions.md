@@ -28,7 +28,8 @@ This is a documentation generator for Kotlin-Java type mappings. The project gen
 │   ├── fetch-kotlin-definition.ts   # Generate Kotlin definitions
 │   ├── generate-mapping-details.ts  # Create signature mappings
 │   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
-│   └── generate-all.ts              # Main orchestrator
+│   ├── generate-all.ts              # Main orchestrator
+│   └── extract-mapped-types.ts      # Utility to create mapping directories
 ├── mappings/                         # Generated output (gitignored)
 │   └── <kotlin_Type>_to_<java_Type>/
 │       ├── java-definition.java
@@ -152,3 +153,4 @@ When adding dependencies:
 - Add type definitions (`@types/*`) as devDependencies if the package doesn't include built-in types
 - Use `npm install` (updates package-lock.json)
 - Note: The project uses the `yaml` package (which has built-in types), not `js-yaml`
+  - `@types/js-yaml` is a leftover dev dependency from previous implementation and can be ignored

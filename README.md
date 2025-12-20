@@ -41,6 +41,7 @@ npm run generate:mapped-types
 .
 ├── lib/                          # TypeScript source files
 │   ├── extract-mapped-types.ts  # Extract type mappings from Kotlin documentation
+│   ├── extract-mapped-types-cli.ts # CLI script to run extraction
 │   ├── fetch-java-api.ts        # Fetch from Android docs
 │   ├── fetch-kotlin-api.ts      # Fetch from Kotlin docs
 │   ├── fetch-java-definition.ts # Generate Java definitions

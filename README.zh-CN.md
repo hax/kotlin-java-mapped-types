@@ -41,6 +41,7 @@ npm run generate:mapped-types
 .
 ├── lib/                          # TypeScript 源文件
 │   ├── extract-mapped-types.ts  # 从 Kotlin 文档提取类型映射
+│   ├── extract-mapped-types-cli.ts # 运行提取的 CLI 脚本
 │   ├── fetch-java-api.ts        # 从 Android 文档获取
 │   ├── fetch-kotlin-api.ts      # 从 Kotlin 文档获取
 │   ├── fetch-java-definition.ts # 生成 Java 定义

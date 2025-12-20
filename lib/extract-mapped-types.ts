@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Extract Kotlin-Java mapped types from Kotlin documentation
  */
@@ -133,20 +132,4 @@ function getFallbackMappings(): TypeMapping[] {
     { kotlin: 'kotlin.collections.MutableMap', java: 'java.util.Map' },
     { kotlin: 'kotlin.collections.MutableMap.MutableEntry', java: 'java.util.Map.Entry' },
   ];
-}
-
-async function main() {
-  console.log('Extracting Kotlin-Java mapped types from documentation...\n');
-  
-  const mappings = await extractMappedTypesFromDocs();
-  
-  console.log(`\nFound ${mappings.length} type mappings:`);
-  for (const mapping of mappings) {
-    console.log(`  ${mapping.kotlin} <-> ${mapping.java}`);
-  }
-}
-
-// Run if this is the main module
-if (import.meta.url.endsWith(process.argv[1])) {
-  main().catch(console.error);
 }

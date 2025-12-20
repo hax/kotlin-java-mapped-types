@@ -5,7 +5,7 @@
 This project uses a two-phase architecture that separates data fetching from mapping generation:
 
 ### Phase 1: Sync (`npm run sync`)
-Fetches raw HTML pages from official documentation and caches them locally.
+Fetches raw HTML pages from official documentation and caches them locally with intelligent HTTP caching.
 
 **Process:**
 1. Downloads Kotlin interop documentation from kotlinlang.org
@@ -14,7 +14,17 @@ Fetches raw HTML pages from official documentation and caches them locally.
    - Fetches raw HTML page for Kotlin type from kotlinlang.org/api/core/kotlin-stdlib/
    - Fetches raw HTML page for Java type from developer.android.com/reference/
 4. Caches all fetched HTML in `resources/` directory without parsing
-5. Uses smart comparison - only updates files that have changed
+5. Uses RFC 7234 compliant HTTP caching with If-Modified-Since and ETag headers
+6. Only re-downloads resources that have changed on the remote servers
+
+**HTTP Caching:**
+The sync phase uses [`make-fetch-happen`](https://github.com/npm/make-fetch-happen) for intelligent HTTP caching:
+- Automatically sends If-Modified-Since and ETag headers with requests
+- Caches responses in disk storage (system temp directory by default)
+- Validates cached responses with remote servers
+- Only downloads full content when resources have changed
+- Includes automatic retry logic for transient network failures
+- RFC 7234 compliant caching semantics
 
 **Output:**
 - `resources/mapped-types.yaml` - List of 32 type mappings
@@ -52,6 +62,13 @@ Parses cached HTML and generates mapping details without requiring network acces
 - Cached data ensures consistent results across environments
 - Version control tracks changes to upstream APIs
 - Easy to reproduce builds
+
+**HTTP Caching Benefits:**
+- Intelligent caching avoids re-downloading unchanged resources
+- Dramatically reduces sync time on subsequent runs
+- Respects server cache headers (If-Modified-Since, ETag)
+- Automatic validation of cached content
+- Built-in retry logic for network reliability
 
 **Separation of Concerns:**
 - Data fetching stores only raw HTML (original source material)
@@ -115,6 +132,14 @@ Signature-to-signature mappings:
 ```
 
 ## Implementation Notes
+
+**HTTP Caching:**
+- Uses `make-fetch-happen` library for RFC 7234 compliant HTTP caching
+- Unified caching logic in `lib/http-cache.ts` module
+- Eliminates code duplication across fetch functions
+- Cache stored in system temp directory (`/tmp/kotlin-java-mapped-types-cache/`)
+- All HTTP requests go through the centralized caching layer
+- Supports cache clearing via exported `clearCache()` function
 
 **File Naming Convention:**
 - Kotlin HTML files: `kotlin_<Type>.html` (dots replaced with underscores)

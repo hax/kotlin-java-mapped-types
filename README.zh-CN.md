@@ -137,10 +137,10 @@ mappings:
 ## 工作原理
 
 **同步阶段** (`npm run sync`):
-1. **获取文档**：下载包含映射类型表的 Kotlin 文档页面
+1. **获取文档**：使用 HTTP 缓存下载包含映射类型表的 Kotlin 文档页面
 2. **提取映射类型**：解析文档提取 32 个类型映射并保存到 `resources/mapped-types.yaml`
-3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名并缓存到 `resources/kotlin/` 和 `resources/java/`
-4. **智能更新**：比较新内容与现有缓存文件，仅在有变化时更新
+3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名，自动使用 HTTP 缓存（If-Modified-Since、ETag）
+4. **智能缓存**：使用符合 RFC 7234 的 HTTP 缓存机制，避免重新下载未更改的资源，显著提高后续同步的性能
 
 **生成阶段** (`npm run generate`):
 1. **读取缓存数据**：从 `resources/mapped-types.yaml` 加载类型映射
@@ -149,7 +149,16 @@ mappings:
 4. **生成映射**：创建记录签名到签名映射的 `mapping-details.yaml` 文件
 5. **聚合**：将所有映射信息合并到主 `mapped-types.yaml`
 
-这种两阶段架构允许在初始同步后完全离线地进行生成过程。
+这种两阶段架构允许在初始同步后完全离线地进行生成过程。HTTP 缓存层确保后续同步仅下载远程服务器上实际更改的资源。
+
+## HTTP 缓存
+
+项目使用 [`make-fetch-happen`](https://github.com/npm/make-fetch-happen) 进行智能 HTTP 缓存：
+- **自动缓存头**：支持 If-Modified-Since 和 ETag 头
+- **RFC 7234 合规**：符合行业标准的 HTTP 缓存语义
+- **重试逻辑**：自动重试瞬时网络故障
+- **基于磁盘的存储**：在系统临时目录中缓存响应
+- **性能提升**：显著减少网络调用和未更改资源的同步时间
 
 ## 许可证
 

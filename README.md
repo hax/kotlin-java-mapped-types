@@ -173,10 +173,10 @@ The project covers 32 type mappings between Kotlin and Java:
 ## How It Works
 
 **Sync Phase** (`npm run sync`):
-1. **Fetch Documentation**: Downloads the Kotlin documentation page containing the mapped types table
+1. **Fetch Documentation**: Downloads the Kotlin documentation page containing the mapped types table using HTTP caching
 2. **Extract Mapped Types**: Parses the documentation to extract the 32 type mappings and saves to `resources/mapped-types.yaml`
-3. **Fetch Type Definitions**: For each mapped type, fetches Kotlin and Java type signatures from official documentation and caches to `resources/kotlin/` and `resources/java/`
-4. **Smart Updates**: Compares new content with existing cached files and only updates if changed
+3. **Fetch Type Definitions**: For each mapped type, fetches Kotlin and Java type signatures from official documentation with automatic HTTP caching (If-Modified-Since, ETag)
+4. **Smart Caching**: Uses RFC 7234 compliant HTTP caching to avoid re-downloading unchanged resources, significantly improving sync performance on subsequent runs
 
 **Generate Phase** (`npm run generate`):
 1. **Read Cached Data**: Loads type mappings from `resources/mapped-types.yaml`
@@ -185,7 +185,16 @@ The project covers 32 type mappings between Kotlin and Java:
 4. **Generate Mappings**: Creates `mapping-details.yaml` files documenting signature-to-signature mappings
 5. **Aggregate**: Combines all mapping information into the master `mapped-types.yaml`
 
-This two-phase architecture enables offline generation after the initial sync.
+This two-phase architecture enables offline generation after the initial sync. The HTTP caching layer ensures that subsequent syncs only download resources that have actually changed on the remote servers.
+
+## HTTP Caching
+
+The project uses [`make-fetch-happen`](https://github.com/npm/make-fetch-happen) for intelligent HTTP caching:
+- **Automatic Cache Headers**: Supports If-Modified-Since and ETag headers
+- **RFC 7234 Compliant**: Industry-standard HTTP caching semantics
+- **Retry Logic**: Automatic retries for transient network failures
+- **Disk-based Storage**: Caches responses in the system temp directory
+- **Performance**: Dramatically reduces network calls and sync time for unchanged resources
 
 ## License
 

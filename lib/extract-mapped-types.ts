@@ -12,6 +12,9 @@ export interface TypeMapping {
 /**
  * Fetch and extract mapped types from Kotlin documentation
  * https://kotlinlang.org/docs/java-interop.html#mapped-types
+ * 
+ * Note: This function throws errors instead of falling back to hardcoded mappings.
+ * This ensures we catch documentation structure changes early rather than using stale data.
  */
 export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
   try {

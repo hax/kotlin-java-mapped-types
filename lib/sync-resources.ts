@@ -189,6 +189,9 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
 /**
  * Convert Kotlin type name to documentation URL
  * Handles nested types like Map.Entry by converting all class names to kebab-case
+ * 
+ * Note: This function assumes package names are lowercase and class names start with uppercase.
+ * This follows the standard Kotlin/Java naming conventions.
  */
 function typeNameToKotlinUrl(typeName: string): string {
   const parts = typeName.split('.');
@@ -214,6 +217,9 @@ function typeNameToKotlinUrl(typeName: string): string {
 /**
  * Convert Java type name to Android documentation URL
  * Handles nested types like Map.Entry by keeping dots for nested classes
+ * 
+ * Note: This function assumes package names are lowercase and class names start with uppercase.
+ * This follows the standard Kotlin/Java naming conventions.
  */
 function typeNameToJavaUrl(typeName: string): string {
   const parts = typeName.split('.');

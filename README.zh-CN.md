@@ -18,7 +18,7 @@
 
 ### 前置要求
 
-- Node.js >= 18.0.0
+- Node.js >= 22.0.0 (支持原生 TypeScript)
 
 ### 安装
 
@@ -26,7 +26,7 @@
 npm install
 ```
 
-### 工作流程
+### 生成映射
 
 ```bash
 # 步骤 1：同步数据源（需要网络访问）
@@ -43,26 +43,11 @@ npm run generate:mapping-details
 npm run generate:mapped-types
 ```
 
-### 验证
-
-要验证架构是否正常工作：
-
-```bash
-./verify.sh
-```
-
-这将测试：
-- Resources 目录结构
-- TypeScript 编译
-- 从缓存数据离线生成
-- 映射聚合
-
 ## 项目结构
 
 ```
 .
 ├── lib/                          # TypeScript 源文件
-│   ├── sync-resources.ts         # 同步脚本，获取并缓存数据
 │   ├── extract-mapped-types.ts  # 从 Kotlin 文档提取类型映射
 │   ├── fetch-java-api.ts        # 从 Android 文档获取
 │   ├── fetch-kotlin-api.ts      # 从 Kotlin 文档获取
@@ -70,14 +55,12 @@ npm run generate:mapped-types
 │   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
 │   ├── generate-mapping-details.ts # 创建签名映射
 │   ├── generate-mapped-types-yaml.ts # 聚合所有映射
-│   └── generate-all.ts          # 主生成器（从 resources 读取）
-├── resources/                    # 缓存的数据源（提交到 git）
-│   ├── kotlin-doc.html          # 缓存的 Kotlin 文档页面
+│   ├── generate-all.ts          # 主生成器（从 resources 读取）
+│   └── sync-resources.ts        # 同步脚本，获取并缓存数据
+├── resources/                    # 缓存的数据源
 │   ├── mapped-types.yaml        # 所有映射类型列表
 │   ├── kotlin/                  # 缓存的 Kotlin 类型定义
-│   │   └── *.kt                 # 每个 Kotlin 类型一个文件
 │   └── java/                    # 缓存的 Java 类型定义
-│       └── *.java               # 每个 Java 类型一个文件
 ├── mappings/                     # 生成的映射目录
 │   └── <kotlin类型>_to_<java类型>/
 │       ├── java-definition.java     # 带签名的 Java 类型
@@ -85,33 +68,6 @@ npm run generate:mapped-types
 │       └── mapping-details.yaml     # 签名到签名的映射
 └── mapped-types.yaml             # 主映射文件（生成）
 ```
-
-## 架构
-
-### 两阶段设计
-
-**阶段 1：同步 (`npm run sync`)**
-- 获取包含映射类型的 Kotlin 文档页面
-- 提取 32 个映射类型列表到 `resources/mapped-types.yaml`
-- 获取所有 Kotlin 类型定义并保存到 `resources/kotlin/`
-- 获取所有 Java 类型定义并保存到 `resources/java/`
-- 与现有缓存数据比较，仅在有变化时更新
-- **需要网络访问**
-
-**阶段 2：生成 (`npm run generate`)**
-- 从 `resources/` 目录读取缓存数据
-- 通过比较 Kotlin 和 Java 签名生成映射详情
-- 在 `mappings/` 目录创建输出
-- 将映射聚合到 `mapped-types.yaml`
-- **可离线工作 - 不需要网络访问**
-
-### 优势
-
-- **离线能力**：无需网络访问即可生成映射
-- **更快的迭代**：开发不需要重复的 API 调用
-- **可重现性**：缓存数据确保一致的结果
-- **版本控制**：上游 API 的变化在差异中可见
-- **关注点分离**：数据获取与处理分离
 
 ## 类型定义
 
@@ -180,22 +136,18 @@ mappings:
 
 ## 工作原理
 
-### 同步阶段 (`npm run sync`)
+**同步阶段** (`npm run sync`):
 1. **获取文档**：下载包含映射类型表的 Kotlin 文档页面
 2. **提取映射类型**：解析文档提取 32 个类型映射并保存到 `resources/mapped-types.yaml`
-3. **获取类型定义**：对每个映射类型：
-   - 从官方 Kotlin API 文档获取 Kotlin 类型签名
-   - 从官方 Android API 文档获取 Java 类型签名
-   - 将两个定义缓存到 `resources/kotlin/` 和 `resources/java/`
+3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名并缓存到 `resources/kotlin/` 和 `resources/java/`
 4. **智能更新**：比较新内容与现有缓存文件，仅在有变化时更新
 
-### 生成阶段 (`npm run generate`)
+**生成阶段** (`npm run generate`):
 1. **读取缓存数据**：从 `resources/mapped-types.yaml` 加载类型映射
-2. **读取类型定义**：从 `resources/` 加载缓存的 Kotlin 和 Java 定义
-3. **生成定义**：将定义文件复制到 `mappings/` 中的各个映射目录
-4. **比较签名**：解析定义并匹配语言间的签名
-5. **生成映射**：创建记录签名到签名映射的 `mapping-details.yaml` 文件
-6. **聚合**：将所有映射信息合并到主 `mapped-types.yaml`
+2. **生成定义**：将缓存的定义文件复制到各个映射目录
+3. **比较签名**：解析定义并匹配语言间的签名
+4. **生成映射**：创建记录签名到签名映射的 `mapping-details.yaml` 文件
+5. **聚合**：将所有映射信息合并到主 `mapped-types.yaml`
 
 这种两阶段架构允许在初始同步后完全离线地进行生成过程。
 

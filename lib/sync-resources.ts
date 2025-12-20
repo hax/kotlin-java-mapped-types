@@ -11,7 +11,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
-import { extractMappedTypesFromDocs, TypeMapping } from './extract-mapped-types.ts';
+import { extractMappedTypesFromDocs } from './extract-mapped-types.ts';
+import type { TypeMapping } from './extract-mapped-types.ts';
 import { generateJavaDefinition } from './fetch-java-definition.ts';
 import { generateKotlinDefinition } from './fetch-kotlin-definition.ts';
 

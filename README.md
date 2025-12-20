@@ -18,7 +18,7 @@ Type information is sourced from:
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
+- Node.js >= 22.0.0 (for native TypeScript support)
 
 ### Installation
 
@@ -26,7 +26,7 @@ Type information is sourced from:
 npm install
 ```
 
-### Workflow
+### Generate Mappings
 
 ```bash
 # Step 1: Sync data sources (requires network access)
@@ -43,26 +43,11 @@ npm run generate:mapping-details
 npm run generate:mapped-types
 ```
 
-### Verification
-
-To verify the architecture is working correctly:
-
-```bash
-./verify.sh
-```
-
-This will test:
-- Resources directory structure
-- TypeScript compilation
-- Offline generation from cached data
-- Mapping aggregation
-
 ## Project Structure
 
 ```
 .
 ├── lib/                          # TypeScript source files
-│   ├── sync-resources.ts         # Sync script to fetch and cache data
 │   ├── extract-mapped-types.ts  # Extract type mappings from Kotlin documentation
 │   ├── fetch-java-api.ts        # Fetch from Android docs
 │   ├── fetch-kotlin-api.ts      # Fetch from Kotlin docs
@@ -70,14 +55,12 @@ This will test:
 │   ├── fetch-kotlin-definition.ts # Generate Kotlin definitions
 │   ├── generate-mapping-details.ts # Create signature mappings
 │   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
-│   └── generate-all.ts          # Main generator (reads from resources)
-├── resources/                    # Cached data sources (committed to git)
-│   ├── kotlin-doc.html          # Cached Kotlin documentation page
+│   ├── generate-all.ts          # Main generator (reads from resources)
+│   └── sync-resources.ts        # Sync script to fetch and cache data
+├── resources/                    # Cached data sources
 │   ├── mapped-types.yaml        # List of all mapped types
 │   ├── kotlin/                  # Cached Kotlin type definitions
-│   │   └── *.kt                 # One file per Kotlin type
 │   └── java/                    # Cached Java type definitions
-│       └── *.java               # One file per Java type
 ├── mappings/                     # Generated mapping directories
 │   └── <kotlin_Type>_to_<java_Type>/
 │       ├── java-definition.java     # Java type with signatures
@@ -85,33 +68,6 @@ This will test:
 │       └── mapping-details.yaml     # Signature-to-signature mappings
 └── mapped-types.yaml             # Master mapping file (generated)
 ```
-
-## Architecture
-
-### Two-Phase Design
-
-**Phase 1: Sync (`npm run sync`)**
-- Fetches the Kotlin documentation page containing mapped types
-- Extracts the list of 32 mapped types to `resources/mapped-types.yaml`
-- Fetches all Kotlin type definitions and saves to `resources/kotlin/`
-- Fetches all Java type definitions and saves to `resources/java/`
-- Compares with existing cached data and only updates if changed
-- **Requires network access**
-
-**Phase 2: Generate (`npm run generate`)**
-- Reads cached data from `resources/` directory
-- Generates mapping details by comparing Kotlin and Java signatures
-- Creates output in `mappings/` directory
-- Aggregates mappings into `mapped-types.yaml`
-- **Works offline - no network access required**
-
-### Benefits
-
-- **Offline capability**: Generate mappings without network access
-- **Faster iteration**: Development doesn't require repeated API calls
-- **Reproducibility**: Cached data ensures consistent results
-- **Version control**: Changes to upstream APIs are visible in diffs
-- **Separation of concerns**: Data fetching separated from processing
 
 ## Type Definitions
 
@@ -216,24 +172,20 @@ The project covers 32 type mappings between Kotlin and Java:
 
 ## How It Works
 
-### Sync Phase (`npm run sync`)
+**Sync Phase** (`npm run sync`):
 1. **Fetch Documentation**: Downloads the Kotlin documentation page containing the mapped types table
 2. **Extract Mapped Types**: Parses the documentation to extract the 32 type mappings and saves to `resources/mapped-types.yaml`
-3. **Fetch Type Definitions**: For each mapped type:
-   - Fetches Kotlin type signatures from the official Kotlin API documentation
-   - Fetches Java type signatures from the official Android API documentation
-   - Caches both definitions in `resources/kotlin/` and `resources/java/`
+3. **Fetch Type Definitions**: For each mapped type, fetches Kotlin and Java type signatures from official documentation and caches to `resources/kotlin/` and `resources/java/`
 4. **Smart Updates**: Compares new content with existing cached files and only updates if changed
 
-### Generate Phase (`npm run generate`)
+**Generate Phase** (`npm run generate`):
 1. **Read Cached Data**: Loads type mappings from `resources/mapped-types.yaml`
-2. **Read Type Definitions**: Loads cached Kotlin and Java definitions from `resources/`
-3. **Generate Definitions**: Copies definition files to individual mapping directories in `mappings/`
-4. **Compare Signatures**: Parses definitions and matches signatures between languages
-5. **Generate Mappings**: Creates `mapping-details.yaml` files documenting signature-to-signature mappings
-6. **Aggregate**: Combines all mapping information into the master `mapped-types.yaml`
+2. **Generate Definitions**: Copies cached definition files to individual mapping directories
+3. **Compare Signatures**: Parses definitions and matches signatures between languages
+4. **Generate Mappings**: Creates `mapping-details.yaml` files documenting signature-to-signature mappings
+5. **Aggregate**: Combines all mapping information into the master `mapped-types.yaml`
 
-This two-phase architecture allows the generation process to work entirely offline after the initial sync.
+This two-phase architecture enables offline generation after the initial sync.
 
 ## License
 

@@ -40,6 +40,8 @@ npm run generate:mapped-types
 ```
 .
 ├── lib/                          # TypeScript source files
+│   ├── extract-mapped-types.ts  # Extract type mappings from Kotlin documentation
+│   ├── extract-mapped-types-cli.ts # CLI script to run extraction
 │   ├── fetch-java-api.ts        # Fetch from Android docs
 │   ├── fetch-kotlin-api.ts      # Fetch from Kotlin docs
 │   ├── fetch-java-definition.ts # Generate Java definitions
@@ -158,11 +160,12 @@ The project covers 32 type mappings between Kotlin and Java:
 
 ## How It Works
 
-1. **Fetch Type Information**: Scripts fetch type signatures from official Android and Kotlin API documentation
-2. **Generate Definitions**: Create Java and Kotlin definition files with complete signatures
-3. **Compare Signatures**: Parse definitions and match signatures between languages
-4. **Generate Mappings**: Create YAML files documenting the mappings
-5. **Aggregate**: Combine all mapping information into `mapped-types.yaml`
+1. **Extract Mapped Types**: First, the list of type mappings is extracted from the official Kotlin documentation at https://kotlinlang.org/docs/java-interop.html
+2. **Fetch Type Information**: Scripts fetch type signatures from official Android and Kotlin API documentation
+3. **Generate Definitions**: Create Java and Kotlin definition files with complete signatures
+4. **Compare Signatures**: Parse definitions and match signatures between languages
+5. **Generate Mappings**: Create YAML files documenting the mappings
+6. **Aggregate**: Combine all mapping information into `mapped-types.yaml`
 
 ## License
 

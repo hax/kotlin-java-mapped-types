@@ -40,6 +40,8 @@ npm run generate:mapped-types
 ```
 .
 ├── lib/                          # TypeScript 源文件
+│   ├── extract-mapped-types.ts  # 从 Kotlin 文档提取类型映射
+│   ├── extract-mapped-types-cli.ts # 运行提取的 CLI 脚本
 │   ├── fetch-java-api.ts        # 从 Android 文档获取
 │   ├── fetch-kotlin-api.ts      # 从 Kotlin 文档获取
 │   ├── fetch-java-definition.ts # 生成 Java 定义
@@ -122,11 +124,12 @@ mappings:
 
 ## 工作原理
 
-1. **获取类型信息**：脚本从官方 Android 和 Kotlin API 文档获取类型签名
-2. **生成定义**：创建带完整签名的 Java 和 Kotlin 定义文件
-3. **比较签名**：解析定义并匹配语言间的签名
-4. **生成映射**：创建记录映射的 YAML 文件
-5. **聚合**：将所有映射信息合并到 `mapped-types.yaml`
+1. **提取映射类型**：首先，从官方 Kotlin 文档 https://kotlinlang.org/docs/java-interop.html 提取类型映射列表
+2. **获取类型信息**：脚本从官方 Android 和 Kotlin API 文档获取类型签名
+3. **生成定义**：创建带完整签名的 Java 和 Kotlin 定义文件
+4. **比较签名**：解析定义并匹配语言间的签名
+5. **生成映射**：创建记录映射的 YAML 文件
+6. **聚合**：将所有映射信息合并到 `mapped-types.yaml`
 
 ## 许可证
 

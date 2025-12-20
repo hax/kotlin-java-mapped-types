@@ -73,13 +73,11 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
     });
     
     if (!foundMappings) {
-      console.warn('Warning: Could not extract mappings from documentation');
+      throw new Error('Could not find mapped-types section in documentation');
     }
     
     if (mappings.length === 0) {
-      console.warn('Warning: No mappings extracted from documentation, using fallback');
-      // Fallback to known mappings if extraction fails
-      return getFallbackMappings();
+      throw new Error('No mappings extracted from documentation');
     }
     
     console.log(`Extracted ${mappings.length} type mappings from documentation`);
@@ -87,49 +85,6 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
     
   } catch (error) {
     console.error('Error extracting mapped types from documentation:', error);
-    console.log('Using fallback mappings...');
-    return getFallbackMappings();
+    throw error;
   }
-}
-
-/**
- * Fallback mapped types in case documentation extraction fails
- * Based on official Kotlin documentation
- * https://kotlinlang.org/docs/java-interop.html#mapped-types
- */
-function getFallbackMappings(): TypeMapping[] {
-  return [
-    { kotlin: 'kotlin.Any', java: 'java.lang.Object' },
-    { kotlin: 'kotlin.Byte', java: 'java.lang.Byte' },
-    { kotlin: 'kotlin.Short', java: 'java.lang.Short' },
-    { kotlin: 'kotlin.Int', java: 'java.lang.Integer' },
-    { kotlin: 'kotlin.Long', java: 'java.lang.Long' },
-    { kotlin: 'kotlin.Char', java: 'java.lang.Character' },
-    { kotlin: 'kotlin.Float', java: 'java.lang.Float' },
-    { kotlin: 'kotlin.Double', java: 'java.lang.Double' },
-    { kotlin: 'kotlin.Boolean', java: 'java.lang.Boolean' },
-    { kotlin: 'kotlin.String', java: 'java.lang.String' },
-    { kotlin: 'kotlin.CharSequence', java: 'java.lang.CharSequence' },
-    { kotlin: 'kotlin.Throwable', java: 'java.lang.Throwable' },
-    { kotlin: 'kotlin.Cloneable', java: 'java.lang.Cloneable' },
-    { kotlin: 'kotlin.Comparable', java: 'java.lang.Comparable' },
-    { kotlin: 'kotlin.Enum', java: 'java.lang.Enum' },
-    { kotlin: 'kotlin.Annotation', java: 'java.lang.annotation.Annotation' },
-    { kotlin: 'kotlin.collections.Iterator', java: 'java.util.Iterator' },
-    { kotlin: 'kotlin.collections.Iterable', java: 'java.lang.Iterable' },
-    { kotlin: 'kotlin.collections.Collection', java: 'java.util.Collection' },
-    { kotlin: 'kotlin.collections.Set', java: 'java.util.Set' },
-    { kotlin: 'kotlin.collections.List', java: 'java.util.List' },
-    { kotlin: 'kotlin.collections.ListIterator', java: 'java.util.ListIterator' },
-    { kotlin: 'kotlin.collections.Map', java: 'java.util.Map' },
-    { kotlin: 'kotlin.collections.Map.Entry', java: 'java.util.Map.Entry' },
-    { kotlin: 'kotlin.collections.MutableIterator', java: 'java.util.Iterator' },
-    { kotlin: 'kotlin.collections.MutableIterable', java: 'java.lang.Iterable' },
-    { kotlin: 'kotlin.collections.MutableCollection', java: 'java.util.Collection' },
-    { kotlin: 'kotlin.collections.MutableSet', java: 'java.util.Set' },
-    { kotlin: 'kotlin.collections.MutableList', java: 'java.util.List' },
-    { kotlin: 'kotlin.collections.MutableListIterator', java: 'java.util.ListIterator' },
-    { kotlin: 'kotlin.collections.MutableMap', java: 'java.util.Map' },
-    { kotlin: 'kotlin.collections.MutableMap.MutableEntry', java: 'java.util.Map.Entry' },
-  ];
 }

@@ -29,18 +29,28 @@ interface KotlinTypeInfo {
 
 /**
  * Convert Kotlin type name to URL format
- * e.g., kotlin.collections.MutableMap -> kotlin.collections/-mutable-map/
+ * Handles nested types like Map.Entry by converting all class names to kebab-case
+ * e.g., kotlin.collections.Map.Entry -> kotlin.collections/-map/-entry/
  */
 function typeNameToPath(typeName: string): string {
   const parts = typeName.split('.');
-  const className = parts[parts.length - 1];
-  const packagePath = parts.slice(0, -1).join('.');
   
-  // Convert class name to kebab-case with leading dash
-  // e.g., MutableMap -> -mutable-map
-  const kebabName = className.replace(/([A-Z])/g, '-$1').toLowerCase();
+  // Find where the package ends and class names begin
+  // Package names are lowercase, class names start with uppercase
+  let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
+  if (packageEndIndex === -1) {
+    packageEndIndex = parts.length;
+  }
   
-  return `${packagePath}/${kebabName}/`;
+  const packagePath = parts.slice(0, packageEndIndex).join('.');
+  const classNames = parts.slice(packageEndIndex);
+  
+  // Convert all class names to kebab-case with leading dash
+  const kebabNames = classNames.map(name => 
+    name.replace(/([A-Z])/g, '-$1').toLowerCase()
+  ).join('/');
+  
+  return `${packagePath}/${kebabNames}/`;
 }
 
 /**

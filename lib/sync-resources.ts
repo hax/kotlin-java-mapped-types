@@ -188,24 +188,47 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
 
 /**
  * Convert Kotlin type name to documentation URL
+ * Handles nested types like Map.Entry by converting all class names to kebab-case
  */
 function typeNameToKotlinUrl(typeName: string): string {
   const parts = typeName.split('.');
-  const className = parts[parts.length - 1];
-  const packagePath = parts.slice(0, -1).join('.');
   
-  // Convert class name to kebab-case with leading dash
-  const kebabName = className.replace(/([A-Z])/g, '-$1').toLowerCase();
+  // Find where the package ends and class names begin
+  // Package names are lowercase, class names start with uppercase
+  let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
+  if (packageEndIndex === -1) {
+    packageEndIndex = parts.length;
+  }
   
-  return `https://kotlinlang.org/api/core/kotlin-stdlib/${packagePath}/${kebabName}/`;
+  const packagePath = parts.slice(0, packageEndIndex).join('.');
+  const classNames = parts.slice(packageEndIndex);
+  
+  // Convert all class names to kebab-case with leading dash
+  const kebabNames = classNames.map(name => 
+    name.replace(/([A-Z])/g, '-$1').toLowerCase()
+  ).join('/');
+  
+  return `https://kotlinlang.org/api/core/kotlin-stdlib/${packagePath}/${kebabNames}/`;
 }
 
 /**
  * Convert Java type name to Android documentation URL
+ * Handles nested types like Map.Entry by keeping dots for nested classes
  */
 function typeNameToJavaUrl(typeName: string): string {
-  const path = typeName.split('.').join('/');
-  return `https://developer.android.com/reference/${path}`;
+  const parts = typeName.split('.');
+  
+  // Find where the package ends and class names begin
+  // Package names are lowercase, class names start with uppercase
+  let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
+  if (packageEndIndex === -1) {
+    packageEndIndex = parts.length;
+  }
+  
+  const packagePath = parts.slice(0, packageEndIndex).join('/');
+  const classPath = parts.slice(packageEndIndex).join('.');
+  
+  return `https://developer.android.com/reference/${packagePath}/${classPath}`;
 }
 
 /**

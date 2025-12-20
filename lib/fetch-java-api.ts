@@ -20,6 +20,15 @@ interface JavaTypeInfo {
   methods: MethodSignature[];
 }
 
+// CSS selectors for different Android documentation table structures
+// Covers: table.responsive (common), table.methods (older), .devsite-table-wrapper (newer)
+const METHOD_TABLE_SELECTORS = 'table.responsive tbody tr, table.methods tbody tr, .devsite-table-wrapper table tbody tr';
+
+// Regex to extract method name and parameters from method signature
+// Matches: methodName(param1, param2, ...) or methodName()
+// Note: This is a simplified pattern. Complex generics with nested commas may require more robust parsing.
+const METHOD_SIGNATURE_PATTERN = /(\w+)\s*\(([^)]*)\)/;
+
 /**
  * Fetch and parse Java type from Android documentation
  */
@@ -57,26 +66,41 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     }
     
     // Extract method signatures
-    // Android docs structure: look for method details in the documentation
-    $('.api-item').each((_, element) => {
-      const $elem = $(element);
-      const signature = $elem.find('.api-signature').text().trim();
+    // Android docs structure: methods are in tables with class 'responsive' or similar
+    // Try multiple selectors to handle different Android documentation versions
+    const methodRows = $(METHOD_TABLE_SELECTORS);
+    
+    methodRows.each((_, element) => {
+      const $row = $(element);
+      const cells = $row.find('td');
       
-      if (signature) {
-        // Parse signature to extract method info
-        // This is a simplified parsing - real implementation would be more robust
-        const methodMatch = signature.match(/(\w+)\s+(\w+)\s*\(([^)]*)\)/);
-        if (methodMatch) {
-          const returnType = methodMatch[1];
-          const name = methodMatch[2];
-          const params = methodMatch[3] ? methodMatch[3].split(',').map(p => p.trim()) : [];
-          
-          typeInfo.methods.push({
-            modifiers: ['public'],
-            returnType,
-            name,
-            parameters: params
-          });
+      if (cells.length >= 2) {
+        // First cell typically contains return type
+        const returnType = cells.first().text().trim();
+        
+        // Second cell contains method signature (name and parameters)
+        const methodCell = cells.eq(1);
+        const codeText = methodCell.find('code').first().text().trim();
+        
+        if (codeText) {
+          // Parse method name and parameters from code text
+          // Format: methodName(params) or <a>methodName</a>(params)
+          const methodMatch = codeText.match(METHOD_SIGNATURE_PATTERN);
+          if (methodMatch) {
+            const name = methodMatch[1];
+            // Note: Simple comma split - doesn't handle complex generics like Map<K,V>
+            // For basic types and most common cases, this is sufficient
+            const params = methodMatch[2] 
+              ? methodMatch[2].split(',').map(p => p.trim()).filter(p => p.length > 0)
+              : [];
+            
+            typeInfo.methods.push({
+              modifiers: ['public'],
+              returnType,
+              name,
+              parameters: params
+            });
+          }
         }
       }
     });

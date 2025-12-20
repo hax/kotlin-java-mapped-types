@@ -1,14 +1,15 @@
 # Resources Directory
 
-This directory contains cached data sources fetched from official Kotlin and Java/Android documentation.
+This directory contains cached raw HTML pages from official Kotlin and Java/Android documentation.
 
 ## Purpose
 
-The resources directory serves as a cache layer, enabling:
-- **Offline development**: Generate mappings without network access
+The resources directory serves as a cache layer for original documentation, enabling:
+- **Offline development**: Generate mappings without network access after initial sync
 - **Reproducibility**: Consistent results across different environments
-- **Version control**: Track changes to upstream APIs
+- **Version control**: Track changes to upstream APIs by comparing HTML diffs
 - **Performance**: Avoid repeated network calls during development
+- **Data integrity**: Store original source material without parsing
 
 ## Structure
 
@@ -16,16 +17,16 @@ The resources directory serves as a cache layer, enabling:
 resources/
 ├── kotlin-doc.html          # Cached Kotlin interop documentation page
 ├── mapped-types.yaml        # List of all 32 Kotlin-Java type mappings
-├── kotlin/                  # Cached Kotlin type definitions
-│   ├── kotlin_Any.kt
-│   ├── kotlin_String.kt
-│   ├── kotlin_Int.kt
-│   └── ...                  # One file per Kotlin type
-└── java/                    # Cached Java type definitions
-    ├── java_lang_Object.java
-    ├── java_lang_String.java
-    ├── java_lang_Integer.java
-    └── ...                  # One file per Java type
+├── kotlin/                  # Cached Kotlin type documentation pages (raw HTML)
+│   ├── kotlin_Any.html
+│   ├── kotlin_String.html
+│   ├── kotlin_Int.html
+│   └── ...                  # One HTML file per Kotlin type (29 files)
+└── java/                    # Cached Java type documentation pages (raw HTML)
+    ├── java_lang_Object.html
+    ├── java_lang_String.html
+    ├── java_lang_Integer.html
+    └── ...                  # One HTML file per Java type (23 files)
 ```
 
 ## Files
@@ -45,42 +46,27 @@ A YAML array listing all 32 type mappings between Kotlin and Java. Format:
 # ... 30 more mappings
 ```
 
-### kotlin/*.kt
-Kotlin type definition files with complete signatures. Each file contains:
-- Package declaration
-- Class/interface declaration with inheritance
-- Property signatures (val/var)
-- Function signatures with parameters and return types
+### kotlin/*.html
+Raw HTML pages from Kotlin API documentation for each mapped type. These are the original documentation pages as fetched from kotlinlang.org, containing:
+- Type declarations
+- Property and function signatures
+- Documentation and examples
+- All HTML structure and styling
 
-Example: `kotlin_String.kt`
-```kotlin
-package kotlin
+Example source: `https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/`
 
-class String : Comparable<String>, CharSequence {
-    override val length: Int
-    override operator fun get(index: Int): Char
-    fun substring(startIndex: Int): String
-    // ...
-}
-```
+The HTML files are parsed during the generate phase to extract type definitions.
 
-### java/*.java
-Java type definition files with complete signatures. Each file contains:
-- Package declaration
-- Class/interface declaration with inheritance
-- Method signatures with modifiers, return types, and parameters
+### java/*.html
+Raw HTML pages from Android API documentation for each mapped type. These are the original documentation pages as fetched from developer.android.com, containing:
+- Class/interface declarations
+- Method signatures
+- Documentation and examples
+- All HTML structure and styling
 
-Example: `java_lang_String.java`
-```java
-package java.lang;
+Example source: `https://developer.android.com/reference/java/lang/String`
 
-public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
-    public char charAt(int index);
-    public int length();
-    public String substring(int beginIndex);
-    // ...
-}
-```
+The HTML files are parsed during the generate phase to extract type definitions.
 
 ## Updating Resources
 
@@ -90,12 +76,26 @@ npm run sync
 ```
 
 This will:
-1. Fetch the latest Kotlin documentation
-2. Extract the current mapped types list
-3. Fetch type definitions for all types
-4. Compare with existing cached files
-5. Update only changed files
+1. Fetch the latest Kotlin documentation page
+2. Extract the current mapped types list to YAML
+3. Fetch raw HTML pages for all Kotlin types
+4. Fetch raw HTML pages for all Java types
+5. Compare with existing cached files
+6. Update only changed files
 
-## Note
+## Architecture
 
-Sample files are included for demonstration purposes. Run `npm run sync` to populate the full cache with all 32 type mappings.
+The two-phase architecture separates concerns:
+
+**Sync Phase** (`npm run sync`):
+- Fetches and caches raw HTML from official documentation
+- No parsing or processing - just stores original pages
+- Requires network access to kotlinlang.org and developer.android.com
+
+**Generate Phase** (`npm run generate`):
+- Reads cached HTML files from resources/
+- Parses HTML to extract type definitions
+- Generates mapping files
+- Works completely offline after sync
+
+This separation ensures that the resources directory contains only original source material, making it easier to track upstream changes and maintain data integrity.

@@ -1,180 +1,176 @@
 package java.lang;
 
-public interface Integer {
+public interface Long {
     public static
         
         
-        int bitCount(int i);
+        int bitCount(long i);
     public byte byteValue();
     public static
         
         
-        int compare(int x, int y);
-    public int compareTo(Integer anotherInteger);
+        int compare(long x, long y);
+    public int compareTo(Long anotherLong);
     public static
         
         
-        int compareUnsigned(int x, int y);
+        int compareUnsigned(long x, long y);
     public static
         
         
-        int compress(int i, int mask);
+        long compress(long i, long mask);
     public static
         
         
-        Integer decode(String nm);
+        Long decode(String nm);
     public static
         
         
-        int divideUnsigned(int dividend, int divisor);
+        long divideUnsigned(long dividend, long divisor);
     public double doubleValue();
     public boolean equals(Object obj);
     public static
         
         
-        int expand(int i, int mask);
+        long expand(long i, long mask);
     public float floatValue();
     public static
         
         
-        Integer getInteger(String nm);
+        Long getLong(String nm, Long val);
     public static
         
         
-        Integer getInteger(String nm, Integer val);
+        Long getLong(String nm, long val);
     public static
         
         
-        Integer getInteger(String nm, int val);
+        Long getLong(String nm);
     public int hashCode();
     public static
         
         
-        int hashCode(int value);
+        int hashCode(long value);
     public static
         
         
-        int highestOneBit(int i);
+        long highestOneBit(long i);
     public int intValue();
     public long longValue();
     public static
         
         
-        int lowestOneBit(int i);
+        long lowestOneBit(long i);
     public static
         
         
-        int max(int a, int b);
+        long max(long a, long b);
     public static
         
         
-        int min(int a, int b);
+        long min(long a, long b);
     public static
         
         
-        int numberOfLeadingZeros(int i);
+        int numberOfLeadingZeros(long i);
     public static
         
         
-        int numberOfTrailingZeros(int i);
+        int numberOfTrailingZeros(long i);
     public static
         
         
-        int parseInt(String s, int radix);
+        long parseLong(CharSequence s, int beginIndex, int endIndex, int radix);
     public static
         
         
-        int parseInt(String s);
+        long parseLong(String s, int radix);
     public static
         
         
-        int parseInt(CharSequence s, int beginIndex, int endIndex, int radix);
+        long parseLong(String s);
     public static
         
         
-        int parseUnsignedInt(CharSequence s, int beginIndex, int endIndex, int radix);
+        long parseUnsignedLong(String s, int radix);
     public static
         
         
-        int parseUnsignedInt(String s);
+        long parseUnsignedLong(String s);
     public static
         
         
-        int parseUnsignedInt(String s, int radix);
+        long parseUnsignedLong(CharSequence s, int beginIndex, int endIndex, int radix);
     public static
         
         
-        int remainderUnsigned(int dividend, int divisor);
+        long remainderUnsigned(long dividend, long divisor);
     public static
         
         
-        int reverse(int i);
+        long reverse(long i);
     public static
         
         
-        int reverseBytes(int i);
+        long reverseBytes(long i);
     public static
         
         
-        int rotateLeft(int i, int distance);
+        long rotateLeft(long i, int distance);
     public static
         
         
-        int rotateRight(int i, int distance);
+        long rotateRight(long i, int distance);
     public short shortValue();
     public static
         
         
-        int signum(int i);
+        int signum(long i);
     public static
         
         
-        int sum(int a, int b);
+        long sum(long a, long b);
     public static
         
         
-        String toBinaryString(int i);
+        String toBinaryString(long i);
     public static
         
         
-        String toHexString(int i);
+        String toHexString(long i);
     public static
         
         
-        String toOctalString(int i);
+        String toOctalString(long i);
+    public static
+        
+        
+        String toString(long i, int radix);
     public String toString();
     public static
         
         
-        String toString(int i);
+        String toString(long i);
     public static
         
         
-        String toString(int i, int radix);
+        String toUnsignedString(long i);
     public static
         
         
-        long toUnsignedLong(int x);
+        String toUnsignedString(long i, int radix);
     public static
         
         
-        String toUnsignedString(int i, int radix);
+        Long valueOf(String s);
     public static
         
         
-        String toUnsignedString(int i);
+        Long valueOf(String s, int radix);
     public static
         
         
-        Integer valueOf(String s);
-    public static
-        
-        
-        Integer valueOf(String s, int radix);
-    public static
-        
-        
-        Integer valueOf(int i);
+        Long valueOf(long l);
     public byte byteValue();
     public abstract
         
@@ -229,5 +225,5 @@ public interface Integer {
         
         
         
-        int compareTo(Integer o);
+        int compareTo(Long o);
 }

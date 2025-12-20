@@ -1,4 +1,4 @@
 package kotlin
 
-interface Int {
+interface Short {
 }

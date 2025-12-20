@@ -42,28 +42,109 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
       if (id === 'mapped-types' || (text.toLowerCase() === 'mapped types')) {
         console.log(`Found section: ${text}`);
         
-        // Look for table after this heading
-        const nextTable = $elem.nextAll('table').first();
-        if (nextTable.length > 0) {
-          console.log('Parsing mapped types table...');
+        // Look for tables within the parent section (tables are wrapped in divs)
+        const parentSection = $elem.parent();
+        const tables = parentSection.find('table');
+        
+        if (tables.length > 0) {
+          console.log(`Parsing ${tables.length} tables...`);
           
-          nextTable.find('tr').each((i, row) => {
-            const cells = $(row).find('td');
-            if (cells.length >= 2) {
-              const kotlinType = $(cells[0]).text().trim();
-              const javaType = $(cells[1]).text().trim();
+          tables.each((tableIdx, table) => {
+            const $table = $(table);
+            
+            $table.find('tr').each((i, row) => {
+              const cells = $(row).find('td');
               
-              // Skip empty rows and header rows
-              // Validate that types start with proper package names
-              if (kotlinType && javaType && 
-                  /^kotlin\./.test(kotlinType) && /^java\./.test(javaType)) {
-                mappings.push({ kotlin: kotlinType, java: javaType });
+              // Skip header rows (no td cells)
+              if (cells.length < 2) {
+                return;
               }
-            }
+              
+              // Get Java and Kotlin types (Java is in column 0, Kotlin in column 1)
+              const javaTypeRaw = $(cells[0]).text().trim();
+              const kotlinTypeRaw = $(cells[1]).text().trim();
+              
+              // For collection tables, there's also a mutable type in column 2
+              const mutableKotlinTypeRaw = cells.length >= 3 ? $(cells[2]).text().trim() : null;
+              
+              // Clean up types by removing platform type markers (!, ?) and whitespace
+              const cleanType = (type: string) => type.replace(/[!?]/g, '').replace(/\s+/g, '');
+              
+              const javaType = cleanType(javaTypeRaw);
+              const kotlinType = cleanType(kotlinTypeRaw);
+              const mutableKotlinType = mutableKotlinTypeRaw ? cleanType(mutableKotlinTypeRaw) : null;
+              
+              // Add full package names for simple type names
+              const qualifyJavaType = (type: string) => {
+                // Handle generics
+                const baseType = type.split('<')[0];
+                const generics = type.includes('<') ? type.substring(type.indexOf('<')) : '';
+                
+                // Already qualified (starts with package name)
+                if (baseType.startsWith('java.')) return type;
+                
+                // Map.Entry (nested type)
+                if (baseType === 'Map.Entry') {
+                  return `java.util.Map.Entry${generics}`;
+                }
+                
+                // Collection types
+                if (['Iterator', 'Iterable', 'Collection', 'Set', 'List', 'ListIterator', 'Map'].includes(baseType)) {
+                  return `java.util.${baseType}${generics}`;
+                }
+                
+                return type;
+              };
+              
+              const qualifyKotlinType = (type: string) => {
+                // Already qualified
+                if (type.startsWith('kotlin.')) return type;
+                
+                // Handle generics
+                const baseType = type.split('<')[0];
+                const generics = type.includes('<') ? type.substring(type.indexOf('<')) : '';
+                
+                // Collection types
+                if (['Iterator', 'Iterable', 'Collection', 'Set', 'List', 'ListIterator', 'Map',
+                     'MutableIterator', 'MutableIterable', 'MutableCollection', 'MutableSet', 
+                     'MutableList', 'MutableListIterator', 'MutableMap'].includes(baseType)) {
+                  return `kotlin.collections.${baseType}${generics}`;
+                }
+                // Map.Entry and MutableMap.MutableEntry
+                if (baseType === 'Map.Entry') {
+                  return `kotlin.collections.Map.Entry${generics}`;
+                }
+                if (baseType === 'MutableMap.MutableEntry') {
+                  return `kotlin.collections.MutableMap.MutableEntry${generics}`;
+                }
+                // Base types
+                return `kotlin.${baseType}${generics}`;
+              };
+              
+              const qualifiedJava = qualifyJavaType(javaType);
+              const qualifiedKotlin = qualifyKotlinType(kotlinType);
+              
+              // Add the mapping if both types are qualified
+              if (qualifiedJava.startsWith('java.') && qualifiedKotlin.startsWith('kotlin.')) {
+                // Remove generics for the mapping (we want base types only)
+                const javaBase = qualifiedJava.split('<')[0];
+                const kotlinBase = qualifiedKotlin.split('<')[0];
+                mappings.push({ kotlin: kotlinBase, java: javaBase });
+              }
+              
+              // For collection tables, also add the mutable mapping
+              if (mutableKotlinType) {
+                const qualifiedMutableKotlin = qualifyKotlinType(mutableKotlinType);
+                if (qualifiedJava.startsWith('java.') && qualifiedMutableKotlin.startsWith('kotlin.')) {
+                  const javaBase = qualifiedJava.split('<')[0];
+                  const mutableKotlinBase = qualifiedMutableKotlin.split('<')[0];
+                  mappings.push({ kotlin: mutableKotlinBase, java: javaBase });
+                }
+              }
+            });
           });
           
-          // Stop after processing the matched section to avoid duplicates
-          // The official docs should have only one "mapped-types" section
+          // Mark as found if we got any mappings
           if (mappings.length > 0) {
             foundMappings = true;
             return false; // Break out of the .each() loop

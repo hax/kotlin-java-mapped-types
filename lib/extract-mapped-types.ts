@@ -29,8 +29,8 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
     
     const mappings: TypeMapping[] = [];
     
-    // Find the mapped types section
-    // Look for the section with id "mapped-types" or heading containing "Mapped types"
+    // Find the mapped types section by its specific id
+    // The official Kotlin documentation has a single section with id="mapped-types"
     let foundMappings = false;
     
     $('h2, h3').each((_, elem) => {
@@ -38,8 +38,9 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
       const id = $elem.attr('id');
       const text = $elem.text();
       
-      // Check if this is the mapped types section
-      if (id === 'mapped-types' || text.toLowerCase().includes('mapped types')) {
+      // Match the specific "mapped-types" section by id
+      // Fall back to text matching only if id is not available
+      if (id === 'mapped-types' || (text.toLowerCase() === 'mapped types')) {
         console.log(`Found section: ${text}`);
         
         // Look for table after this heading
@@ -62,7 +63,8 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
             }
           });
           
-          // If we successfully extracted mappings, mark as found and stop iterating
+          // Stop after processing the matched section to avoid duplicates
+          // The official docs should have only one "mapped-types" section
           if (mappings.length > 0) {
             foundMappings = true;
             return false; // Break out of the .each() loop

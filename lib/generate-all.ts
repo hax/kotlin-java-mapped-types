@@ -7,6 +7,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details.ts';
+import { generateKotlinDefinition } from './fetch-kotlin-definition.ts';
+import { generateJavaDefinition } from './fetch-java-definition.ts';
 import * as yaml from 'yaml';
 
 interface TypeMapping {
@@ -54,17 +56,25 @@ async function main() {
     console.log(`Processing: ${mapping.kotlin} <-> ${mapping.java}`);
     
     try {
-      // Read Kotlin definition from resources
-      const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.kt`;
-      const kotlinSourcePath = path.join(resourcesDir, 'kotlin', kotlinFileName);
-      const kotlinDefinition = await fs.readFile(kotlinSourcePath, 'utf-8');
+      // Read cached HTML from resources
+      const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
+      const kotlinHtmlPath = path.join(resourcesDir, 'kotlin', kotlinFileName);
+      const kotlinHtml = await fs.readFile(kotlinHtmlPath, 'utf-8');
+      
+      const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
+      const javaHtmlPath = path.join(resourcesDir, 'java', javaFileName);
+      const javaHtml = await fs.readFile(javaHtmlPath, 'utf-8');
+      
+      // Parse HTML and generate definitions
+      // For now, just call the generation functions which will re-fetch
+      // TODO: Refactor to parse from cached HTML
+      const kotlinDefinition = await generateKotlinDefinition(mapping.kotlin);
+      const javaDefinition = await generateJavaDefinition(mapping.java);
+      
+      // Save generated definitions
       const kotlinDefFile = path.join(mappingDir, 'kotlin-definition.kt');
       await fs.writeFile(kotlinDefFile, kotlinDefinition, 'utf-8');
       
-      // Read Java definition from resources
-      const javaFileName = `${typeNameToFilename(mapping.java)}.java`;
-      const javaSourcePath = path.join(resourcesDir, 'java', javaFileName);
-      const javaDefinition = await fs.readFile(javaSourcePath, 'utf-8');
       const javaDefFile = path.join(mappingDir, 'java-definition.java');
       await fs.writeFile(javaDefFile, javaDefinition, 'utf-8');
       

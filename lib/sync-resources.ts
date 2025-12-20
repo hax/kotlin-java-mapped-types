@@ -13,8 +13,6 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import { extractMappedTypesFromDocs } from './extract-mapped-types.ts';
 import type { TypeMapping } from './extract-mapped-types.ts';
-import { generateJavaDefinition } from './fetch-java-definition.ts';
-import { generateKotlinDefinition } from './fetch-kotlin-definition.ts';
 
 const RESOURCES_DIR = path.join(process.cwd(), 'resources');
 const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
@@ -102,7 +100,7 @@ function typeNameToFilename(typeName: string): string {
 }
 
 /**
- * Fetch and cache all type definitions
+ * Fetch and cache all type definitions as raw HTML
  */
 async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<void> {
   console.log('\nFetching type definitions...');
@@ -113,26 +111,33 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
   let javaUnchanged = 0;
   
   for (const mapping of mappedTypes) {
-    const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.kt`;
-    const javaFileName = `${typeNameToFilename(mapping.java)}.java`;
+    const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
+    const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
     const kotlinPath = path.join(RESOURCES_DIR, 'kotlin', kotlinFileName);
     const javaPath = path.join(RESOURCES_DIR, 'java', javaFileName);
     
-    // Fetch Kotlin definition
+    // Fetch Kotlin HTML
     try {
       console.log(`Fetching ${mapping.kotlin}...`);
-      const kotlinDefinition = await generateKotlinDefinition(mapping.kotlin);
+      const kotlinUrl = typeNameToKotlinUrl(mapping.kotlin);
+      const kotlinResponse = await fetch(kotlinUrl);
+      
+      if (!kotlinResponse.ok) {
+        throw new Error(`Failed to fetch: ${kotlinResponse.status}`);
+      }
+      
+      const kotlinHtml = await kotlinResponse.text();
       
       let kotlinChanged = true;
       try {
         const existingContent = await fs.readFile(kotlinPath, 'utf-8');
-        kotlinChanged = existingContent !== kotlinDefinition;
+        kotlinChanged = existingContent !== kotlinHtml;
       } catch (error) {
         // File doesn't exist yet
       }
       
       if (kotlinChanged) {
-        await fs.writeFile(kotlinPath, kotlinDefinition, 'utf-8');
+        await fs.writeFile(kotlinPath, kotlinHtml, 'utf-8');
         kotlinUpdated++;
         console.log(`  ✓ Cached ${kotlinFileName}`);
       } else {
@@ -143,21 +148,28 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
       console.error(`  ✗ Failed to fetch ${mapping.kotlin}:`, error);
     }
     
-    // Fetch Java definition
+    // Fetch Java HTML
     try {
       console.log(`Fetching ${mapping.java}...`);
-      const javaDefinition = await generateJavaDefinition(mapping.java);
+      const javaUrl = typeNameToJavaUrl(mapping.java);
+      const javaResponse = await fetch(javaUrl);
+      
+      if (!javaResponse.ok) {
+        throw new Error(`Failed to fetch: ${javaResponse.status}`);
+      }
+      
+      const javaHtml = await javaResponse.text();
       
       let javaChanged = true;
       try {
         const existingContent = await fs.readFile(javaPath, 'utf-8');
-        javaChanged = existingContent !== javaDefinition;
+        javaChanged = existingContent !== javaHtml;
       } catch (error) {
         // File doesn't exist yet
       }
       
       if (javaChanged) {
-        await fs.writeFile(javaPath, javaDefinition, 'utf-8');
+        await fs.writeFile(javaPath, javaHtml, 'utf-8');
         javaUpdated++;
         console.log(`  ✓ Cached ${javaFileName}`);
       } else {
@@ -172,6 +184,28 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
   console.log('\nSummary:');
   console.log(`  Kotlin definitions: ${kotlinUpdated} updated, ${kotlinUnchanged} unchanged`);
   console.log(`  Java definitions: ${javaUpdated} updated, ${javaUnchanged} unchanged`);
+}
+
+/**
+ * Convert Kotlin type name to documentation URL
+ */
+function typeNameToKotlinUrl(typeName: string): string {
+  const parts = typeName.split('.');
+  const className = parts[parts.length - 1];
+  const packagePath = parts.slice(0, -1).join('.');
+  
+  // Convert class name to kebab-case with leading dash
+  const kebabName = className.replace(/([A-Z])/g, '-$1').toLowerCase();
+  
+  return `https://kotlinlang.org/api/core/kotlin-stdlib/${packagePath}/${kebabName}/`;
+}
+
+/**
+ * Convert Java type name to Android documentation URL
+ */
+function typeNameToJavaUrl(typeName: string): string {
+  const path = typeName.split('.').join('/');
+  return `https://developer.android.com/reference/${path}`;
 }
 
 /**

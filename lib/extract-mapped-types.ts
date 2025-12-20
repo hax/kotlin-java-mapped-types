@@ -21,7 +21,7 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
     
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch documentation: ${response.status}`);
+      throw new Error(`Failed to fetch documentation: ${response.status} ${response.statusText}`);
     }
     
     const html = await response.text();
@@ -31,7 +31,7 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
     
     // Find the mapped types section
     // Look for the section with id "mapped-types" or heading containing "Mapped types"
-    let foundSection = false;
+    let foundMappings = false;
     
     $('h2, h3').each((_, elem) => {
       const $elem = $(elem);
@@ -40,7 +40,6 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
       
       // Check if this is the mapped types section
       if (id === 'mapped-types' || text.toLowerCase().includes('mapped types')) {
-        foundSection = true;
         console.log(`Found section: ${text}`);
         
         // Look for table after this heading
@@ -62,12 +61,18 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
               }
             }
           });
+          
+          // If we successfully extracted mappings, mark as found and stop iterating
+          if (mappings.length > 0) {
+            foundMappings = true;
+            return false; // Break out of the .each() loop
+          }
         }
       }
     });
     
-    if (!foundSection) {
-      console.warn('Warning: Could not find mapped types section in documentation');
+    if (!foundMappings) {
+      console.warn('Warning: Could not extract mappings from documentation');
     }
     
     if (mappings.length === 0) {

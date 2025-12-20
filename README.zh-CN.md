@@ -43,6 +43,20 @@ npm run generate:mapping-details
 npm run generate:mapped-types
 ```
 
+### 验证
+
+要验证架构是否正常工作：
+
+```bash
+./verify.sh
+```
+
+这将测试：
+- Resources 目录结构
+- TypeScript 编译
+- 从缓存数据离线生成
+- 映射聚合
+
 ## 项目结构
 
 ```

@@ -43,6 +43,20 @@ npm run generate:mapping-details
 npm run generate:mapped-types
 ```
 
+### Verification
+
+To verify the architecture is working correctly:
+
+```bash
+./verify.sh
+```
+
+This will test:
+- Resources directory structure
+- TypeScript compilation
+- Offline generation from cached data
+- Mapping aggregation
+
 ## Project Structure
 
 ```

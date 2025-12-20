@@ -13,6 +13,18 @@ import * as path from 'path';
 import * as os from 'os';
 
 /**
+ * Response type from minipass-fetch (used by make-fetch-happen)
+ */
+interface FetchResponse {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  headers: any;
+  text(): Promise<string>;
+  json(): Promise<any>;
+}
+
+/**
  * Options for cached fetch
  */
 export interface CachedFetchOptions {
@@ -62,12 +74,12 @@ function createCachedFetch(options: CachedFetchOptions = {}) {
  * 
  * @param url - The URL to fetch
  * @param options - Caching and fetch options
- * @returns Response text content
+ * @returns Response object
  */
 async function cachedFetch(
   url: string,
   options: CachedFetchOptions = {}
-): Promise<any> {
+): Promise<FetchResponse> {
   const fetch = createCachedFetch(options);
   
   try {

@@ -6,7 +6,11 @@
 
 本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 32 个 Kotlin 与 Java 之间的类型映射生成全面的文档。
 
-类型信息直接从官方 API 文档获取：
+项目使用**两阶段架构**：
+1. **同步阶段**：从官方文档获取并缓存类型信息
+2. **生成阶段**：从缓存数据生成映射（可离线工作）
+
+类型信息来源：
 - **Java 类型**: [Android 开发者文档](https://developer.android.com/reference/)
 - **Kotlin 类型**: [Kotlin API 参考](https://kotlinlang.org/api/core/kotlin-stdlib/)
 
@@ -25,13 +29,17 @@ npm install
 ### 生成映射
 
 ```bash
-# 生成所有类型映射
+# 步骤 1：同步数据源（需要网络访问）
+# 获取 Kotlin 文档和类型定义，缓存到 resources/ 目录
+npm run sync
+
+# 步骤 2：生成映射（可离线使用缓存数据）
 npm run generate
 
-# 仅从现有定义生成映射详情
+# 可选：仅从现有定义生成映射详情
 npm run generate:mapping-details
 
-# 将所有映射聚合到 mapped-types.yaml
+# 可选：将所有映射聚合到 mapped-types.yaml
 npm run generate:mapped-types
 ```
 
@@ -41,14 +49,18 @@ npm run generate:mapped-types
 .
 ├── lib/                          # TypeScript 源文件
 │   ├── extract-mapped-types.ts  # 从 Kotlin 文档提取类型映射
-│   ├── extract-mapped-types-cli.ts # 运行提取的 CLI 脚本
 │   ├── fetch-java-api.ts        # 从 Android 文档获取
 │   ├── fetch-kotlin-api.ts      # 从 Kotlin 文档获取
 │   ├── fetch-java-definition.ts # 生成 Java 定义
 │   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
 │   ├── generate-mapping-details.ts # 创建签名映射
 │   ├── generate-mapped-types-yaml.ts # 聚合所有映射
-│   └── generate-all.ts          # 主协调器
+│   ├── generate-all.ts          # 主生成器（从 resources 读取）
+│   └── sync-resources.ts        # 同步脚本，获取并缓存数据
+├── resources/                    # 缓存的数据源
+│   ├── mapped-types.yaml        # 所有映射类型列表
+│   ├── kotlin/                  # 缓存的 Kotlin 类型定义
+│   └── java/                    # 缓存的 Java 类型定义
 ├── mappings/                     # 生成的映射目录
 │   └── <kotlin类型>_to_<java类型>/
 │       ├── java-definition.java     # 带签名的 Java 类型
@@ -124,12 +136,20 @@ mappings:
 
 ## 工作原理
 
-1. **提取映射类型**：首先，从官方 Kotlin 文档 https://kotlinlang.org/docs/java-interop.html 提取类型映射列表
-2. **获取类型信息**：脚本从官方 Android 和 Kotlin API 文档获取类型签名
-3. **生成定义**：创建带完整签名的 Java 和 Kotlin 定义文件
-4. **比较签名**：解析定义并匹配语言间的签名
-5. **生成映射**：创建记录映射的 YAML 文件
-6. **聚合**：将所有映射信息合并到 `mapped-types.yaml`
+**同步阶段** (`npm run sync`):
+1. **获取文档**：下载包含映射类型表的 Kotlin 文档页面
+2. **提取映射类型**：解析文档提取 32 个类型映射并保存到 `resources/mapped-types.yaml`
+3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名并缓存到 `resources/kotlin/` 和 `resources/java/`
+4. **智能更新**：比较新内容与现有缓存文件，仅在有变化时更新
+
+**生成阶段** (`npm run generate`):
+1. **读取缓存数据**：从 `resources/mapped-types.yaml` 加载类型映射
+2. **生成定义**：将缓存的定义文件复制到各个映射目录
+3. **比较签名**：解析定义并匹配语言间的签名
+4. **生成映射**：创建记录签名到签名映射的 `mapping-details.yaml` 文件
+5. **聚合**：将所有映射信息合并到主 `mapped-types.yaml`
+
+这种两阶段架构允许在初始同步后完全离线地进行生成过程。
 
 ## 许可证
 

@@ -56,7 +56,9 @@ async function generateJavaDefinition(javaType: string): Promise<string> {
   for (const method of typeInfo.methods) {
     const methodModifiers = method.modifiers.join(' ');
     const params = method.parameters.join(', ');
-    definition += `    ${methodModifiers} ${method.returnType} ${method.name}(${params});\n`;
+    // Add @Override annotation if the method overrides a parent method
+    const overrideAnnotation = method.hasOverride ? '    @Override\n' : '';
+    definition += `${overrideAnnotation}    ${methodModifiers} ${method.returnType} ${method.name}(${params});\n`;
   }
   
   definition += `}\n`;

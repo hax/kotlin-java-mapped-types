@@ -89,7 +89,9 @@ Java type definitions with complete signatures:
 package java.lang;
 
 public final class String implements Comparable<String>, CharSequence {
+    @Override
     public int length();
+    @Override
     public char charAt(int index);
     public String substring(int beginIndex);
     // ... more methods
@@ -118,6 +120,12 @@ The generate phase matches signatures using:
 - Direct name matching (e.g., `toString` → `toString`)
 - Property to getter (e.g., Kotlin `length` → Java `length()`)
 - Special cases (e.g., Kotlin `get(index)` → Java `charAt(index)`)
+
+**@Override Annotations:**
+Java definitions include `@Override` annotations when:
+- The method is detected as overriding a parent class or interface method in the Android documentation
+- The annotation is parsed from the original HTML source
+- This preserves the semantic information about method inheritance
 
 **Error Handling:**
 - Sync phase: Falls back to predefined list if documentation fetch fails

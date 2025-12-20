@@ -10,6 +10,7 @@ interface MethodSignature {
   returnType: string;
   name: string;
   parameters: string[];
+  hasOverride?: boolean; // Whether method has @Override annotation
 }
 
 interface JavaTypeInfo {
@@ -82,6 +83,11 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
         const methodCell = cells.eq(1);
         const codeText = methodCell.find('code').first().text().trim();
         
+        // Check for @Override annotation in the method description or modifiers
+        // Android docs may show annotations in various ways
+        const cellHtml = methodCell.html() || '';
+        const hasOverride = cellHtml.includes('@Override') || cellHtml.includes('override');
+        
         if (codeText) {
           // Parse method name and parameters from code text
           // Format: methodName(params) or <a>methodName</a>(params)
@@ -98,7 +104,8 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
               modifiers: ['public'],
               returnType,
               name,
-              parameters: params
+              parameters: params,
+              hasOverride
             });
           }
         }

@@ -3,6 +3,7 @@
  */
 
 import * as cheerio from 'cheerio';
+import { cachedFetchText } from './http-cache.ts';
 
 export interface TypeMapping {
   kotlin: string;
@@ -18,12 +19,8 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
     const url = 'https://kotlinlang.org/docs/java-interop.html';
     console.log(`Fetching mapped types from: ${url}`);
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch documentation: ${response.status} ${response.statusText}`);
-    }
-    
-    const html = await response.text();
+    // Use cached fetch with HTTP caching support (If-Modified-Since, ETag)
+    const html = await cachedFetchText(url);
     const $ = cheerio.load(html);
     
     const mappings: TypeMapping[] = [];

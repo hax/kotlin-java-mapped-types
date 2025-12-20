@@ -23,5 +23,9 @@
     "cheerio": "^1.1.2",
     "typescript": "^5.9.3",
     "yaml": "^2.8.2"
+  },
+  "dependencies": {
+    "@types/make-fetch-happen": "^10.0.4",
+    "make-fetch-happen": "^15.0.3"
   }
 }

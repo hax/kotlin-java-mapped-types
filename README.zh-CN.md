@@ -7,14 +7,14 @@
 本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 32 个 Kotlin 与 Java 之间的类型映射生成全面的文档。
 
 项目使用**基于缓存的架构**：
-1. **同步阶段**：从官方文档获取并缓存类型信息到 `doc-cache/` 目录
-2. **生成阶段**：从缓存数据生成映射（可离线工作）
+1. **同步阶段**：从官方文档获取类型信息并保存到 `resources/` 目录，使用 `doc-cache/` 中的 HTTP 缓存
+2. **生成阶段**：从保存的资源生成映射（可离线工作）
 
 类型信息来源：
 - **Java 类型**: [Android 开发者文档](https://developer.android.com/reference/)
 - **Kotlin 类型**: [Kotlin API 参考](https://kotlinlang.org/api/core/kotlin-stdlib/)
 
-所有文档都缓存在 `doc-cache/` 目录中并提交到仓库，使得 CI 环境中可以完全离线生成。
+所有文档都保存在 `resources/` 目录中并提交到仓库，使得 CI 环境中可以完全离线生成。HTTP 缓存存储在 `doc-cache/` 中以优化网络请求。
 
 ## 快速开始
 
@@ -59,12 +59,16 @@ npm run generate:mapped-types
 │   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
 │   ├── generate-mapping-details.ts # 创建签名映射
 │   ├── generate-mapped-types-yaml.ts # 聚合所有映射
-│   ├── generate-all.ts          # 主生成器（从 doc-cache 读取）
-│   └── sync-resources.ts        # 同步脚本，获取并缓存数据
-├── doc-cache/                    # 缓存的文档（提交到仓库）
-│   ├── kotlin-doc.html          # 缓存的 Kotlin 互操作文档
-│   ├── kotlin/                  # 缓存的 Kotlin 类型定义（HTML）
-│   └── java/                    # 缓存的 Java 类型定义（HTML）
+│   ├── generate-all.ts          # 主生成器（从 resources 读取）
+│   ├── sync-resources.ts        # 同步脚本，获取并保存资源
+│   └── http-cache.ts            # HTTP 缓存层
+├── doc-cache/                    # HTTP 缓存目录（不提交到仓库）
+│   ├── content-v2/              # 缓存的 HTTP 响应
+│   └── index-v5/                # 缓存索引
+├── resources/                    # 保存的文档资源（提交到仓库）
+│   ├── kotlin-doc.html          # Kotlin 互操作文档
+│   ├── kotlin/                  # Kotlin 类型定义（HTML）
+│   └── java/                    # Java 类型定义（HTML）
 ├── mappings/                     # 生成的映射目录
 │   └── <kotlin类型>_to_<java类型>/
 │       ├── java-definition.java     # 带签名的 Java 类型
@@ -143,13 +147,13 @@ mappings:
 **同步阶段** (`npm run sync`):
 1. **获取文档**：下载包含映射类型表的 Kotlin 文档页面
 2. **提取映射类型**：解析文档提取 32 个类型映射并保存到根目录的 `mapped-types.yaml`
-3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名并缓存到 `doc-cache/kotlin/` 和 `doc-cache/java/`
-4. **智能更新**：比较新内容与现有缓存文件，仅在有变化时更新
-5. **离线模式**：使用 `--offline` 标志在无网络访问的情况下验证缓存
+3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名并保存到 `resources/kotlin/` 和 `resources/java/`
+4. **智能更新**：比较新内容与现有保存文件，仅在有变化时更新
+5. **离线模式**：使用 `--offline` 标志在无网络访问的情况下验证资源
 
 **生成阶段** (`npm run generate`):
-1. **读取缓存数据**：从根目录的 `mapped-types.yaml` 加载类型映射
-2. **解析缓存的 HTML**：从 `doc-cache/` 读取并解析缓存的 HTML 文件以提取类型信息
+1. **读取保存的数据**：从根目录的 `mapped-types.yaml` 加载类型映射
+2. **解析保存的 HTML**：从 `resources/` 读取并解析 HTML 文件以提取类型信息
 3. **生成定义**：在各个映射目录中创建格式化的类型定义文件
 4. **比较签名**：解析定义并匹配语言间的签名
 5. **生成映射**：创建记录签名到签名映射的 `mapping-details.yaml` 文件

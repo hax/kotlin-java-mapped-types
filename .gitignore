@@ -3,3 +3,5 @@ dist/
 *.log
 .DS_Store
 mappings/
+doc-cache/content-v2/
+doc-cache/index-v5/

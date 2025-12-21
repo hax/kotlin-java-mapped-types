@@ -16,6 +16,7 @@ import type { TypeMapping } from './extract-mapped-types.ts';
 import { cachedFetchText, setOfflineMode, getOfflineMode } from './http-cache.ts';
 
 const DOC_CACHE_DIR = path.join(process.cwd(), 'doc-cache');
+const RESOURCES_DIR = path.join(process.cwd(), 'resources');
 const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
 
 /**
@@ -23,8 +24,9 @@ const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
  */
 async function ensureDocCacheStructure() {
   await fs.mkdir(DOC_CACHE_DIR, { recursive: true });
-  await fs.mkdir(path.join(DOC_CACHE_DIR, 'kotlin'), { recursive: true });
-  await fs.mkdir(path.join(DOC_CACHE_DIR, 'java'), { recursive: true });
+  await fs.mkdir(RESOURCES_DIR, { recursive: true });
+  await fs.mkdir(path.join(RESOURCES_DIR, 'kotlin'), { recursive: true });
+  await fs.mkdir(path.join(RESOURCES_DIR, 'java'), { recursive: true });
 }
 
 /**
@@ -34,7 +36,7 @@ async function fetchKotlinDocumentation(): Promise<boolean> {
   console.log('Fetching Kotlin documentation...');
   try {
     const html = await cachedFetchText(KOTLIN_DOC_URL);
-    const docPath = path.join(DOC_CACHE_DIR, 'kotlin-doc.html');
+    const docPath = path.join(RESOURCES_DIR, 'kotlin-doc.html');
     
     // Check if content has changed
     let hasChanged = true;
@@ -113,8 +115,8 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
   for (const mapping of mappedTypes) {
     const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
     const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
-    const kotlinPath = path.join(DOC_CACHE_DIR, 'kotlin', kotlinFileName);
-    const javaPath = path.join(DOC_CACHE_DIR, 'java', javaFileName);
+    const kotlinPath = path.join(RESOURCES_DIR, 'kotlin', kotlinFileName);
+    const javaPath = path.join(RESOURCES_DIR, 'java', javaFileName);
     
     // Fetch Kotlin HTML
     try {
@@ -264,7 +266,8 @@ async function main() {
     console.log('\n=== Offline Mode Validation Complete ===');
   } else {
     console.log('\n=== Sync Complete ===');
-    console.log('Cache saved to doc-cache/ directory');
+    console.log('HTTP cache saved to doc-cache/ directory');
+    console.log('Resources saved to resources/ directory');
     console.log('Mapped types saved to mapped-types.yaml');
   }
 }

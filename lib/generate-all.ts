@@ -38,13 +38,22 @@ async function main() {
   console.log('Generating Kotlin-Java type mappings from cached resources...\n');
   
   const docCacheDir = path.join(process.cwd(), 'doc-cache');
+  const resourcesDir = path.join(process.cwd(), 'resources');
   const mappedTypesPath = path.join(process.cwd(), 'mapped-types.yaml');
   
   // Check if cache exists
   try {
     await fs.access(docCacheDir);
   } catch (error) {
-    console.error('Error: doc-cache directory not found. Please run "npm run sync" first to fetch and cache the data sources.');
+    console.error('Error: doc-cache directory not found. HTTP cache is required for offline operation.');
+    process.exit(1);
+  }
+  
+  // Check if resources directory exists
+  try {
+    await fs.access(resourcesDir);
+  } catch (error) {
+    console.error('Error: resources directory not found. Please run "npm run sync" first to fetch and cache the data sources.');
     process.exit(1);
   }
   
@@ -71,13 +80,13 @@ async function main() {
     console.log(`Processing: ${mapping.kotlin} <-> ${mapping.java}`);
     
     try {
-      // Read cached HTML from doc-cache
+      // Read cached HTML from resources directory
       const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
-      const kotlinHtmlPath = path.join(docCacheDir, 'kotlin', kotlinFileName);
+      const kotlinHtmlPath = path.join(resourcesDir, 'kotlin', kotlinFileName);
       const kotlinHtml = await fs.readFile(kotlinHtmlPath, 'utf-8');
       
       const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
-      const javaHtmlPath = path.join(docCacheDir, 'java', javaFileName);
+      const javaHtmlPath = path.join(resourcesDir, 'java', javaFileName);
       const javaHtml = await fs.readFile(javaHtmlPath, 'utf-8');
       
       // Parse HTML and generate definitions from cached content

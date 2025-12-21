@@ -22,13 +22,6 @@ function sanitizeDirName(kotlinType: string, javaType: string): string {
 }
 
 /**
- * Convert type name to a safe filename
- */
-function typeNameToFilename(typeName: string): string {
-  return typeName.replace(/\./g, '_');
-}
-
-/**
  * Convert Kotlin type name to documentation URL
  * Handles nested types like Map.Entry by converting all class names to kebab-case
  */
@@ -85,11 +78,7 @@ async function main() {
   
   console.log('Generating Kotlin-Java type mappings...\n');
   
-  const docCacheDir = path.join(process.cwd(), 'doc-cache');
   const mappedTypesPath = path.join(process.cwd(), 'mapped-types.yaml');
-  
-  // Ensure doc-cache directory exists for HTTP cache
-  await fs.mkdir(docCacheDir, { recursive: true });
   
   // Check if mapped-types.yaml exists
   try {

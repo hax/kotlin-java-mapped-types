@@ -10,9 +10,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "sync": "node lib/sync-resources.ts",
-    "generate": "node --experimental-strip-types lib/generate-all.ts",
-    "generate:mapping-details": "node --experimental-strip-types lib/generate-mapping-details.ts",
-    "generate:mapped-types": "node --experimental-strip-types lib/generate-mapped-types-yaml.ts",
+    "generate": "node lib/generate-all.ts",
+    "generate:mapping-details": "node lib/generate-mapping-details.ts",
+    "generate:mapped-types": "node lib/generate-mapped-types-yaml.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

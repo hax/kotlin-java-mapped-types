@@ -23,8 +23,6 @@ const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
  */
 async function ensureDocCacheStructure() {
   await fs.mkdir(DOC_CACHE_DIR, { recursive: true });
-  await fs.mkdir(path.join(DOC_CACHE_DIR, 'kotlin'), { recursive: true });
-  await fs.mkdir(path.join(DOC_CACHE_DIR, 'java'), { recursive: true });
 }
 
 /**
@@ -33,26 +31,10 @@ async function ensureDocCacheStructure() {
 async function fetchKotlinDocumentation(): Promise<boolean> {
   console.log('Fetching Kotlin documentation...');
   try {
-    const html = await cachedFetchText(KOTLIN_DOC_URL);
-    const docPath = path.join(DOC_CACHE_DIR, 'kotlin-doc.html');
-    
-    // Check if content has changed
-    let hasChanged = true;
-    try {
-      const existingContent = await fs.readFile(docPath, 'utf-8');
-      hasChanged = existingContent !== html;
-    } catch (error) {
-      // File doesn't exist yet
-    }
-    
-    if (hasChanged) {
-      await fs.writeFile(docPath, html, 'utf-8');
-      console.log('✓ Kotlin documentation cached');
-      return true;
-    } else {
-      console.log('✓ Kotlin documentation unchanged');
-      return false;
-    }
+    // Just fetch to populate HTTP cache - no need to save separately
+    await cachedFetchText(KOTLIN_DOC_URL);
+    console.log('✓ Kotlin documentation cached');
+    return true;
   } catch (error) {
     if (getOfflineMode()) {
       console.error('Error: Cannot fetch Kotlin documentation in offline mode. Cache not found.');
@@ -93,86 +75,44 @@ async function extractAndCacheMappedTypes(): Promise<TypeMapping[]> {
 }
 
 /**
- * Convert type name to a safe filename
- */
-function typeNameToFilename(typeName: string): string {
-  return typeName.replace(/\./g, '_');
-}
-
-/**
- * Fetch and cache all type definitions as raw HTML
+ * Fetch and cache all type definitions using HTTP cache
  */
 async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<void> {
-  console.log('\nFetching type definitions...');
+  console.log('\nFetching type definitions to populate HTTP cache...');
   
-  let kotlinUpdated = 0;
-  let kotlinUnchanged = 0;
-  let javaUpdated = 0;
-  let javaUnchanged = 0;
+  let kotlinFetched = 0;
+  let kotlinFailed = 0;
+  let javaFetched = 0;
+  let javaFailed = 0;
   
   for (const mapping of mappedTypes) {
-    const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
-    const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
-    const kotlinPath = path.join(DOC_CACHE_DIR, 'kotlin', kotlinFileName);
-    const javaPath = path.join(DOC_CACHE_DIR, 'java', javaFileName);
-    
-    // Fetch Kotlin HTML
+    // Fetch Kotlin HTML - just to populate HTTP cache
     try {
       console.log(`Fetching ${mapping.kotlin}...`);
       const kotlinUrl = typeNameToKotlinUrl(mapping.kotlin);
-      const kotlinHtml = await cachedFetchText(kotlinUrl);
-      
-      let kotlinChanged = true;
-      try {
-        const existingContent = await fs.readFile(kotlinPath, 'utf-8');
-        kotlinChanged = existingContent !== kotlinHtml;
-      } catch (error) {
-        // File doesn't exist yet
-      }
-      
-      if (kotlinChanged) {
-        await fs.writeFile(kotlinPath, kotlinHtml, 'utf-8');
-        kotlinUpdated++;
-        console.log(`  ✓ Cached ${kotlinFileName}`);
-      } else {
-        kotlinUnchanged++;
-        console.log(`  ✓ ${kotlinFileName} unchanged`);
-      }
+      await cachedFetchText(kotlinUrl);
+      kotlinFetched++;
+      console.log(`  ✓ Cached ${mapping.kotlin}`);
     } catch (error) {
+      kotlinFailed++;
       if (getOfflineMode()) {
         console.error(`  ✗ Offline mode: ${mapping.kotlin} not in cache`);
-        // In offline mode, continue processing other types
       } else {
         console.error(`  ✗ Failed to fetch ${mapping.kotlin}:`, error);
       }
     }
     
-    // Fetch Java HTML
+    // Fetch Java HTML - just to populate HTTP cache
     try {
       console.log(`Fetching ${mapping.java}...`);
       const javaUrl = typeNameToJavaUrl(mapping.java);
-      const javaHtml = await cachedFetchText(javaUrl);
-      
-      let javaChanged = true;
-      try {
-        const existingContent = await fs.readFile(javaPath, 'utf-8');
-        javaChanged = existingContent !== javaHtml;
-      } catch (error) {
-        // File doesn't exist yet
-      }
-      
-      if (javaChanged) {
-        await fs.writeFile(javaPath, javaHtml, 'utf-8');
-        javaUpdated++;
-        console.log(`  ✓ Cached ${javaFileName}`);
-      } else {
-        javaUnchanged++;
-        console.log(`  ✓ ${javaFileName} unchanged`);
-      }
+      await cachedFetchText(javaUrl);
+      javaFetched++;
+      console.log(`  ✓ Cached ${mapping.java}`);
     } catch (error) {
+      javaFailed++;
       if (getOfflineMode()) {
         console.error(`  ✗ Offline mode: ${mapping.java} not in cache`);
-        // In offline mode, continue processing other types
       } else {
         console.error(`  ✗ Failed to fetch ${mapping.java}:`, error);
       }
@@ -180,8 +120,8 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
   }
   
   console.log('\nSummary:');
-  console.log(`  Kotlin definitions: ${kotlinUpdated} updated, ${kotlinUnchanged} unchanged`);
-  console.log(`  Java definitions: ${javaUpdated} updated, ${javaUnchanged} unchanged`);
+  console.log(`  Kotlin definitions: ${kotlinFetched} cached, ${kotlinFailed} failed`);
+  console.log(`  Java definitions: ${javaFetched} cached, ${javaFailed} failed`);
 }
 
 /**
@@ -264,7 +204,7 @@ async function main() {
     console.log('\n=== Offline Mode Validation Complete ===');
   } else {
     console.log('\n=== Sync Complete ===');
-    console.log('Cache saved to doc-cache/ directory');
+    console.log('HTTP cache saved to doc-cache/ directory');
     console.log('Mapped types saved to mapped-types.yaml');
   }
 }

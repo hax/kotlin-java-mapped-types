@@ -13,18 +13,18 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import { extractMappedTypesFromDocs } from './extract-mapped-types.ts';
 import type { TypeMapping } from './extract-mapped-types.ts';
-import { cachedFetchText } from './http-cache.ts';
+import { cachedFetchText, setOfflineMode, getOfflineMode } from './http-cache.ts';
 
-const RESOURCES_DIR = path.join(process.cwd(), 'resources');
+const DOC_CACHE_DIR = path.join(process.cwd(), 'doc-cache');
 const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
 
 /**
- * Ensure resources directory structure exists
+ * Ensure doc-cache directory structure exists
  */
-async function ensureResourcesStructure() {
-  await fs.mkdir(RESOURCES_DIR, { recursive: true });
-  await fs.mkdir(path.join(RESOURCES_DIR, 'kotlin'), { recursive: true });
-  await fs.mkdir(path.join(RESOURCES_DIR, 'java'), { recursive: true });
+async function ensureDocCacheStructure() {
+  await fs.mkdir(DOC_CACHE_DIR, { recursive: true });
+  await fs.mkdir(path.join(DOC_CACHE_DIR, 'kotlin'), { recursive: true });
+  await fs.mkdir(path.join(DOC_CACHE_DIR, 'java'), { recursive: true });
 }
 
 /**
@@ -34,7 +34,7 @@ async function fetchKotlinDocumentation(): Promise<boolean> {
   console.log('Fetching Kotlin documentation...');
   try {
     const html = await cachedFetchText(KOTLIN_DOC_URL);
-    const docPath = path.join(RESOURCES_DIR, 'kotlin-doc.html');
+    const docPath = path.join(DOC_CACHE_DIR, 'kotlin-doc.html');
     
     // Check if content has changed
     let hasChanged = true;
@@ -54,19 +54,23 @@ async function fetchKotlinDocumentation(): Promise<boolean> {
       return false;
     }
   } catch (error) {
+    if (getOfflineMode()) {
+      console.error('Error: Cannot fetch Kotlin documentation in offline mode. Cache not found.');
+      throw new Error('Offline mode: Kotlin documentation not in cache');
+    }
     console.error('Error fetching Kotlin documentation:', error);
-    return false;
+    throw error;
   }
 }
 
 /**
- * Extract and cache mapped types
+ * Extract and cache mapped types to root directory
  */
 async function extractAndCacheMappedTypes(): Promise<TypeMapping[]> {
   console.log('\nExtracting mapped types from Kotlin documentation...');
   
   const mappedTypes = await extractMappedTypesFromDocs();
-  const mappedTypesPath = path.join(RESOURCES_DIR, 'mapped-types.yaml');
+  const mappedTypesPath = path.join(process.cwd(), 'mapped-types.yaml');
   
   // Check if content has changed
   const yamlContent = yaml.stringify(mappedTypes);
@@ -80,7 +84,7 @@ async function extractAndCacheMappedTypes(): Promise<TypeMapping[]> {
   
   if (hasChanged) {
     await fs.writeFile(mappedTypesPath, yamlContent, 'utf-8');
-    console.log(`✓ Extracted and cached ${mappedTypes.length} mapped types`);
+    console.log(`✓ Extracted and cached ${mappedTypes.length} mapped types to root directory`);
   } else {
     console.log(`✓ Mapped types unchanged (${mappedTypes.length} types)`);
   }
@@ -109,8 +113,8 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
   for (const mapping of mappedTypes) {
     const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
     const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
-    const kotlinPath = path.join(RESOURCES_DIR, 'kotlin', kotlinFileName);
-    const javaPath = path.join(RESOURCES_DIR, 'java', javaFileName);
+    const kotlinPath = path.join(DOC_CACHE_DIR, 'kotlin', kotlinFileName);
+    const javaPath = path.join(DOC_CACHE_DIR, 'java', javaFileName);
     
     // Fetch Kotlin HTML
     try {
@@ -135,6 +139,10 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
         console.log(`  ✓ ${kotlinFileName} unchanged`);
       }
     } catch (error) {
+      if (getOfflineMode()) {
+        console.error(`  ✗ Offline mode: ${mapping.kotlin} not in cache`);
+        throw new Error(`Offline mode: ${mapping.kotlin} not in cache`);
+      }
       console.error(`  ✗ Failed to fetch ${mapping.kotlin}:`, error);
     }
     
@@ -161,6 +169,10 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
         console.log(`  ✓ ${javaFileName} unchanged`);
       }
     } catch (error) {
+      if (getOfflineMode()) {
+        console.error(`  ✗ Offline mode: ${mapping.java} not in cache`);
+        throw new Error(`Offline mode: ${mapping.java} not in cache`);
+      }
       console.error(`  ✗ Failed to fetch ${mapping.java}:`, error);
     }
   }
@@ -225,21 +237,34 @@ function typeNameToJavaUrl(typeName: string): string {
  * Main sync function
  */
 async function main() {
-  console.log('=== Syncing Resources ===\n');
+  // Check for offline mode flag
+  const offlineMode = process.argv.includes('--offline');
+  if (offlineMode) {
+    console.log('=== Running in Offline Mode ===\n');
+    setOfflineMode(true);
+  } else {
+    console.log('=== Syncing Resources ===\n');
+  }
   
   // Ensure directory structure
-  await ensureResourcesStructure();
+  await ensureDocCacheStructure();
   
   // Step 1: Fetch and cache Kotlin documentation
   await fetchKotlinDocumentation();
   
-  // Step 2: Extract and cache mapped types
+  // Step 2: Extract and cache mapped types to root directory
   const mappedTypes = await extractAndCacheMappedTypes();
   
   // Step 3: Fetch and cache all type definitions
   await fetchAndCacheDefinitions(mappedTypes);
   
-  console.log('\n=== Sync Complete ===');
+  if (offlineMode) {
+    console.log('\n=== Offline Mode Validation Complete ===');
+  } else {
+    console.log('\n=== Sync Complete ===');
+    console.log('Cache saved to doc-cache/ directory');
+    console.log('Mapped types saved to mapped-types.yaml');
+  }
 }
 
 // Run if this is the main module

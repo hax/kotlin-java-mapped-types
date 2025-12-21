@@ -34,10 +34,8 @@ jobs:
 
     - name: Test script execution
       run: |
-        # Verify script can start and execute. Allow timeout due to network calls (exit code 124),
-        # but fail the step on any other non-zero exit code.
-        timeout 30s npm run generate
-        exit_code=$?
-        if [ "$exit_code" -ne 0 ] && [ "$exit_code" -ne 124 ]; then
-          exit "$exit_code"
-        fi
+        # Run sync in offline mode to validate cache exists
+        npm run sync -- --offline
+        
+        # Run generate in offline mode (default)
+        npm run generate

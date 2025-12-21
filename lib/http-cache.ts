@@ -4,7 +4,6 @@
  */
 
 import fetch from 'make-fetch-happen';
-import * as os from 'os';
 import * as path from 'path';
 
 /**
@@ -18,10 +17,11 @@ interface CacheOptions {
     minTimeout?: number;
     maxTimeout?: number;
   };
+  offline?: boolean;
 }
 
-// Default cache path in system temp directory
-const DEFAULT_CACHE_PATH = path.join(os.tmpdir(), 'kotlin-java-mapped-types-cache');
+// Default cache path in doc-cache directory
+const DEFAULT_CACHE_PATH = path.join(process.cwd(), 'doc-cache');
 
 /**
  * Create a cached fetch function with default options
@@ -34,16 +34,47 @@ function createCachedFetch(options: CacheOptions = {}) {
     minTimeout: 1000,
     maxTimeout: 10000
   };
+  const offline = options.offline || false;
 
-  return (url: string, opts?: Record<string, any>) => fetch(url, {
-    cachePath,
-    retry,
-    ...opts
-  });
+  return (url: string, opts?: Record<string, any>) => {
+    if (offline) {
+      // In offline mode, only use cache, never make network requests
+      return fetch(url, {
+        cachePath,
+        retry,
+        cache: 'only-if-cached',
+        ...opts
+      });
+    }
+    return fetch(url, {
+      cachePath,
+      retry,
+      ...opts
+    });
+  };
 }
 
 // Default cached fetch instance
 let cachedFetch = createCachedFetch();
+let isOfflineMode = false;
+
+/**
+ * Set offline mode for all cached fetch operations
+ * When enabled, only cached responses will be returned
+ * 
+ * @param offline - Whether to enable offline mode
+ */
+export function setOfflineMode(offline: boolean): void {
+  isOfflineMode = offline;
+  cachedFetch = createCachedFetch({ offline });
+}
+
+/**
+ * Get current offline mode status
+ */
+export function getOfflineMode(): boolean {
+  return isOfflineMode;
+}
 
 /**
  * Fetch text content from a URL with HTTP caching

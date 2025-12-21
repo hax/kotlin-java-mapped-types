@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
  * Main script to generate all mappings from cached resources
- * This version reads from the resources directory instead of fetching from the network
+ * This version reads from the doc-cache directory and parses cached HTML
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details.ts';
-import { generateKotlinDefinition } from './fetch-kotlin-definition.ts';
-import { generateJavaDefinition } from './fetch-java-definition.ts';
+import { generateKotlinDefinitionFromHtml } from './fetch-kotlin-definition.ts';
+import { generateJavaDefinitionFromHtml } from './fetch-java-definition.ts';
 import * as yaml from 'yaml';
+import { setOfflineMode } from './http-cache.ts';
 
 interface TypeMapping {
   kotlin: string;
@@ -28,20 +29,34 @@ function typeNameToFilename(typeName: string): string {
 }
 
 async function main() {
+  // Check for offline mode flag (default is true for generate)
+  const offlineMode = !process.argv.includes('--online');
+  if (offlineMode) {
+    setOfflineMode(true);
+  }
+  
   console.log('Generating Kotlin-Java type mappings from cached resources...\n');
   
-  const resourcesDir = path.join(process.cwd(), 'resources');
-  const mappedTypesPath = path.join(resourcesDir, 'mapped-types.yaml');
+  const docCacheDir = path.join(process.cwd(), 'doc-cache');
+  const mappedTypesPath = path.join(process.cwd(), 'mapped-types.yaml');
   
-  // Check if resources exist
+  // Check if cache exists
   try {
-    await fs.access(mappedTypesPath);
+    await fs.access(docCacheDir);
   } catch (error) {
-    console.error('Error: Resources not found. Please run "npm run sync" first to fetch and cache the data sources.');
+    console.error('Error: doc-cache directory not found. Please run "npm run sync" first to fetch and cache the data sources.');
     process.exit(1);
   }
   
-  // Read mapped types from cached YAML
+  // Check if mapped-types.yaml exists
+  try {
+    await fs.access(mappedTypesPath);
+  } catch (error) {
+    console.error('Error: mapped-types.yaml not found in root directory. Please run "npm run sync" first.');
+    process.exit(1);
+  }
+  
+  // Read mapped types from root YAML
   const mappedTypesContent = await fs.readFile(mappedTypesPath, 'utf-8');
   const MAPPED_TYPES: TypeMapping[] = yaml.parse(mappedTypesContent);
   
@@ -56,20 +71,18 @@ async function main() {
     console.log(`Processing: ${mapping.kotlin} <-> ${mapping.java}`);
     
     try {
-      // Read cached HTML from resources
+      // Read cached HTML from doc-cache
       const kotlinFileName = `${typeNameToFilename(mapping.kotlin)}.html`;
-      const kotlinHtmlPath = path.join(resourcesDir, 'kotlin', kotlinFileName);
+      const kotlinHtmlPath = path.join(docCacheDir, 'kotlin', kotlinFileName);
       const kotlinHtml = await fs.readFile(kotlinHtmlPath, 'utf-8');
       
       const javaFileName = `${typeNameToFilename(mapping.java)}.html`;
-      const javaHtmlPath = path.join(resourcesDir, 'java', javaFileName);
+      const javaHtmlPath = path.join(docCacheDir, 'java', javaFileName);
       const javaHtml = await fs.readFile(javaHtmlPath, 'utf-8');
       
-      // Parse HTML and generate definitions
-      // For now, just call the generation functions which will re-fetch
-      // TODO: Refactor to parse from cached HTML
-      const kotlinDefinition = await generateKotlinDefinition(mapping.kotlin);
-      const javaDefinition = await generateJavaDefinition(mapping.java);
+      // Parse HTML and generate definitions from cached content
+      const kotlinDefinition = await generateKotlinDefinitionFromHtml(mapping.kotlin, kotlinHtml);
+      const javaDefinition = await generateJavaDefinitionFromHtml(mapping.java, javaHtml);
       
       // Save generated definitions
       const kotlinDefFile = path.join(mappingDir, 'kotlin-definition.kt');

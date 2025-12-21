@@ -55,18 +55,10 @@ function typeNameToPath(typeName: string): string {
 }
 
 /**
- * Fetch and parse Kotlin type from official documentation
+ * Parse Kotlin type from HTML content
  */
-export async function fetchKotlinType(typeName: string): Promise<KotlinTypeInfo | null> {
+export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
   try {
-    // Convert type name to URL path
-    // e.g., kotlin.collections.MutableMap -> kotlin.collections/-mutable-map/
-    const path = typeNameToPath(typeName);
-    const url = `https://kotlinlang.org/api/core/kotlin-stdlib/${path}`;
-    
-    console.log(`Fetching Kotlin type from: ${url}`);
-    
-    const html = await cachedFetchText(url);
     const $ = cheerio.load(html);
     
     // Parse the HTML to extract type information from Kotlin docs
@@ -122,6 +114,26 @@ export async function fetchKotlinType(typeName: string): Promise<KotlinTypeInfo 
     });
     
     return typeInfo;
+  } catch (error) {
+    console.error('Error parsing Kotlin type from HTML:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch and parse Kotlin type from official documentation
+ */
+export async function fetchKotlinType(typeName: string): Promise<KotlinTypeInfo | null> {
+  try {
+    // Convert type name to URL path
+    // e.g., kotlin.collections.MutableMap -> kotlin.collections/-mutable-map/
+    const path = typeNameToPath(typeName);
+    const url = `https://kotlinlang.org/api/core/kotlin-stdlib/${path}`;
+    
+    console.log(`Fetching Kotlin type from: ${url}`);
+    
+    const html = await cachedFetchText(url);
+    return parseKotlinTypeFromHtml(html);
   } catch (error) {
     console.error(`Error fetching Kotlin type ${typeName}:`, error);
     return null;

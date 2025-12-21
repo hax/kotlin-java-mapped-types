@@ -3,20 +3,25 @@
  * Fetch Kotlin type definitions from official Kotlin API documentation
  */
 
-import { getKotlinTypeInfo } from './fetch-kotlin-api.ts';
+import { getKotlinTypeInfo, parseKotlinTypeFromHtml } from './fetch-kotlin-api.ts';
 
 /**
- * Generate Kotlin type definition from fetched data
+ * Generate Kotlin type definition from HTML content
  */
-async function generateKotlinDefinition(kotlinType: string): Promise<string> {
-  // Fetch from official documentation
-  console.log(`Fetching ${kotlinType} from official Kotlin API docs...`);
-  const typeInfo = await getKotlinTypeInfo(kotlinType);
+export async function generateKotlinDefinitionFromHtml(kotlinType: string, html: string): Promise<string> {
+  const typeInfo = parseKotlinTypeFromHtml(html);
   
   if (!typeInfo) {
-    throw new Error(`Failed to fetch type information for ${kotlinType}`);
+    throw new Error(`Failed to parse type information for ${kotlinType} from HTML`);
   }
   
+  return formatKotlinDefinition(kotlinType, typeInfo);
+}
+
+/**
+ * Format Kotlin type definition from type info
+ */
+function formatKotlinDefinition(kotlinType: string, typeInfo: any): string {
   const parts = kotlinType.split('.');
   const className = parts[parts.length - 1];
   
@@ -58,7 +63,7 @@ async function generateKotlinDefinition(kotlinType: string): Promise<string> {
   
   // Add property signatures
   for (const prop of typeInfo.properties) {
-    const propModifiers = prop.modifiers.filter(m => m !== 'override').join(' ');
+    const propModifiers = prop.modifiers.filter((m: string) => m !== 'override').join(' ');
     const modStr = propModifiers ? `${propModifiers} ` : '';
     const overrideStr = prop.modifiers.includes('override') ? 'override ' : '';
     definition += `    ${overrideStr}${modStr}val ${prop.name}: ${prop.type}\n`;
@@ -66,7 +71,7 @@ async function generateKotlinDefinition(kotlinType: string): Promise<string> {
   
   // Add function signatures
   for (const func of typeInfo.functions) {
-    const funcModifiers = func.modifiers.filter(m => m !== 'override').join(' ');
+    const funcModifiers = func.modifiers.filter((m: string) => m !== 'override').join(' ');
     const modStr = funcModifiers ? `${funcModifiers} ` : '';
     const overrideStr = func.modifiers.includes('override') ? 'override ' : '';
     const params = func.parameters.join(', ');
@@ -76,6 +81,21 @@ async function generateKotlinDefinition(kotlinType: string): Promise<string> {
   definition += `}\n`;
   
   return definition;
+}
+
+/**
+ * Generate Kotlin type definition from fetched data
+ */
+async function generateKotlinDefinition(kotlinType: string): Promise<string> {
+  // Fetch from official documentation
+  console.log(`Fetching ${kotlinType} from official Kotlin API docs...`);
+  const typeInfo = await getKotlinTypeInfo(kotlinType);
+  
+  if (!typeInfo) {
+    throw new Error(`Failed to fetch type information for ${kotlinType}`);
+  }
+  
+  return formatKotlinDefinition(kotlinType, typeInfo);
 }
 
 async function main() {

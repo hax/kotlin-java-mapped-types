@@ -141,9 +141,10 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
     } catch (error) {
       if (getOfflineMode()) {
         console.error(`  ✗ Offline mode: ${mapping.kotlin} not in cache`);
-        throw new Error(`Offline mode: ${mapping.kotlin} not in cache`);
+        // In offline mode, continue processing other types
+      } else {
+        console.error(`  ✗ Failed to fetch ${mapping.kotlin}:`, error);
       }
-      console.error(`  ✗ Failed to fetch ${mapping.kotlin}:`, error);
     }
     
     // Fetch Java HTML
@@ -171,9 +172,10 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
     } catch (error) {
       if (getOfflineMode()) {
         console.error(`  ✗ Offline mode: ${mapping.java} not in cache`);
-        throw new Error(`Offline mode: ${mapping.java} not in cache`);
+        // In offline mode, continue processing other types
+      } else {
+        console.error(`  ✗ Failed to fetch ${mapping.java}:`, error);
       }
-      console.error(`  ✗ Failed to fetch ${mapping.java}:`, error);
     }
   }
   

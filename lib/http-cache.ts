@@ -35,7 +35,7 @@ function createCachedFetch(options: CacheOptions = {}) {
     maxTimeout: 10000
   };
 
-  return (url: string, opts?: any) => fetch(url, {
+  return (url: string, opts?: Record<string, any>) => fetch(url, {
     cachePath,
     retry,
     ...opts
@@ -43,7 +43,7 @@ function createCachedFetch(options: CacheOptions = {}) {
 }
 
 // Default cached fetch instance
-const cachedFetch = createCachedFetch();
+let cachedFetch = createCachedFetch();
 
 /**
  * Fetch text content from a URL with HTTP caching
@@ -100,7 +100,5 @@ export async function cachedFetchJson<T = any>(url: string, options?: CacheOptio
  * @param newPath - The new cache directory path
  */
 export function configureCachePath(newPath: string): void {
-  // Update the default cache by creating a new instance
-  // This is a simple approach; for production, you might want a more sophisticated config system
-  Object.assign(cachedFetch, createCachedFetch({ cachePath: newPath }));
+  cachedFetch = createCachedFetch({ cachePath: newPath });
 }

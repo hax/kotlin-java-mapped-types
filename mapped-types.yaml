@@ -1,66 +1,193 @@
-- kotlin: kotlin.Any
-  java: java.lang.Object
-- kotlin: kotlin.Cloneable
-  java: java.lang.Cloneable
-- kotlin: kotlin.Comparable
-  java: java.lang.Comparable
-- kotlin: kotlin.Enum
-  java: java.lang.Enum
-- kotlin: kotlin.Annotation
-  java: java.lang.annotation.Annotation
-- kotlin: kotlin.CharSequence
-  java: java.lang.CharSequence
-- kotlin: kotlin.String
-  java: java.lang.String
-- kotlin: kotlin.Number
-  java: java.lang.Number
-- kotlin: kotlin.Throwable
-  java: java.lang.Throwable
-- kotlin: kotlin.Byte
-  java: java.lang.Byte
-- kotlin: kotlin.Short
-  java: java.lang.Short
-- kotlin: kotlin.Int
-  java: java.lang.Integer
-- kotlin: kotlin.Long
-  java: java.lang.Long
-- kotlin: kotlin.Char
-  java: java.lang.Character
-- kotlin: kotlin.Float
-  java: java.lang.Float
-- kotlin: kotlin.Double
-  java: java.lang.Double
-- kotlin: kotlin.Boolean
-  java: java.lang.Boolean
-- kotlin: kotlin.collections.Iterator
-  java: java.util.Iterator
-- kotlin: kotlin.collections.MutableIterator
-  java: java.util.Iterator
-- kotlin: kotlin.collections.Iterable
-  java: java.lang.Iterable
-- kotlin: kotlin.collections.MutableIterable
-  java: java.lang.Iterable
-- kotlin: kotlin.collections.Collection
-  java: java.util.Collection
-- kotlin: kotlin.collections.MutableCollection
-  java: java.util.Collection
-- kotlin: kotlin.collections.Set
-  java: java.util.Set
-- kotlin: kotlin.collections.MutableSet
-  java: java.util.Set
-- kotlin: kotlin.collections.List
-  java: java.util.List
-- kotlin: kotlin.collections.MutableList
-  java: java.util.List
-- kotlin: kotlin.collections.ListIterator
-  java: java.util.ListIterator
-- kotlin: kotlin.collections.MutableListIterator
-  java: java.util.ListIterator
-- kotlin: kotlin.collections.Map
-  java: java.util.Map
-- kotlin: kotlin.collections.MutableMap
-  java: java.util.Map
-- kotlin: kotlin.collections.Map.Entry
-  java: java.util.Map.Entry
-- kotlin: kotlin.collections.MutableMap.MutableEntry
-  java: java.util.Map.Entry
+mappings:
+  - kotlin:
+      kind: interface
+      name: kotlin.Annotation
+    java:
+      kind: interface
+      name: java.lang.annotation.Annotation
+  - kotlin:
+      kind: interface
+      name: kotlin.Any
+    java:
+      kind: interface
+      name: java.lang.Object
+  - kotlin:
+      kind: interface
+      name: kotlin.Boolean
+    java:
+      kind: interface
+      name: java.lang.Boolean
+  - kotlin:
+      kind: interface
+      name: kotlin.Byte
+    java:
+      kind: interface
+      name: java.lang.Byte
+  - kotlin:
+      kind: interface
+      name: kotlin.Char
+    java:
+      kind: interface
+      name: java.lang.Character
+  - kotlin:
+      kind: interface
+      name: kotlin.CharSequence
+    java:
+      kind: interface
+      name: java.lang.CharSequence
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Collection
+    java:
+      kind: interface
+      name: java.util.Collection
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Entry
+    java:
+      kind: interface
+      name: java.util.Entry
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Iterable
+    java:
+      kind: interface
+      name: java.lang.Iterable
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Iterator
+    java:
+      kind: interface
+      name: java.util.Iterator
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.List
+    java:
+      kind: interface
+      name: java.util.List
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.ListIterator
+    java:
+      kind: interface
+      name: java.util.ListIterator
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Map
+    java:
+      kind: interface
+      name: java.util.Map
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableCollection
+    java:
+      kind: interface
+      name: java.util.Collection
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableEntry
+    java:
+      kind: interface
+      name: java.util.Entry
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableIterable
+    java:
+      kind: interface
+      name: java.lang.Iterable
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableIterator
+    java:
+      kind: interface
+      name: java.util.Iterator
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableList
+    java:
+      kind: interface
+      name: java.util.List
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableListIterator
+    java:
+      kind: interface
+      name: java.util.ListIterator
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableMap
+    java:
+      kind: interface
+      name: java.util.Map
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableSet
+    java:
+      kind: interface
+      name: java.util.Set
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Set
+    java:
+      kind: interface
+      name: java.util.Set
+  - kotlin:
+      kind: interface
+      name: kotlin.Comparable
+    java:
+      kind: interface
+      name: java.lang.Comparable
+  - kotlin:
+      kind: interface
+      name: kotlin.Double
+    java:
+      kind: interface
+      name: java.lang.Double
+  - kotlin:
+      kind: interface
+      name: kotlin.Enum
+    java:
+      kind: interface
+      name: java.lang.Enum
+  - kotlin:
+      kind: interface
+      name: kotlin.Float
+    java:
+      kind: interface
+      name: java.lang.Float
+  - kotlin:
+      kind: interface
+      name: kotlin.Int
+    java:
+      kind: interface
+      name: java.lang.Integer
+  - kotlin:
+      kind: interface
+      name: kotlin.Long
+    java:
+      kind: interface
+      name: java.lang.Long
+  - kotlin:
+      kind: interface
+      name: kotlin.Number
+    java:
+      kind: interface
+      name: java.lang.Number
+  - kotlin:
+      kind: interface
+      name: kotlin.Short
+    java:
+      kind: interface
+      name: java.lang.Short
+  - kotlin:
+      kind: interface
+      name: kotlin.String
+    java:
+      kind: interface
+      name: java.lang.String
+  - kotlin:
+      kind: interface
+      name: kotlin.Throwable
+    java:
+      kind: interface
+      name: java.lang.Throwable

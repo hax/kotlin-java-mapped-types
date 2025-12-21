@@ -10,7 +10,7 @@ import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './g
 import { generateKotlinDefinitionFromHtml } from './fetch-kotlin-definition.ts';
 import { generateJavaDefinitionFromHtml } from './fetch-java-definition.ts';
 import * as yaml from 'yaml';
-import { setOfflineMode, cachedFetchText } from './http-cache.ts';
+import { setOfflineMode, fetchText } from './fetch-text.ts';
 
 interface TypeMapping {
   kotlin: string;
@@ -119,10 +119,16 @@ async function main() {
       const javaUrl = typeNameToJavaUrl(mapping.java);
       
       console.log(`  Fetching ${mapping.kotlin} from ${kotlinUrl}...`);
-      const kotlinHtml = await cachedFetchText(kotlinUrl);
+      const kotlinHtml = await fetchText(kotlinUrl);
+      if (!kotlinHtml) {
+        throw new Error(`Cached HTML missing for ${mapping.kotlin}`);
+      }
       
       console.log(`  Fetching ${mapping.java} from ${javaUrl}...`);
-      const javaHtml = await cachedFetchText(javaUrl);
+      const javaHtml = await fetchText(javaUrl);
+      if (!javaHtml) {
+        throw new Error(`Cached HTML missing for ${mapping.java}`);
+      }
       
       // Parse HTML and generate definitions
       const kotlinDefinition = await generateKotlinDefinitionFromHtml(mapping.kotlin, kotlinHtml);

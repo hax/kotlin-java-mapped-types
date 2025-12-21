@@ -3,7 +3,7 @@
  */
 
 import * as cheerio from 'cheerio';
-import { cachedFetchText } from './http-cache.ts';
+import { fetchText } from './fetch-text.ts';
 
 export interface TypeMapping {
   kotlin: string;
@@ -21,8 +21,11 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
   try {
     const url = 'https://kotlinlang.org/docs/java-interop.html';
     console.log(`Fetching mapped types from: ${url}`);
-    
-    const html = await cachedFetchText(url);
+
+    const html = await fetchText(url);
+    if (!html) {
+      throw new Error('Failed to fetch mapped types page');
+    }
     const $ = cheerio.load(html);
     
     const mappings: TypeMapping[] = [];
@@ -86,9 +89,13 @@ export async function extractMappedTypesFromDocs(): Promise<TypeMapping[]> {
                 if (baseType === 'Map.Entry') {
                   return `java.util.Map.Entry${generics}`;
                 }
-                
+
+                if (baseType === 'Iterable') {
+                  return `java.lang.Iterable${generics}`;
+                }
+
                 // Collection types
-                if (['Iterator', 'Iterable', 'Collection', 'Set', 'List', 'ListIterator', 'Map'].includes(baseType)) {
+                if (['Iterator', 'Collection', 'Set', 'List', 'ListIterator', 'Map'].includes(baseType)) {
                   return `java.util.${baseType}${generics}`;
                 }
                 

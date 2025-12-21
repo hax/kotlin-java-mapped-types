@@ -37,9 +37,9 @@
 - kotlin: kotlin.collections.MutableIterator
   java: java.util.Iterator
 - kotlin: kotlin.collections.Iterable
-  java: java.util.Iterable
+  java: java.lang.Iterable
 - kotlin: kotlin.collections.MutableIterable
-  java: java.util.Iterable
+  java: java.lang.Iterable
 - kotlin: kotlin.collections.Collection
   java: java.util.Collection
 - kotlin: kotlin.collections.MutableCollection

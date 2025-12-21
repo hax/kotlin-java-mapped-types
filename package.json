@@ -9,7 +9,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "sync": "node --experimental-strip-types lib/sync-resources.ts",
+    "sync": "node lib/sync-resources.ts",
     "generate": "node --experimental-strip-types lib/generate-all.ts",
     "generate:mapping-details": "node --experimental-strip-types lib/generate-mapping-details.ts",
     "generate:mapped-types": "node --experimental-strip-types lib/generate-mapped-types-yaml.ts",

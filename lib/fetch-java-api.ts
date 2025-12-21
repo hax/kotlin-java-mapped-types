@@ -4,7 +4,7 @@
  */
 
 import * as cheerio from 'cheerio';
-import { cachedFetchText } from './http-cache.ts';
+import { fetchText } from './fetch-text.ts';
 
 interface MethodSignature {
   modifiers: string[];
@@ -130,8 +130,13 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     const url = `https://developer.android.com/reference/${packagePath}/${classPath}`;
     
     console.log(`Fetching Java type from: ${url}`);
-    
-    const html = await cachedFetchText(url);
+
+    const html = await fetchText(url);
+    if (!html) {
+      console.error(`Error fetching Java type ${typeName}: no content returned`);
+      return null;
+    }
+
     return parseJavaTypeFromHtml(html);
   } catch (error) {
     console.error(`Error fetching Java type ${typeName}:`, error);

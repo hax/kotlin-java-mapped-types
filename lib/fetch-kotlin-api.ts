@@ -4,7 +4,7 @@
  */
 
 import * as cheerio from 'cheerio';
-import { cachedFetchText } from './http-cache.ts';
+import { fetchText } from './fetch-text.ts';
 
 interface PropertySignature {
   modifiers: string[];
@@ -131,8 +131,13 @@ export async function fetchKotlinType(typeName: string): Promise<KotlinTypeInfo 
     const url = `https://kotlinlang.org/api/core/kotlin-stdlib/${path}`;
     
     console.log(`Fetching Kotlin type from: ${url}`);
-    
-    const html = await cachedFetchText(url);
+
+    const html = await fetchText(url);
+    if (!html) {
+      console.error(`Error fetching Kotlin type ${typeName}: no content returned`);
+      return null;
+    }
+
     return parseKotlinTypeFromHtml(html);
   } catch (error) {
     console.error(`Error fetching Kotlin type ${typeName}:`, error);

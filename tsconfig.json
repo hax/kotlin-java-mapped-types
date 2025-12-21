@@ -1,20 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2024",
     "module": "NodeNext",
-    "lib": ["ES2022"],
+    "lib": ["ES2024"],
     "types": ["node"],
-    "outDir": "./dist",
     "rootDir": "./lib",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "moduleResolution": "NodeNext",
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["lib/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["lib/**/*"]
 }

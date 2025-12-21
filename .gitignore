@@ -3,6 +3,3 @@ dist/
 *.log
 .DS_Store
 mappings/
-doc-cache/kotlin/
-doc-cache/java/
-doc-cache/kotlin-doc.html

@@ -13,6 +13,7 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import { extractMappedTypesFromDocs } from './extract-mapped-types.ts';
 import type { TypeMapping } from './extract-mapped-types.ts';
+import { cachedFetchText } from './http-cache.ts';
 
 const RESOURCES_DIR = path.join(process.cwd(), 'resources');
 const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
@@ -32,12 +33,7 @@ async function ensureResourcesStructure() {
 async function fetchKotlinDocumentation(): Promise<boolean> {
   console.log('Fetching Kotlin documentation...');
   try {
-    const response = await fetch(KOTLIN_DOC_URL);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch documentation: ${response.status} ${response.statusText}`);
-    }
-    
-    const html = await response.text();
+    const html = await cachedFetchText(KOTLIN_DOC_URL);
     const docPath = path.join(RESOURCES_DIR, 'kotlin-doc.html');
     
     // Check if content has changed
@@ -120,13 +116,7 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
     try {
       console.log(`Fetching ${mapping.kotlin}...`);
       const kotlinUrl = typeNameToKotlinUrl(mapping.kotlin);
-      const kotlinResponse = await fetch(kotlinUrl);
-      
-      if (!kotlinResponse.ok) {
-        throw new Error(`Failed to fetch: ${kotlinResponse.status}`);
-      }
-      
-      const kotlinHtml = await kotlinResponse.text();
+      const kotlinHtml = await cachedFetchText(kotlinUrl);
       
       let kotlinChanged = true;
       try {
@@ -152,13 +142,7 @@ async function fetchAndCacheDefinitions(mappedTypes: TypeMapping[]): Promise<voi
     try {
       console.log(`Fetching ${mapping.java}...`);
       const javaUrl = typeNameToJavaUrl(mapping.java);
-      const javaResponse = await fetch(javaUrl);
-      
-      if (!javaResponse.ok) {
-        throw new Error(`Failed to fetch: ${javaResponse.status}`);
-      }
-      
-      const javaHtml = await javaResponse.text();
+      const javaHtml = await cachedFetchText(javaUrl);
       
       let javaChanged = true;
       try {

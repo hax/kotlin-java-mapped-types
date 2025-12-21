@@ -4,6 +4,7 @@
  */
 
 import * as cheerio from 'cheerio';
+import { cachedFetchText } from './http-cache.ts';
 
 interface MethodSignature {
   modifiers: string[];
@@ -55,13 +56,7 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     
     console.log(`Fetching Java type from: ${url}`);
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch ${typeName}: ${response.status}`);
-      return null;
-    }
-    
-    const html = await response.text();
+    const html = await cachedFetchText(url);
     const $ = cheerio.load(html);
     
     // Parse the HTML to extract type information from Android docs

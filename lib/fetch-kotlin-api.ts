@@ -4,6 +4,7 @@
  */
 
 import * as cheerio from 'cheerio';
+import { cachedFetchText } from './http-cache.ts';
 
 interface PropertySignature {
   modifiers: string[];
@@ -65,13 +66,7 @@ export async function fetchKotlinType(typeName: string): Promise<KotlinTypeInfo 
     
     console.log(`Fetching Kotlin type from: ${url}`);
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch ${typeName}: ${response.status}`);
-      return null;
-    }
-    
-    const html = await response.text();
+    const html = await cachedFetchText(url);
     const $ = cheerio.load(html);
     
     // Parse the HTML to extract type information from Kotlin docs

@@ -79,15 +79,49 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
     
     // Extract properties and functions
     // Kotlin docs structure: look for declarations in the documentation
-    $('.declarations').each((_, element) => {
-      const $elem = $(element);
-      const signature = $elem.find('.signature').text().trim();
-      
-      if (signature) {
-        // Parse property signatures (val/var)
-        if (signature.match(/^\s*(val|var)\s+/)) {
-          const propMatch = signature.match(/^\s*(val|var)\s+(\w+):\s*(.+)/);
-          if (propMatch) {
+    // Try multiple selectors as the docs structure may vary
+    const declarationSelectors = [
+      '.declarations .signature',  // Original selector
+      '[data-kotlin-type="property"] code', // Alternative for properties
+      '[data-kotlin-type="function"] code', // Alternative for functions
+      '.symbol.monospace',         // Another common pattern
+      'code.api-signature',        // Yet another pattern
+    ];
+    
+    // Collect all signature texts from various selectors
+    const signatures = new Set<string>();
+    for (const selector of declarationSelectors) {
+      $(selector).each((_, element) => {
+        const signature = $(element).text().trim();
+        // Normalize whitespace in signature
+        const normalizedSignature = signature.replace(/\s+/g, ' ').trim();
+        if (normalizedSignature) {
+          signatures.add(normalizedSignature);
+        }
+      });
+    }
+    
+    // Also try to extract from any code blocks that look like declarations
+    $('code').each((_, element) => {
+      const signature = $(element).text().trim();
+      const normalizedSignature = signature.replace(/\s+/g, ' ').trim();
+      // Only add if it looks like a property or function declaration
+      if (normalizedSignature.match(/^\s*(val|var)\s+\w+:/)) {
+        signatures.add(normalizedSignature);
+      } else if (normalizedSignature.match(/^\s*(?:operator\s+|override\s+)?fun\s+\w+\s*\(/)) {
+        signatures.add(normalizedSignature);
+      }
+    });
+    
+    // Parse all collected signatures
+    for (const signature of signatures) {
+      // Parse property signatures (val/var)
+      if (signature.match(/^\s*(val|var)\s+/)) {
+        const propMatch = signature.match(/^\s*(val|var)\s+(\w+):\s*(.+)/);
+        if (propMatch) {
+          // Check if we already have this property (avoid duplicates)
+          const exists = typeInfo.properties.some(p => p.name === propMatch[2]);
+          if (!exists) {
             typeInfo.properties.push({
               modifiers: [],
               name: propMatch[2],
@@ -95,10 +129,14 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
             });
           }
         }
-        // Parse function signatures
-        else if (signature.match(/^\s*fun\s+/)) {
-          const funcMatch = signature.match(/^\s*(?:(operator|override)\s+)?fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
-          if (funcMatch) {
+      }
+      // Parse function signatures
+      else if (signature.match(/^\s*fun\s+/)) {
+        const funcMatch = signature.match(/^\s*(?:(operator|override)\s+)?fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
+        if (funcMatch) {
+          // Check if we already have this function (avoid duplicates)
+          const exists = typeInfo.functions.some(f => f.name === funcMatch[2]);
+          if (!exists) {
             const modifiers: string[] = [];
             if (funcMatch[1]) modifiers.push(funcMatch[1]);
             
@@ -111,7 +149,7 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
           }
         }
       }
-    });
+    }
     
     return typeInfo;
   } catch (error) {

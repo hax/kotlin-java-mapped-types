@@ -32,31 +32,10 @@ const METHOD_TABLE_SELECTORS = 'table.responsive tbody tr, table.methods tbody t
 const METHOD_SIGNATURE_PATTERN = /(\w+)\s*\(([^)]*)\)/;
 
 /**
- * Fetch and parse Java type from Android documentation
+ * Parse Java type from HTML content
  */
-export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | null> {
+export function parseJavaTypeFromHtml(html: string): JavaTypeInfo | null {
   try {
-    // Convert type name to URL path
-    // Handles nested types like Map.Entry by keeping dots for nested classes
-    // e.g., java.lang.String -> java/lang/String
-    // e.g., java.util.Map.Entry -> java/util/Map.Entry
-    const parts = typeName.split('.');
-    
-    // Find where the package ends and class names begin
-    // Package names are lowercase, class names start with uppercase
-    let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
-    if (packageEndIndex === -1) {
-      packageEndIndex = parts.length;
-    }
-    
-    const packagePath = parts.slice(0, packageEndIndex).join('/');
-    const classPath = parts.slice(packageEndIndex).join('.');
-    
-    const url = `https://developer.android.com/reference/${packagePath}/${classPath}`;
-    
-    console.log(`Fetching Java type from: ${url}`);
-    
-    const html = await cachedFetchText(url);
     const $ = cheerio.load(html);
     
     // Parse the HTML to extract type information from Android docs
@@ -121,6 +100,39 @@ export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | nu
     });
     
     return typeInfo;
+  } catch (error) {
+    console.error('Error parsing Java type from HTML:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch and parse Java type from Android documentation
+ */
+export async function fetchJavaType(typeName: string): Promise<JavaTypeInfo | null> {
+  try {
+    // Convert type name to URL path
+    // Handles nested types like Map.Entry by keeping dots for nested classes
+    // e.g., java.lang.String -> java/lang/String
+    // e.g., java.util.Map.Entry -> java/util/Map.Entry
+    const parts = typeName.split('.');
+    
+    // Find where the package ends and class names begin
+    // Package names are lowercase, class names start with uppercase
+    let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
+    if (packageEndIndex === -1) {
+      packageEndIndex = parts.length;
+    }
+    
+    const packagePath = parts.slice(0, packageEndIndex).join('/');
+    const classPath = parts.slice(packageEndIndex).join('.');
+    
+    const url = `https://developer.android.com/reference/${packagePath}/${classPath}`;
+    
+    console.log(`Fetching Java type from: ${url}`);
+    
+    const html = await cachedFetchText(url);
+    return parseJavaTypeFromHtml(html);
   } catch (error) {
     console.error(`Error fetching Java type ${typeName}:`, error);
     return null;

@@ -3,20 +3,25 @@
  * Fetch Java type definitions from official Android API documentation
  */
 
-import { getJavaTypeInfo } from './fetch-java-api.ts';
+import { getJavaTypeInfo, parseJavaTypeFromHtml } from './fetch-java-api.ts';
 
 /**
- * Generate Java type definition from fetched data
+ * Generate Java type definition from HTML content
  */
-async function generateJavaDefinition(javaType: string): Promise<string> {
-  // Fetch from official documentation
-  console.log(`Fetching ${javaType} from official Android API docs...`);
-  const typeInfo = await getJavaTypeInfo(javaType);
+export async function generateJavaDefinitionFromHtml(javaType: string, html: string): Promise<string> {
+  const typeInfo = parseJavaTypeFromHtml(html);
   
   if (!typeInfo) {
-    throw new Error(`Failed to fetch type information for ${javaType}`);
+    throw new Error(`Failed to parse type information for ${javaType} from HTML`);
   }
   
+  return formatJavaDefinition(javaType, typeInfo);
+}
+
+/**
+ * Format Java type definition from type info
+ */
+function formatJavaDefinition(javaType: string, typeInfo: any): string {
   const parts = javaType.split('.');
   const className = parts[parts.length - 1];
   
@@ -64,6 +69,21 @@ async function generateJavaDefinition(javaType: string): Promise<string> {
   definition += `}\n`;
   
   return definition;
+}
+
+/**
+ * Generate Java type definition from fetched data
+ */
+async function generateJavaDefinition(javaType: string): Promise<string> {
+  // Fetch from official documentation
+  console.log(`Fetching ${javaType} from official Android API docs...`);
+  const typeInfo = await getJavaTypeInfo(javaType);
+  
+  if (!typeInfo) {
+    throw new Error(`Failed to fetch type information for ${javaType}`);
+  }
+  
+  return formatJavaDefinition(javaType, typeInfo);
 }
 
 async function main() {

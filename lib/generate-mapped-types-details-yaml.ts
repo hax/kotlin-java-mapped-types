@@ -63,11 +63,58 @@ function simplifySignature(signature: string): string {
     
     // Extract parameter names only (no types)
     if (params.trim()) {
-      const paramNames = params.split(',').map(p => {
-        const parts = p.trim().split(/\s+/);
-        // Last part before array brackets is the parameter name
-        const lastPart = parts[parts.length - 1];
-        return lastPart.replace(/[\[\]]/g, '');
+      // Split parameters respecting angle brackets
+      const paramList: string[] = [];
+      let depth = 0;
+      let currentParam = '';
+      
+      for (const char of params) {
+        if (char === '<') {
+          depth++;
+          currentParam += char;
+        } else if (char === '>') {
+          depth--;
+          currentParam += char;
+        } else if (char === ',' && depth === 0) {
+          paramList.push(currentParam);
+          currentParam = '';
+        } else {
+          currentParam += char;
+        }
+      }
+      if (currentParam) {
+        paramList.push(currentParam);
+      }
+      
+      const paramNames = paramList.map(p => {
+        const trimmedParam = p.trim();
+        
+        // Handle complex generic types like Map<? extends K, ? extends V> m
+        // Strategy: find the last identifier that's not inside angle brackets
+        let depth = 0;
+        let lastIdentifierStart = -1;
+        let lastIdentifierEnd = -1;
+        
+        for (let i = 0; i < trimmedParam.length; i++) {
+          const char = trimmedParam[i];
+          if (char === '<') {
+            depth++;
+          } else if (char === '>') {
+            depth--;
+          } else if (depth === 0 && /\w/.test(char)) {
+            if (lastIdentifierStart === -1 || /\s/.test(trimmedParam[i - 1] || ' ')) {
+              lastIdentifierStart = i;
+            }
+            lastIdentifierEnd = i;
+          }
+        }
+        
+        if (lastIdentifierStart !== -1) {
+          // Extract the identifier and remove array brackets
+          const paramName = trimmedParam.substring(lastIdentifierStart, lastIdentifierEnd + 1);
+          return paramName.replace(/[\[\]]/g, '');
+        }
+        return '';
       }).filter(n => n);
       return `${methodName}(${paramNames.join(', ')})`;
     }

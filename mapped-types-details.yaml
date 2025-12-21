@@ -398,7 +398,7 @@ mappings:
       - kotlin: put(key, value)
         java: put(key, value)
       - kotlin: putAll(from)
-        java: putAll(K, m)
+        java: putAll(m)
       - kotlin: remove(key)
         java: remove(key, value)
       - kotlin: remove(key)

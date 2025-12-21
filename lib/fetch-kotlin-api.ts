@@ -102,7 +102,9 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
     }
     
     // Also try to extract from any code blocks that look like declarations
-    $('code').each((_, element) => {
+    // This is a fallback for when the specific selectors above don't match
+    // Limit to main content areas to avoid processing navigation/footer code blocks
+    $('main code, article code, .content code, code').each((_, element) => {
       const signature = $(element).text().trim();
       const normalizedSignature = signature.replace(/\s+/g, ' ').trim();
       // Only add if it looks like a property or function declaration
@@ -114,6 +116,9 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
     });
     
     // Parse all collected signatures
+    const seenProperties = new Set<string>();
+    const seenFunctions = new Set<string>();
+    
     for (const signature of signatures) {
       // Parse property signatures (val/var)
       if (signature.match(/^\s*(val|var)\s+/) || signature.match(/\b(?:val|var)\s+/)) {
@@ -124,12 +129,13 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
         
         const propMatch = signature.match(/\b(val|var)\s+(\w+):\s*(.+)/);
         if (propMatch) {
+          const propName = propMatch[2];
           // Check if we already have this property (avoid duplicates)
-          const exists = typeInfo.properties.some(p => p.name === propMatch[2]);
-          if (!exists) {
+          if (!seenProperties.has(propName)) {
+            seenProperties.add(propName);
             typeInfo.properties.push({
               modifiers,
-              name: propMatch[2],
+              name: propName,
               type: propMatch[3].trim()
             });
           }
@@ -146,13 +152,14 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
         // Match function signature
         const funcMatch = signature.match(/fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
         if (funcMatch) {
+          const funcName = funcMatch[1];
           // Check if we already have this function (avoid duplicates)
-          const exists = typeInfo.functions.some(f => f.name === funcMatch[1]);
-          if (!exists) {
+          if (!seenFunctions.has(funcName)) {
+            seenFunctions.add(funcName);
             typeInfo.functions.push({
               modifiers,
               returnType: funcMatch[3] ? funcMatch[3].trim() : 'Unit',
-              name: funcMatch[1],
+              name: funcName,
               parameters: funcMatch[2] ? funcMatch[2].split(',').map(p => p.trim()) : []
             });
           }

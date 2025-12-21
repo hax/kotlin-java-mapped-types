@@ -79,39 +79,93 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
     
     // Extract properties and functions
     // Kotlin docs structure: look for declarations in the documentation
-    $('.declarations').each((_, element) => {
-      const $elem = $(element);
-      const signature = $elem.find('.signature').text().trim();
-      
-      if (signature) {
-        // Parse property signatures (val/var)
-        if (signature.match(/^\s*(val|var)\s+/)) {
-          const propMatch = signature.match(/^\s*(val|var)\s+(\w+):\s*(.+)/);
-          if (propMatch) {
+    // Try multiple selectors as the docs structure may vary
+    const declarationSelectors = [
+      '.declarations .signature',  // Original selector
+      '[data-kotlin-type="property"] code', // Alternative for properties
+      '[data-kotlin-type="function"] code', // Alternative for functions
+      '.symbol.monospace',         // Another common pattern
+      'code.api-signature',        // Yet another pattern
+    ];
+    
+    // Collect all signature texts from various selectors
+    const signatures = new Set<string>();
+    for (const selector of declarationSelectors) {
+      $(selector).each((_, element) => {
+        const signature = $(element).text().trim();
+        // Normalize whitespace in signature
+        const normalizedSignature = signature.replace(/\s+/g, ' ').trim();
+        if (normalizedSignature) {
+          signatures.add(normalizedSignature);
+        }
+      });
+    }
+    
+    // Also try to extract from any code blocks that look like declarations
+    // This is a fallback for when the specific selectors above don't match
+    // Limit to main content areas to avoid processing navigation/footer code blocks
+    $('main code, article code, .content code, code').each((_, element) => {
+      const signature = $(element).text().trim();
+      const normalizedSignature = signature.replace(/\s+/g, ' ').trim();
+      // Only add if it looks like a property or function declaration
+      if (normalizedSignature.match(/\b(?:val|var)\s+\w+:/)) {
+        signatures.add(normalizedSignature);
+      } else if (normalizedSignature.match(/\bfun\s+\w+\s*\(/)) {
+        signatures.add(normalizedSignature);
+      }
+    });
+    
+    // Parse all collected signatures
+    const seenProperties = new Set<string>();
+    const seenFunctions = new Set<string>();
+    
+    for (const signature of signatures) {
+      // Parse property signatures (val/var)
+      if (signature.match(/^\s*(val|var)\s+/) || signature.match(/\b(?:val|var)\s+/)) {
+        // Extract modifiers before 'val' or 'var' keyword
+        const beforeValVar = signature.split(/\b(?:val|var)\b/)[0];
+        const modifiers: string[] = [];
+        if (beforeValVar.includes('override')) modifiers.push('override');
+        
+        const propMatch = signature.match(/\b(val|var)\s+(\w+):\s*(.+)/);
+        if (propMatch) {
+          const propName = propMatch[2];
+          // Check if we already have this property (avoid duplicates)
+          if (!seenProperties.has(propName)) {
+            seenProperties.add(propName);
             typeInfo.properties.push({
-              modifiers: [],
-              name: propMatch[2],
+              modifiers,
+              name: propName,
               type: propMatch[3].trim()
             });
           }
         }
-        // Parse function signatures
-        else if (signature.match(/^\s*fun\s+/)) {
-          const funcMatch = signature.match(/^\s*(?:(operator|override)\s+)?fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
-          if (funcMatch) {
-            const modifiers: string[] = [];
-            if (funcMatch[1]) modifiers.push(funcMatch[1]);
-            
+      }
+      // Parse function signatures
+      else if (signature.match(/\bfun\s+/)) {
+        // Extract all modifiers before 'fun' keyword
+        const beforeFun = signature.split('fun')[0];
+        const modifiers: string[] = [];
+        if (beforeFun.includes('operator')) modifiers.push('operator');
+        if (beforeFun.includes('override')) modifiers.push('override');
+        
+        // Match function signature
+        const funcMatch = signature.match(/fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
+        if (funcMatch) {
+          const funcName = funcMatch[1];
+          // Check if we already have this function (avoid duplicates)
+          if (!seenFunctions.has(funcName)) {
+            seenFunctions.add(funcName);
             typeInfo.functions.push({
               modifiers,
-              returnType: funcMatch[4] ? funcMatch[4].trim() : 'Unit',
-              name: funcMatch[2],
-              parameters: funcMatch[3] ? funcMatch[3].split(',').map(p => p.trim()) : []
+              returnType: funcMatch[3] ? funcMatch[3].trim() : 'Unit',
+              name: funcName,
+              parameters: funcMatch[2] ? funcMatch[2].split(',').map(p => p.trim()) : []
             });
           }
         }
       }
-    });
+    }
     
     return typeInfo;
   } catch (error) {

@@ -64,7 +64,8 @@ export function parseJavaTypeFromHtml(html: string): JavaTypeInfo | null {
       
       if (cells.length >= 2) {
         // First cell typically contains return type
-        const returnType = cells.first().text().trim();
+        // Normalize whitespace: replace multiple spaces/newlines with single space
+        const returnType = cells.first().text().trim().replace(/\s+/g, ' ');
         
         // Second cell contains method signature (name and parameters)
         const methodCell = cells.eq(1);

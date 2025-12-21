@@ -13,6 +13,7 @@
     "generate": "node lib/generate-all.ts",
     "generate:mapping-details": "node lib/generate-mapping-details.ts",
     "generate:mapped-types": "node lib/generate-mapped-types-yaml.ts",
+    "generate:mapped-types-details": "node lib/generate-mapped-types-details-yaml.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

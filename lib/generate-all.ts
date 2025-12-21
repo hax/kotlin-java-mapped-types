@@ -11,6 +11,7 @@ import { generateKotlinDefinitionFromHtml } from './fetch-kotlin-definition.ts';
 import { generateJavaDefinitionFromHtml } from './fetch-java-definition.ts';
 import * as yaml from 'yaml';
 import { setOfflineMode, fetchText } from './fetch-text.ts';
+import { generateMappedTypesDetails } from './generate-mapped-types-details-yaml.ts';
 
 interface TypeMapping {
   kotlin: string;
@@ -145,6 +146,10 @@ async function main() {
   }
   
   console.log(`\nDone! Generated ${MAPPED_TYPES.length} type mappings.`);
+  
+  // Generate mapped-types-details.yaml
+  console.log('\nGenerating mapped-types-details.yaml...');
+  await generateMappedTypesDetails();
 }
 
 // Run if this is the main module

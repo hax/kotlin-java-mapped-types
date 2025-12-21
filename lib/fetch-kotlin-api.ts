@@ -106,9 +106,9 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
       const signature = $(element).text().trim();
       const normalizedSignature = signature.replace(/\s+/g, ' ').trim();
       // Only add if it looks like a property or function declaration
-      if (normalizedSignature.match(/^\s*(val|var)\s+\w+:/)) {
+      if (normalizedSignature.match(/\b(?:val|var)\s+\w+:/)) {
         signatures.add(normalizedSignature);
-      } else if (normalizedSignature.match(/^\s*(?:operator\s+|override\s+)?fun\s+\w+\s*\(/)) {
+      } else if (normalizedSignature.match(/\bfun\s+\w+\s*\(/)) {
         signatures.add(normalizedSignature);
       }
     });
@@ -116,14 +116,19 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
     // Parse all collected signatures
     for (const signature of signatures) {
       // Parse property signatures (val/var)
-      if (signature.match(/^\s*(val|var)\s+/)) {
-        const propMatch = signature.match(/^\s*(val|var)\s+(\w+):\s*(.+)/);
+      if (signature.match(/^\s*(val|var)\s+/) || signature.match(/\b(?:val|var)\s+/)) {
+        // Extract modifiers before 'val' or 'var' keyword
+        const beforeValVar = signature.split(/\b(?:val|var)\b/)[0];
+        const modifiers: string[] = [];
+        if (beforeValVar.includes('override')) modifiers.push('override');
+        
+        const propMatch = signature.match(/\b(val|var)\s+(\w+):\s*(.+)/);
         if (propMatch) {
           // Check if we already have this property (avoid duplicates)
           const exists = typeInfo.properties.some(p => p.name === propMatch[2]);
           if (!exists) {
             typeInfo.properties.push({
-              modifiers: [],
+              modifiers,
               name: propMatch[2],
               type: propMatch[3].trim()
             });

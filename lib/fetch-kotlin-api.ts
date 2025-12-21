@@ -131,20 +131,24 @@ export function parseKotlinTypeFromHtml(html: string): KotlinTypeInfo | null {
         }
       }
       // Parse function signatures
-      else if (signature.match(/^\s*fun\s+/)) {
-        const funcMatch = signature.match(/^\s*(?:(operator|override)\s+)?fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
+      else if (signature.match(/\bfun\s+/)) {
+        // Extract all modifiers before 'fun' keyword
+        const beforeFun = signature.split('fun')[0];
+        const modifiers: string[] = [];
+        if (beforeFun.includes('operator')) modifiers.push('operator');
+        if (beforeFun.includes('override')) modifiers.push('override');
+        
+        // Match function signature
+        const funcMatch = signature.match(/fun\s+(\w+)\s*\(([^)]*)\)(?::\s*(.+))?/);
         if (funcMatch) {
           // Check if we already have this function (avoid duplicates)
-          const exists = typeInfo.functions.some(f => f.name === funcMatch[2]);
+          const exists = typeInfo.functions.some(f => f.name === funcMatch[1]);
           if (!exists) {
-            const modifiers: string[] = [];
-            if (funcMatch[1]) modifiers.push(funcMatch[1]);
-            
             typeInfo.functions.push({
               modifiers,
-              returnType: funcMatch[4] ? funcMatch[4].trim() : 'Unit',
-              name: funcMatch[2],
-              parameters: funcMatch[3] ? funcMatch[3].split(',').map(p => p.trim()) : []
+              returnType: funcMatch[3] ? funcMatch[3].trim() : 'Unit',
+              name: funcMatch[1],
+              parameters: funcMatch[2] ? funcMatch[2].split(',').map(p => p.trim()) : []
             });
           }
         }

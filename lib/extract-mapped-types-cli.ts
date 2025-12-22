@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-/**
- * CLI script to extract Kotlin-Java mapped types from documentation
- */
 
 import { extractMappedTypesFromDocs } from './extract-mapped-types.ts';
 

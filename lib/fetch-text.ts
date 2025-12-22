@@ -1,8 +1,3 @@
-/**
- * Unified HTTP cache layer with RFC 7234 compliant caching
- * Uses make-fetch-happen for automatic If-Modified-Since and ETag headers
- */
-
 import fetch from 'make-fetch-happen';
 import { CACHE_PATH } from './config.ts';
 

@@ -1,7 +1,3 @@
-/**
- * Shared utility functions
- */
-
 import * as fs from 'fs/promises';
 
 export interface TypeInfo {
@@ -9,9 +5,6 @@ export interface TypeInfo {
   name: string;
 }
 
-/**
- * Extract type information from a definition file
- */
 export async function extractTypeInfo(defFile: string): Promise<TypeInfo | null> {
   try {
     const content = await fs.readFile(defFile, 'utf-8');
@@ -24,13 +17,11 @@ export async function extractTypeInfo(defFile: string): Promise<TypeInfo | null>
     for (const line of lines) {
       const trimmed = line.trim();
       
-      // Parse package
       const pkgMatch = trimmed.match(/^package\s+([\w.]+)/);
       if (pkgMatch) {
         packageName = pkgMatch[1];
       }
       
-      // Parse class/interface for Java
       const javaMatch = trimmed.match(/(?:public\s+)?(?:final\s+)?(class|interface)\s+(\w+)/);
       if (javaMatch) {
         kind = javaMatch[1];
@@ -38,7 +29,6 @@ export async function extractTypeInfo(defFile: string): Promise<TypeInfo | null>
         break;
       }
       
-      // Parse class/interface for Kotlin
       const kotlinMatch = trimmed.match(/^(?:open\s+)?(class|interface)\s+(\w+)/);
       if (kotlinMatch) {
         kind = kotlinMatch[1];
@@ -51,4 +41,33 @@ export async function extractTypeInfo(defFile: string): Promise<TypeInfo | null>
   } catch (error) {
     return null;
   }
+}
+
+export function typeNameToKotlinUrl(typeName: string): string {
+  const parts = typeName.split('.');
+  let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
+  if (packageEndIndex === -1) {
+    packageEndIndex = parts.length;
+  }
+  
+  const packagePath = parts.slice(0, packageEndIndex).join('.');
+  const classNames = parts.slice(packageEndIndex);
+  const kebabNames = classNames.map(name => 
+    name.replace(/([A-Z])/g, '-$1').toLowerCase()
+  ).join('/');
+  
+  return `https://kotlinlang.org/api/core/kotlin-stdlib/${packagePath}/${kebabNames}/`;
+}
+
+export function typeNameToJavaUrl(typeName: string): string {
+  const parts = typeName.split('.');
+  let packageEndIndex = parts.findIndex(part => /^[A-Z]/.test(part));
+  if (packageEndIndex === -1) {
+    packageEndIndex = parts.length;
+  }
+  
+  const packagePath = parts.slice(0, packageEndIndex).join('/');
+  const classPath = parts.slice(packageEndIndex).join('.');
+  
+  return `https://developer.android.com/reference/${packagePath}/${classPath}`;
 }

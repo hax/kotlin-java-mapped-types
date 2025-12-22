@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-/**
- * Aggregate mapping-details from all directories into mapped-types.yaml
- * Per user requirement: should only include kind and name, no duplicate mappings
- */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -34,7 +30,6 @@ async function main() {
     const javaInfo = await extractTypeInfo(javaDefFile);
     
     if (kotlinInfo && javaInfo) {
-      // Check for duplicate mappings (same Kotlin-Java pair)
       const key = `${kotlinInfo.name}::${javaInfo.name}`;
       if (!seen.has(key)) {
         seen.add(key);
@@ -47,7 +42,6 @@ async function main() {
     }
   }
   
-  // Sort mappings by Kotlin name for consistency
   mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
   
   const output = yaml.stringify({ mappings });
@@ -56,7 +50,6 @@ async function main() {
   console.log(`\nGenerated ${MAPPED_TYPES_FILE} with ${mappings.length} unique mappings`);
 }
 
-// Run if this is the main module
 if (import.meta.url.endsWith(process.argv[1])) {
   main().catch(console.error);
 }

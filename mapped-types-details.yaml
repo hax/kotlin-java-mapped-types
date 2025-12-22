@@ -1,0 +1,571 @@
+mappings:
+  - kotlin:
+      kind: interface
+      name: kotlin.Annotation
+    java:
+      kind: interface
+      name: java.lang.annotation.Annotation
+    mappings: []
+  - kotlin:
+      kind: interface
+      name: kotlin.Any
+    java:
+      kind: interface
+      name: java.lang.Object
+    mappings:
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Boolean
+    java:
+      kind: interface
+      name: java.lang.Boolean
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(b)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Byte
+    java:
+      kind: interface
+      name: java.lang.Byte
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherByte)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Char
+    java:
+      kind: interface
+      name: java.lang.Character
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherCharacter)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode(value)
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.CharSequence
+    java:
+      kind: interface
+      name: java.lang.CharSequence
+    mappings:
+      - kotlin: length
+        java: length()
+      - kotlin: get(index)
+        java: charAt(index)
+      - kotlin: subSequence(startIndex, endIndex)
+        java: subSequence(start, end)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Collection
+    java:
+      kind: interface
+      name: java.util.Collection
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: contains(element)
+        java: contains(o)
+      - kotlin: containsAll(elements)
+        java: containsAll(c)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: iterator()
+        java: iterator()
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Entry
+    java:
+      kind: interface
+      name: java.util.Entry
+    mappings:
+      - kotlin: key
+        java: getKey()
+      - kotlin: value
+        java: getValue()
+      - kotlin: setValue(p0)
+        java: setValue(value)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Iterable
+    java:
+      kind: interface
+      name: java.lang.Iterable
+    mappings:
+      - kotlin: iterator()
+        java: iterator()
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Iterator
+    java:
+      kind: interface
+      name: java.util.Iterator
+    mappings:
+      - kotlin: hasNext()
+        java: hasNext()
+      - kotlin: next()
+        java: next()
+      - kotlin: remove()
+        java: remove()
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.List
+    java:
+      kind: interface
+      name: java.util.List
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: hashCode
+        java: hashCode()
+      - kotlin: add(p0, p1)
+        java: add(e)
+      - kotlin: addAll(p0, p1)
+        java: addAll(c)
+      - kotlin: contains(element)
+        java: contains(o)
+      - kotlin: containsAll(elements)
+        java: containsAll(c)
+      - kotlin: get(index)
+        java: get(index)
+      - kotlin: indexOf(element)
+        java: indexOf(o)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: iterator()
+        java: iterator()
+      - kotlin: lastIndexOf(element)
+        java: lastIndexOf(o)
+      - kotlin: listIterator()
+        java: listIterator(index)
+      - kotlin: subList(fromIndex, toIndex)
+        java: subList(fromIndex, toIndex)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.ListIterator
+    java:
+      kind: interface
+      name: java.util.ListIterator
+    mappings:
+      - kotlin: add(p0)
+        java: add(e)
+      - kotlin: hasNext()
+        java: hasNext()
+      - kotlin: hasPrevious()
+        java: hasPrevious()
+      - kotlin: next()
+        java: next()
+      - kotlin: nextIndex()
+        java: nextIndex()
+      - kotlin: previous()
+        java: previous()
+      - kotlin: previousIndex()
+        java: previousIndex()
+      - kotlin: remove()
+        java: remove()
+      - kotlin: set(p0)
+        java: set(e)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Map
+    java:
+      kind: interface
+      name: java.util.Map
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: values
+        java: values()
+      - kotlin: hashCode
+        java: hashCode()
+      - kotlin: containsKey(key)
+        java: containsKey(key)
+      - kotlin: containsValue(value)
+        java: containsValue(value)
+      - kotlin: get(key)
+        java: get(key)
+      - kotlin: isEmpty()
+        java: isEmpty()
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableCollection
+    java:
+      kind: interface
+      name: java.util.Collection
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: add(element)
+        java: add(e)
+      - kotlin: addAll(elements)
+        java: addAll(c)
+      - kotlin: clear()
+        java: clear()
+      - kotlin: contains(element)
+        java: contains(o)
+      - kotlin: containsAll(elements)
+        java: containsAll(c)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: iterator()
+        java: iterator()
+      - kotlin: remove(element)
+        java: remove(o)
+      - kotlin: removeAll(elements)
+        java: removeAll(c)
+      - kotlin: retainAll(elements)
+        java: retainAll(c)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableEntry
+    java:
+      kind: interface
+      name: java.util.Entry
+    mappings:
+      - kotlin: key
+        java: getKey()
+      - kotlin: value
+        java: getValue()
+      - kotlin: setValue(newValue)
+        java: setValue(value)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableIterable
+    java:
+      kind: interface
+      name: java.lang.Iterable
+    mappings:
+      - kotlin: iterator()
+        java: iterator()
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableIterator
+    java:
+      kind: interface
+      name: java.util.Iterator
+    mappings:
+      - kotlin: hasNext()
+        java: hasNext()
+      - kotlin: next()
+        java: next()
+      - kotlin: remove()
+        java: remove()
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableList
+    java:
+      kind: interface
+      name: java.util.List
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: add(element)
+        java: add(e)
+      - kotlin: addAll(elements)
+        java: addAll(c)
+      - kotlin: clear()
+        java: clear()
+      - kotlin: contains(element)
+        java: contains(o)
+      - kotlin: containsAll(elements)
+        java: containsAll(c)
+      - kotlin: get(index)
+        java: get(index)
+      - kotlin: indexOf(element)
+        java: indexOf(o)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: iterator()
+        java: iterator()
+      - kotlin: lastIndexOf(element)
+        java: lastIndexOf(o)
+      - kotlin: listIterator()
+        java: listIterator(index)
+      - kotlin: remove(element)
+        java: remove(index)
+      - kotlin: removeAll(elements)
+        java: removeAll(c)
+      - kotlin: removeAt(index)
+        java: remove(index)
+      - kotlin: retainAll(elements)
+        java: retainAll(c)
+      - kotlin: set(index, element)
+        java: set(index, element)
+      - kotlin: subList(fromIndex, toIndex)
+        java: subList(fromIndex, toIndex)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableListIterator
+    java:
+      kind: interface
+      name: java.util.ListIterator
+    mappings:
+      - kotlin: add(element)
+        java: add(e)
+      - kotlin: hasNext()
+        java: hasNext()
+      - kotlin: hasPrevious()
+        java: hasPrevious()
+      - kotlin: next()
+        java: next()
+      - kotlin: nextIndex()
+        java: nextIndex()
+      - kotlin: previous()
+        java: previous()
+      - kotlin: previousIndex()
+        java: previousIndex()
+      - kotlin: remove()
+        java: remove()
+      - kotlin: set(element)
+        java: set(e)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableMap
+    java:
+      kind: interface
+      name: java.util.Map
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: values
+        java: values()
+      - kotlin: clear()
+        java: clear()
+      - kotlin: containsKey(key)
+        java: containsKey(key)
+      - kotlin: containsValue(value)
+        java: containsValue(value)
+      - kotlin: get(key)
+        java: get(key)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: put(key, value)
+        java: put(key, value)
+      - kotlin: putAll(from)
+        java: putAll(m)
+      - kotlin: remove(key)
+        java: remove(key, value)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.MutableSet
+    java:
+      kind: interface
+      name: java.util.Set
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: add(element)
+        java: add(e)
+      - kotlin: addAll(elements)
+        java: addAll(c)
+      - kotlin: clear()
+        java: clear()
+      - kotlin: contains(element)
+        java: contains(o)
+      - kotlin: containsAll(elements)
+        java: containsAll(c)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: iterator()
+        java: iterator()
+      - kotlin: remove(element)
+        java: remove(o)
+      - kotlin: removeAll(elements)
+        java: removeAll(c)
+      - kotlin: retainAll(elements)
+        java: retainAll(c)
+  - kotlin:
+      kind: interface
+      name: kotlin.collections.Set
+    java:
+      kind: interface
+      name: java.util.Set
+    mappings:
+      - kotlin: size
+        java: size()
+      - kotlin: hashCode
+        java: hashCode()
+      - kotlin: contains(element)
+        java: contains(o)
+      - kotlin: containsAll(elements)
+        java: containsAll(c)
+      - kotlin: isEmpty()
+        java: isEmpty()
+      - kotlin: iterator()
+        java: iterator()
+  - kotlin:
+      kind: interface
+      name: kotlin.Comparable
+    java:
+      kind: interface
+      name: java.lang.Comparable
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(o)
+  - kotlin:
+      kind: interface
+      name: kotlin.Double
+    java:
+      kind: interface
+      name: java.lang.Double
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherDouble)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString(d)
+  - kotlin:
+      kind: interface
+      name: kotlin.Enum
+    java:
+      kind: interface
+      name: java.lang.Enum
+    mappings:
+      - kotlin: name
+        java: name()
+      - kotlin: ordinal
+        java: ordinal()
+      - kotlin: clone()
+        java: clone()
+      - kotlin: compareTo(other)
+        java: compareTo(o)
+      - kotlin: equals(other)
+        java: equals(other)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Float
+    java:
+      kind: interface
+      name: java.lang.Float
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherFloat)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Int
+    java:
+      kind: interface
+      name: java.lang.Integer
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherInteger)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Long
+    java:
+      kind: interface
+      name: java.lang.Long
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherLong)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: toString()
+        java: toString(i, radix)
+  - kotlin:
+      kind: interface
+      name: kotlin.Number
+    java:
+      kind: interface
+      name: java.lang.Number
+    mappings: []
+  - kotlin:
+      kind: interface
+      name: kotlin.Short
+    java:
+      kind: interface
+      name: java.lang.Short
+    mappings:
+      - kotlin: compareTo(other)
+        java: compareTo(anotherShort)
+      - kotlin: equals(other)
+        java: equals(obj)
+      - kotlin: hashCode()
+        java: hashCode(value)
+      - kotlin: toString()
+        java: toString(s)
+  - kotlin:
+      kind: interface
+      name: kotlin.String
+    java:
+      kind: interface
+      name: java.lang.String
+    mappings:
+      - kotlin: length
+        java: length()
+      - kotlin: compareTo(other)
+        java: compareTo(anotherString)
+      - kotlin: equals(other)
+        java: equals(anObject)
+      - kotlin: get(index)
+        java: charAt(index)
+      - kotlin: hashCode()
+        java: hashCode()
+      - kotlin: subSequence(startIndex, endIndex)
+        java: subSequence(beginIndex, endIndex)
+      - kotlin: toString()
+        java: toString()
+  - kotlin:
+      kind: interface
+      name: kotlin.Throwable
+    java:
+      kind: interface
+      name: java.lang.Throwable
+    mappings:
+      - kotlin: message
+        java: getMessage()
+      - kotlin: cause
+        java: getCause()
+      - kotlin: localizedMessage
+        java: getLocalizedMessage()
+      - kotlin: stackTrace
+        java: getStackTrace()
+      - kotlin: suppressed
+        java: getSuppressed()
+      - kotlin: printStackTrace()
+        java: printStackTrace()
+      - kotlin: toString()
+        java: toString()

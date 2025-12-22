@@ -45,6 +45,9 @@ npm run generate:mapping-details
 
 # Alternative: Aggregate all mappings into mapped-types.yaml
 npm run generate:mapped-types
+
+# Alternative: Generate mapped-types-details.yaml with simplified mapping list
+npm run generate:mapped-types-details
 ```
 
 ## Project Structure
@@ -59,6 +62,7 @@ npm run generate:mapped-types
 │   ├── fetch-kotlin-definition.ts # Generate Kotlin definitions
 │   ├── generate-mapping-details.ts # Create signature mappings
 │   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
+│   ├── generate-mapped-types-details-yaml.ts # Generate summary with simplified mappings
 │   ├── generate-all.ts          # Main generator (reads from doc-cache)
 │   └── sync-resources.ts        # Sync script to fetch and cache data
 ├── doc-cache/                    # Cached documentation (committed to repo)
@@ -70,7 +74,8 @@ npm run generate:mapped-types
 │       ├── java-definition.java     # Java type with signatures
 │       ├── kotlin-definition.kt     # Kotlin type with signatures
 │       └── mapping-details.yaml     # Signature-to-signature mappings
-└── mapped-types.yaml             # Master mapping list (in root, generated from docs)
+├── mapped-types.yaml             # Master mapping list (in root, generated from docs)
+└── mapped-types-details.yaml     # Summary with simplified mapping list
 ```
 
 ## Type Definitions
@@ -126,6 +131,27 @@ mappings:
     java:
       kind: class
       name: java.lang.String
+```
+
+## Mapping Details YAML
+
+The `mapped-types-details.yaml` file extends `mapped-types.yaml` by adding a `mappings` list for each type pair, showing simplified method and property mappings (names and parameter names only, without type information):
+
+```yaml
+mappings:
+  - kotlin:
+      kind: class
+      name: kotlin.String
+    java:
+      kind: class
+      name: java.lang.String
+    mappings:
+      - kotlin: length
+        java: length()
+      - kotlin: get(index)
+        java: charAt(index)
+      - kotlin: compareTo(other)
+        java: compareTo(anotherString)
 ```
 
 ## Mapped Types

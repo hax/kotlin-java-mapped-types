@@ -45,6 +45,9 @@ npm run generate:mapping-details
 
 # 可选：将所有映射聚合到 mapped-types.yaml
 npm run generate:mapped-types
+
+# 可选：生成带简化映射列表的 mapped-types-details.yaml
+npm run generate:mapped-types-details
 ```
 
 ## 项目结构
@@ -59,6 +62,7 @@ npm run generate:mapped-types
 │   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
 │   ├── generate-mapping-details.ts # 创建签名映射
 │   ├── generate-mapped-types-yaml.ts # 聚合所有映射
+│   ├── generate-mapped-types-details-yaml.ts # 生成带简化映射的汇总文件
 │   ├── generate-all.ts          # 主生成器（从 doc-cache 读取）
 │   └── sync-resources.ts        # 同步脚本，获取并缓存数据
 ├── doc-cache/                    # 缓存的文档（提交到仓库）
@@ -70,7 +74,8 @@ npm run generate:mapped-types
 │       ├── java-definition.java     # 带签名的 Java 类型
 │       ├── kotlin-definition.kt     # 带签名的 Kotlin 类型
 │       └── mapping-details.yaml     # 签名到签名的映射
-└── mapped-types.yaml             # 主映射列表（在根目录，从文档生成）
+├── mapped-types.yaml             # 主映射列表（在根目录，从文档生成）
+└── mapped-types-details.yaml     # 带简化映射列表的汇总文件
 ```
 
 ## 类型定义
@@ -126,6 +131,27 @@ mappings:
     java:
       kind: class
       name: java.lang.String
+```
+
+## 映射详情 YAML 文件
+
+`mapped-types-details.yaml` 文件在 `mapped-types.yaml` 的基础上，为每组映射增加了 `mappings` 列表，列出了简化的方法和属性映射（仅包含名称和参数名，不含类型信息）：
+
+```yaml
+mappings:
+  - kotlin:
+      kind: class
+      name: kotlin.String
+    java:
+      kind: class
+      name: java.lang.String
+    mappings:
+      - kotlin: length
+        java: length()
+      - kotlin: get(index)
+        java: charAt(index)
+      - kotlin: compareTo(other)
+        java: compareTo(anotherString)
 ```
 
 ## 映射类型

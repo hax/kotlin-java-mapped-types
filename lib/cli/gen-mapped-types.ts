@@ -1,10 +1,20 @@
 #!/usr/bin/env node
 
+/**
+ * Generate mapped-types-details.yaml file with type mappings and simplified signatures.
+ * 
+ * This script:
+ * 1. Scans all type mapping directories in .defs/
+ * 2. Parses Java and Kotlin definition files using the same logic as calc-mappings.ts
+ * 3. Calculates mappings between Java and Kotlin members
+ * 4. Outputs a YAML file with all type mappings
+ */
+
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringify } from 'yaml';
 import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
-import { extractTypeInfo, type TypeInfo } from '../utils.ts';
+import type { TypeInfo } from '../utils.ts';
 import { DEFS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
 
 interface SimplifiedMapping {
@@ -18,118 +28,56 @@ interface TypeMappingWithDetails {
   mappings: SimplifiedMapping[];
 }
 
-function simplifySignature(signature: string): string {
-  const trimmed = signature.trim();
+/**
+ * Process a single type mapping directory
+ */
+async function processTypeMapping(dirPath: string): Promise<TypeMappingWithDetails | null> {
+  const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
+  const javaDefFile = join(dirPath, 'java-definition.java');
   
-  const kotlinPropertyMatch = trimmed.match(/(?:override\s+)?(?:val|var)\s+(\w+)/);
-  if (kotlinPropertyMatch) {
-    return kotlinPropertyMatch[1];
-  }
-  
-  const kotlinFuncMatch = trimmed.match(/(?:override\s+)?(?:operator\s+)?fun\s+(\w+)\s*\(([^)]*)\)/);
-  if (kotlinFuncMatch) {
-    const funcName = kotlinFuncMatch[1];
-    const params = kotlinFuncMatch[2];
+  try {
+    // Read definition files
+    const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
+    const javaContent = await readFile(javaDefFile, 'utf-8');
     
-    if (params.trim()) {
-      const paramSegments: string[] = [];
-      let current = '';
-      let depth = 0;
-      for (let i = 0; i < params.length; i++) {
-        const ch = params[i];
-        if (ch === '<') {
-          depth++;
-        } else if (ch === '>') {
-          depth = Math.max(0, depth - 1);
-        }
-        if (ch === ',' && depth === 0) {
-          if (current.trim()) {
-            paramSegments.push(current.trim());
-          }
-          current = '';
-          continue;
-        }
-        current += ch;
-      }
-      if (current.trim()) {
-        paramSegments.push(current.trim());
-      }
-      const paramNames = paramSegments
-        .map(p => {
-          const paramMatch = p.match(/(\w+)\s*:/);
-          return paramMatch ? paramMatch[1] : '';
-        })
-        .filter(n => n);
-      return `${funcName}(${paramNames.join(', ')})`;
-    }
-    return `${funcName}()`;
-  }
-  
-  const javaMethodMatch = trimmed.match(/(?:public|protected|private|static|abstract|final|\s)+(?:\w+(?:<[^>]+>)?(?:\[\])?)\s+(\w+)\s*\(([^)]*)\)/);
-  if (javaMethodMatch) {
-    const methodName = javaMethodMatch[1];
-    const params = javaMethodMatch[2];
+    // Parse definitions using the same logic as calc-mappings.ts
+    const kotlinType = parseKotlinDef(kotlinContent);
+    const javaType = parseJavaDef(javaContent);
     
-    if (params.trim()) {
-      const paramList: string[] = [];
-      let depth = 0;
-      let currentParam = '';
-      
-      for (const char of params) {
-        if (char === '<') {
-          depth++;
-          currentParam += char;
-        } else if (char === '>') {
-          depth--;
-          currentParam += char;
-        } else if (char === ',' && depth === 0) {
-          paramList.push(currentParam);
-          currentParam = '';
-        } else {
-          currentParam += char;
-        }
+    // Build type info from parsed types
+    const kotlinInfo: TypeInfo = {
+      kind: kotlinType.kind,
+      name: `${kotlinType.package}.${kotlinType.name}`
+    };
+    const javaInfo: TypeInfo = {
+      kind: javaType.kind,
+      name: `${javaType.package}.${javaType.name}`
+    };
+    
+    // Calculate mappings using the same logic as calc-mappings.ts
+    const mappings = calcMapping(javaType, kotlinType);
+    
+    // Deduplicate by Kotlin member name
+    const simplifiedMappings: SimplifiedMapping[] = [];
+    const seenMethodNames = new Set<string>();
+    
+    for (const mapping of mappings) {
+      if (!seenMethodNames.has(mapping.kotlin)) {
+        seenMethodNames.add(mapping.kotlin);
+        simplifiedMappings.push(mapping);
       }
-      if (currentParam) {
-        paramList.push(currentParam);
-      }
-      
-      const paramNames = paramList.map(p => {
-        const trimmedParam = p.trim();
-        let depth = 0;
-        let lastIdentifierStart = -1;
-        let lastIdentifierEnd = -1;
-        
-        for (let i = 0; i < trimmedParam.length; i++) {
-          const char = trimmedParam[i];
-          if (char === '<') {
-            depth++;
-          } else if (char === '>') {
-            depth--;
-          } else if (depth === 0 && /\w/.test(char)) {
-            if (lastIdentifierStart === -1 || /\s/.test(trimmedParam[i - 1] || ' ')) {
-              lastIdentifierStart = i;
-            }
-            lastIdentifierEnd = i;
-          }
-        }
-        
-        if (lastIdentifierStart !== -1) {
-          const paramName = trimmedParam.substring(lastIdentifierStart, lastIdentifierEnd + 1);
-          return paramName.replace(/[\[\]]/g, '');
-        }
-        return '';
-      }).filter(n => n);
-      return `${methodName}(${paramNames.join(', ')})`;
     }
-    return `${methodName}()`;
+    
+    return {
+      kotlin: kotlinInfo,
+      java: javaInfo,
+      mappings: simplifiedMappings
+    };
+  } catch (error) {
+    // Log the error but continue processing other directories
+    console.warn(`Warning: Failed to process directory ${dirPath}: ${error}`);
+    return null;
   }
-  
-  return trimmed;
-}
-
-function extractMethodName(simplifiedSignature: string): string {
-  const match = simplifiedSignature.match(/^(\w+)\(/);
-  return match ? match[1] : simplifiedSignature;
 }
 
 async function main() {
@@ -143,48 +91,15 @@ async function main() {
     if (!entry.isDirectory()) continue;
     
     const dirPath = join(DEFS_DIR, entry.name);
-    const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
-    const javaDefFile = join(dirPath, 'java-definition.java');
+    const mapping = await processTypeMapping(dirPath);
     
-    const kotlinInfo = await extractTypeInfo(kotlinDefFile);
-    const javaInfo = await extractTypeInfo(javaDefFile);
-    
-    if (kotlinInfo && javaInfo) {
-      const key = `${kotlinInfo.name}::${javaInfo.name}`;
+    if (mapping) {
+      const key = `${mapping.kotlin.name}::${mapping.java.name}`;
       if (seen.has(key)) continue;
       seen.add(key);
       
-      const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
-      const javaContent = await readFile(javaDefFile, 'utf-8');
-      
-      const kotlinType = parseKotlinDef(kotlinContent);
-      const javaType = parseJavaDef(javaContent);
-      const detailedMappings = calcMapping(javaType, kotlinType);
-      
-      const simplifiedMappings: SimplifiedMapping[] = [];
-      const seenMethodNames = new Set<string>();
-      for (const mapping of detailedMappings) {
-        const kotlinSimplified = simplifySignature(mapping.kotlin);
-        const javaSimplified = simplifySignature(mapping.java);
-        
-        const kotlinMethodName = extractMethodName(kotlinSimplified);
-        
-        if (!seenMethodNames.has(kotlinMethodName)) {
-          seenMethodNames.add(kotlinMethodName);
-          simplifiedMappings.push({
-            kotlin: kotlinSimplified,
-            java: javaSimplified
-          });
-        }
-      }
-      
-      mappings.push({
-        kotlin: kotlinInfo,
-        java: javaInfo,
-        mappings: simplifiedMappings
-      });
-      
-      console.log(`Found mapping: ${kotlinInfo.name} <-> ${javaInfo.name} (${simplifiedMappings.length} mappings)`);
+      mappings.push(mapping);
+      console.log(`Found mapping: ${mapping.kotlin.name} <-> ${mapping.java.name} (${mapping.mappings.length} mappings)`);
     }
   }
   
@@ -200,4 +115,4 @@ if (import.meta.url.endsWith(process.argv[1])) {
   main().catch(console.error);
 }
 
-export { simplifySignature, main as generateMappedTypesDetails };
+export { main as generateMappedTypesDetails };

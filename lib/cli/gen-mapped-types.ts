@@ -5,7 +5,7 @@ import { join } from 'path';
 import { stringify } from 'yaml';
 import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
 import { extractTypeInfo, type TypeInfo } from '../utils.ts';
-import { MAPPINGS_DIR, MAPPED_TYPES_DETAILS_FILE } from '../config.ts';
+import { MAPPINGS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
 
 interface SimplifiedMapping {
   kotlin: string;
@@ -191,9 +191,9 @@ async function main() {
   mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
   
   const output = stringify({ mappings });
-  await writeFile(MAPPED_TYPES_DETAILS_FILE, output, 'utf-8');
+  await writeFile(MAPPED_TYPES_FILE, output, 'utf-8');
   
-  console.log(`\nGenerated ${MAPPED_TYPES_DETAILS_FILE} with ${mappings.length} type mappings`);
+  console.log(`\nGenerated ${MAPPED_TYPES_FILE} with ${mappings.length} type mappings`);
 }
 
 if (import.meta.url.endsWith(process.argv[1])) {

@@ -1,5 +1,16 @@
 #!/usr/bin/env node
 
+/**
+ * Generate mapped-types-details.yaml file with type mappings and simplified signatures.
+ * 
+ * This script:
+ * 1. Scans all type mapping directories in .defs/
+ * 2. Parses Java and Kotlin definition files using the same logic as calc-mappings.ts
+ * 3. Calculates mappings between Java and Kotlin members
+ * 4. Simplifies signatures to show only method names and parameter names
+ * 5. Outputs a YAML file with all type mappings
+ */
+
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringify } from 'yaml';

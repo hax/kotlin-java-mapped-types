@@ -6,21 +6,18 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as url from 'url';
 import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details.ts';
 import { generateKotlinDefinitionFromHtml } from './fetch-kotlin-definition.ts';
 import { generateJavaDefinitionFromHtml } from './fetch-java-definition.ts';
 import * as yaml from 'yaml';
 import { setOfflineMode, fetchText } from './fetch-text.ts';
 import { generateMappedTypesDetails } from './generate-mapped-types-details-yaml.ts';
+import { MAPPED_TYPES_FILE, MAPPINGS_DIR } from './config.ts';
 
 interface TypeMapping {
   kotlin: string;
   java: string;
 }
-
-const MAPPED_TYPES_PATH = url.fileURLToPath(import.meta.resolve('../mapped-types.yaml'));
-const MAPPINGS_DIR = url.fileURLToPath(import.meta.resolve('../mappings'));
 
 function sanitizeDirName(kotlinType: string, javaType: string): string {
   return `${kotlinType.replace(/\./g, '_')}_to_${javaType.replace(/\./g, '_')}`;
@@ -83,26 +80,23 @@ async function main() {
   
   console.log('Generating Kotlin-Java type mappings...\n');
   
-  const mappedTypesPath = MAPPED_TYPES_PATH;
-  
   // Check if mapped-types.yaml exists
   try {
-    await fs.access(mappedTypesPath);
+    await fs.access(MAPPED_TYPES_FILE);
   } catch (error) {
     console.error('Error: mapped-types.yaml not found in root directory. Please run "npm run sync" first.');
     process.exit(1);
   }
   
   // Read mapped types from root YAML
-  const mappedTypesContent = await fs.readFile(mappedTypesPath, 'utf-8');
+  const mappedTypesContent = await fs.readFile(MAPPED_TYPES_FILE, 'utf-8');
   const MAPPED_TYPES: TypeMapping[] = yaml.parse(mappedTypesContent);
   
-  const mappingsDir = MAPPINGS_DIR;
-  await fs.mkdir(mappingsDir, { recursive: true });
+  await fs.mkdir(MAPPINGS_DIR, { recursive: true });
   
   for (const mapping of MAPPED_TYPES) {
     const dirName = sanitizeDirName(mapping.kotlin, mapping.java);
-    const mappingDir = path.join(mappingsDir, dirName);
+    const mappingDir = path.join(MAPPINGS_DIR, dirName);
     await fs.mkdir(mappingDir, { recursive: true });
     
     console.log(`Processing: ${mapping.kotlin} <-> ${mapping.java}`);

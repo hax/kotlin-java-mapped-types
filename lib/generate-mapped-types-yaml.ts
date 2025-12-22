@@ -6,13 +6,10 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as url from 'url';
 import * as yaml from 'yaml';
+import { MAPPINGS_DIR, MAPPED_TYPES_FILE } from './config.ts';
 import { extractTypeInfo } from './utils.ts';
 import type { TypeInfo } from './utils.ts';
-
-const MAPPINGS_DIR = url.fileURLToPath(import.meta.resolve('../mappings'));
-const OUTPUT_FILE = url.fileURLToPath(import.meta.resolve('../mapped-types.yaml'));
 
 interface TypeMapping {
   kotlin: TypeInfo;
@@ -20,19 +17,16 @@ interface TypeMapping {
 }
 
 async function main() {
-  const mappingsDir = MAPPINGS_DIR;
-  const outputFile = OUTPUT_FILE;
-  
   console.log('Scanning mapping directories...');
   
-  const entries = await fs.readdir(mappingsDir, { withFileTypes: true });
+  const entries = await fs.readdir(MAPPINGS_DIR, { withFileTypes: true });
   const mappings: TypeMapping[] = [];
   const seen = new Set<string>();
   
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     
-    const dirPath = path.join(mappingsDir, entry.name);
+    const dirPath = path.join(MAPPINGS_DIR, entry.name);
     const kotlinDefFile = path.join(dirPath, 'kotlin-definition.kt');
     const javaDefFile = path.join(dirPath, 'java-definition.java');
     
@@ -57,9 +51,9 @@ async function main() {
   mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
   
   const output = yaml.stringify({ mappings });
-  await fs.writeFile(outputFile, output, 'utf-8');
+  await fs.writeFile(MAPPED_TYPES_FILE, output, 'utf-8');
   
-  console.log(`\nGenerated ${outputFile} with ${mappings.length} unique mappings`);
+  console.log(`\nGenerated ${MAPPED_TYPES_FILE} with ${mappings.length} unique mappings`);
 }
 
 // Run if this is the main module

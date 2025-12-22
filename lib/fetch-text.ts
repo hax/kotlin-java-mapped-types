@@ -4,9 +4,7 @@
  */
 
 import fetch from 'make-fetch-happen';
-import * as url from 'url';
-
-const DEFAULT_CACHE_PATH = url.fileURLToPath(import.meta.resolve('../doc-cache'));
+import { CACHE_PATH } from './config.ts';
 
 export let offlineMode = false;
 
@@ -20,7 +18,7 @@ export async function fetchText(url: string, options: fetch.MakeFetchHappenOptio
   } else {
     options.retry ??= true;
   }
-  options.cachePath ??= DEFAULT_CACHE_PATH;
+  options.cachePath ??= CACHE_PATH;
 
   const startTime = Date.now();
   

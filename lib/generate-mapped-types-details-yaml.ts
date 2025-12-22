@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import { extractTypeInfo } from './utils.ts';
 import type { TypeInfo } from './utils.ts';
+import { MAPPINGS_DIR, MAPPED_TYPES_DETAILS_FILE } from './config.ts';
 
 interface SimplifiedMapping {
   kotlin: string;
@@ -157,19 +158,16 @@ function extractMethodName(simplifiedSignature: string): string {
 }
 
 async function main() {
-  const mappingsDir = path.join(process.cwd(), 'mappings');
-  const outputFile = path.join(process.cwd(), 'mapped-types-details.yaml');
-  
   console.log('Generating mapped-types-details.yaml with simplified mappings...');
   
-  const entries = await fs.readdir(mappingsDir, { withFileTypes: true });
+  const entries = await fs.readdir(MAPPINGS_DIR, { withFileTypes: true });
   const mappings: TypeMappingWithDetails[] = [];
   const seen = new Set<string>();
   
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     
-    const dirPath = path.join(mappingsDir, entry.name);
+    const dirPath = path.join(MAPPINGS_DIR, entry.name);
     const kotlinDefFile = path.join(dirPath, 'kotlin-definition.kt');
     const javaDefFile = path.join(dirPath, 'java-definition.java');
     const mappingDetailsFile = path.join(dirPath, 'mapping-details.yaml');
@@ -225,9 +223,9 @@ async function main() {
   mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
   
   const output = yaml.stringify({ mappings });
-  await fs.writeFile(outputFile, output, 'utf-8');
+  await fs.writeFile(MAPPED_TYPES_DETAILS_FILE, output, 'utf-8');
   
-  console.log(`\nGenerated ${outputFile} with ${mappings.length} type mappings`);
+  console.log(`\nGenerated ${MAPPED_TYPES_DETAILS_FILE} with ${mappings.length} type mappings`);
 }
 
 // Run if this is the main module

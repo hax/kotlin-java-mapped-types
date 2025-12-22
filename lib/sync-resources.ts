@@ -9,11 +9,11 @@
  */
 
 import * as fs from 'fs/promises';
-import * as url from 'url';
 import * as yaml from 'yaml';
 import { extractMappedTypesFromDocs } from './extract-mapped-types.ts';
 import type { TypeMapping } from './extract-mapped-types.ts';
 import { fetchText, offlineMode, setOfflineMode } from './fetch-text.ts';
+import { MAPPED_TYPES_FILE } from './config.ts';
 
 const KOTLIN_DOC_URL = 'https://kotlinlang.org/docs/java-interop.html';
 
@@ -29,20 +29,19 @@ async function extractAndCacheMappedTypes(): Promise<TypeMapping[]> {
   console.log('\nExtracting mapped types from Kotlin documentation...');
   
   const mappedTypes = await extractMappedTypesFromDocs();
-  const mappedTypesPath = url.fileURLToPath(import.meta.resolve('../mapped-types.yaml'));
   
   // Check if content has changed
   const yamlContent = yaml.stringify(mappedTypes);
   let hasChanged = true;
   try {
-    const existingContent = await fs.readFile(mappedTypesPath, 'utf-8');
+    const existingContent = await fs.readFile(MAPPED_TYPES_FILE, 'utf-8');
     hasChanged = existingContent !== yamlContent;
   } catch {
     // File doesn't exist yet
   }
   
   if (hasChanged) {
-    await fs.writeFile(mappedTypesPath, yamlContent, 'utf-8');
+    await fs.writeFile(MAPPED_TYPES_FILE, yamlContent, 'utf-8');
     console.log(`✓ Extracted and cached ${mappedTypes.length} mapped types to root directory`);
   } else {
     console.log(`✓ Mapped types unchanged (${mappedTypes.length} types)`);

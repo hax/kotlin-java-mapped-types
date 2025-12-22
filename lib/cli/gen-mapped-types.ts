@@ -4,7 +4,7 @@ import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringify } from 'yaml';
 import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
-import { extractTypeInfo, type TypeInfo } from '../utils.ts';
+import type { TypeInfo } from '../utils.ts';
 import { DEFS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
 import { simplifySignature, extractMethodName } from '../signature-utils.ts';
 
@@ -19,6 +19,62 @@ interface TypeMappingWithDetails {
   mappings: SimplifiedMapping[];
 }
 
+/**
+ * Process a single type mapping directory
+ */
+async function processTypeMapping(dirPath: string): Promise<TypeMappingWithDetails | null> {
+  const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
+  const javaDefFile = join(dirPath, 'java-definition.java');
+  
+  try {
+    // Read definition files
+    const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
+    const javaContent = await readFile(javaDefFile, 'utf-8');
+    
+    // Parse definitions using the same logic as calc-mappings.ts
+    const kotlinType = parseKotlinDef(kotlinContent);
+    const javaType = parseJavaDef(javaContent);
+    const detailedMappings = calcMapping(javaType, kotlinType);
+    
+    // Build type info from parsed types
+    const kotlinInfo: TypeInfo = {
+      kind: kotlinType.kind,
+      name: `${kotlinType.package}.${kotlinType.name}`
+    };
+    const javaInfo: TypeInfo = {
+      kind: javaType.kind,
+      name: `${javaType.package}.${javaType.name}`
+    };
+    
+    // Simplify mappings and deduplicate
+    const simplifiedMappings: SimplifiedMapping[] = [];
+    const seenMethodNames = new Set<string>();
+    for (const mapping of detailedMappings) {
+      const kotlinSimplified = simplifySignature(mapping.kotlin);
+      const javaSimplified = simplifySignature(mapping.java);
+      
+      const kotlinMethodName = extractMethodName(kotlinSimplified);
+      
+      if (!seenMethodNames.has(kotlinMethodName)) {
+        seenMethodNames.add(kotlinMethodName);
+        simplifiedMappings.push({
+          kotlin: kotlinSimplified,
+          java: javaSimplified
+        });
+      }
+    }
+    
+    return {
+      kotlin: kotlinInfo,
+      java: javaInfo,
+      mappings: simplifiedMappings
+    };
+  } catch (error) {
+    // Skip directories that don't contain valid definition files
+    return null;
+  }
+}
+
 async function main() {
   console.log('Generating mapped-types-details.yaml with simplified mappings...');
   
@@ -30,48 +86,15 @@ async function main() {
     if (!entry.isDirectory()) continue;
     
     const dirPath = join(DEFS_DIR, entry.name);
-    const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
-    const javaDefFile = join(dirPath, 'java-definition.java');
+    const mapping = await processTypeMapping(dirPath);
     
-    const kotlinInfo = await extractTypeInfo(kotlinDefFile);
-    const javaInfo = await extractTypeInfo(javaDefFile);
-    
-    if (kotlinInfo && javaInfo) {
-      const key = `${kotlinInfo.name}::${javaInfo.name}`;
+    if (mapping) {
+      const key = `${mapping.kotlin.name}::${mapping.java.name}`;
       if (seen.has(key)) continue;
       seen.add(key);
       
-      const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
-      const javaContent = await readFile(javaDefFile, 'utf-8');
-      
-      const kotlinType = parseKotlinDef(kotlinContent);
-      const javaType = parseJavaDef(javaContent);
-      const detailedMappings = calcMapping(javaType, kotlinType);
-      
-      const simplifiedMappings: SimplifiedMapping[] = [];
-      const seenMethodNames = new Set<string>();
-      for (const mapping of detailedMappings) {
-        const kotlinSimplified = simplifySignature(mapping.kotlin);
-        const javaSimplified = simplifySignature(mapping.java);
-        
-        const kotlinMethodName = extractMethodName(kotlinSimplified);
-        
-        if (!seenMethodNames.has(kotlinMethodName)) {
-          seenMethodNames.add(kotlinMethodName);
-          simplifiedMappings.push({
-            kotlin: kotlinSimplified,
-            java: javaSimplified
-          });
-        }
-      }
-      
-      mappings.push({
-        kotlin: kotlinInfo,
-        java: javaInfo,
-        mappings: simplifiedMappings
-      });
-      
-      console.log(`Found mapping: ${kotlinInfo.name} <-> ${javaInfo.name} (${simplifiedMappings.length} mappings)`);
+      mappings.push(mapping);
+      console.log(`Found mapping: ${mapping.kotlin.name} <-> ${mapping.java.name} (${mapping.mappings.length} mappings)`);
     }
   }
   

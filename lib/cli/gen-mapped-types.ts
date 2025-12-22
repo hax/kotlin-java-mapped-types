@@ -81,7 +81,8 @@ async function processTypeMapping(dirPath: string): Promise<TypeMappingWithDetai
       mappings: simplifiedMappings
     };
   } catch (error) {
-    // Skip directories that don't contain valid definition files
+    // Log the error but continue processing other directories
+    console.warn(`Warning: Failed to process directory ${dirPath}: ${error}`);
     return null;
   }
 }

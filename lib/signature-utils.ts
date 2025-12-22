@@ -2,6 +2,10 @@
  * Utilities for simplifying method and property signatures
  */
 
+// Pattern for valid Java/Kotlin identifiers
+const IDENTIFIER_PATTERN = /([a-zA-Z_$][a-zA-Z0-9_$]*)/;
+const IDENTIFIER_WITH_PARENS_PATTERN = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\(/;
+
 /**
  * Simplifies a signature by extracting just the essential parts (name and parameter names)
  * @param signature The full signature string (Java or Kotlin format)
@@ -80,8 +84,8 @@ function parseKotlinParams(params: string): string[] {
   
   return paramSegments
     .map(p => {
-      // Match valid Kotlin identifier: starts with letter or underscore, followed by letters, digits, or underscores
-      const paramMatch = p.match(/([a-zA-Z_][a-zA-Z0-9_]*)\s*:/);
+      // Match valid Kotlin/Java identifier: starts with letter, underscore or $, followed by letters, digits, underscores or $
+      const paramMatch = p.match(/([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/);
       return paramMatch ? paramMatch[1] : '';
     })
     .filter(n => n);
@@ -151,7 +155,6 @@ function parseJavaParams(params: string): string[] {
  * @returns The method name without parameters
  */
 export function extractMethodName(simplifiedSignature: string): string {
-  // Match valid Java/Kotlin identifier: starts with letter, underscore, or $, followed by letters, digits, underscores, or $
-  const match = simplifiedSignature.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\(/);
+  const match = simplifiedSignature.match(IDENTIFIER_WITH_PARENS_PATTERN);
   return match ? match[1] : simplifiedSignature;
 }

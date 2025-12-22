@@ -20,7 +20,7 @@
 
 ### 前置要求
 
-- Node.js >= 22.0.0 (支持原生 TypeScript)
+- Node.js >= 24.0.0 (支持原生 TypeScript)
 
 ### 安装
 
@@ -40,13 +40,7 @@ npm run sync
 # 可选：在离线模式下验证缓存
 npm run sync -- --offline
 
-# 可选：仅从现有定义生成映射详情
-npm run generate:mapping-details
-
-# 可选：将所有映射聚合到 mapped-types.yaml
-npm run generate:mapped-types
-
-# 可选：生成带简化映射列表的 mapped-types-details.yaml
+# 可选：仅生成带详细映射的汇总文件
 npm run generate:mapped-types-details
 ```
 
@@ -55,25 +49,23 @@ npm run generate:mapped-types-details
 ```
 .
 ├── lib/                          # TypeScript 源文件
+│   ├── config.ts                # 路径配置
+│   ├── utils.ts                 # 共享工具函数（URL 转换、类型信息提取）
+│   ├── fetch-text.ts            # 带缓存的 HTTP 请求
 │   ├── extract-mapped-types.ts  # 从 Kotlin 文档提取类型映射
-│   ├── fetch-java-api.ts        # 从 Android 文档获取
-│   ├── fetch-kotlin-api.ts      # 从 Kotlin 文档获取
+│   ├── fetch-java-api.ts        # 从 HTML 提取 Java 签名
+│   ├── fetch-kotlin-api.ts      # 从 HTML 提取 Kotlin 签名
 │   ├── fetch-java-definition.ts # 生成 Java 定义
 │   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
 │   ├── generate-mapping-details.ts # 创建签名映射
-│   ├── generate-mapped-types-yaml.ts # 聚合所有映射
 │   ├── generate-mapped-types-details-yaml.ts # 生成带简化映射的汇总文件
 │   ├── generate-all.ts          # 主生成器（从 doc-cache 读取）
 │   └── sync-resources.ts        # 同步脚本，获取并缓存数据
 ├── doc-cache/                    # 缓存的文档（提交到仓库）
-│   ├── kotlin-doc.html          # 缓存的 Kotlin 互操作文档
-│   ├── kotlin/                  # 缓存的 Kotlin 类型定义（HTML）
-│   └── java/                    # 缓存的 Java 类型定义（HTML）
 ├── mappings/                     # 生成的映射目录
 │   └── <kotlin类型>_to_<java类型>/
-│       ├── java-definition.java     # 带签名的 Java 类型
-│       ├── kotlin-definition.kt     # 带签名的 Kotlin 类型
-│       └── mapping-details.yaml     # 签名到签名的映射
+│       ├── java-definition.java     # 带签名和源 URL 的 Java 类型
+│       └── kotlin-definition.kt     # 带签名和源 URL 的 Kotlin 类型
 ├── mapped-types.yaml             # 主映射列表（在根目录，从文档生成）
 └── mapped-types-details.yaml     # 带简化映射列表的汇总文件
 ```
@@ -85,26 +77,28 @@ npm run generate:mapped-types-details
 ### Java 示例
 
 ```java
+// Source: https://developer.android.com/reference/java/lang/String
+
 package java.lang;
 
-public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
+public final class String {
     public char charAt(int index);
     public int length();
     public String substring(int beginIndex);
-    // ...
 }
 ```
 
 ### Kotlin 示例
 
 ```kotlin
+// Source: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/
+
 package kotlin
 
-class String : Comparable<String>, CharSequence {
+class String {
     val length: Int
     operator fun get(index: Int): Char
     fun substring(startIndex: Int): String
-    // ...
 }
 ```
 
@@ -135,7 +129,7 @@ mappings:
 
 ## 映射详情 YAML 文件
 
-`mapped-types-details.yaml` 文件在 `mapped-types.yaml` 的基础上，为每组映射增加了 `mappings` 列表，列出了简化的方法和属性映射（仅包含名称和参数名，不含类型信息）：
+`mapped-types-details.yaml` 文件在 `mapped-types.yaml` 的基础上增加了 `mappings` 列表。通过解析定义文件并比较签名来生成方法/属性映射，仅显示简化的名称和参数名：
 
 ```yaml
 mappings:
@@ -167,21 +161,20 @@ mappings:
 ## 工作原理
 
 **同步阶段** (`npm run sync`):
-1. **获取文档**：下载包含映射类型表的 Kotlin 文档页面
-2. **提取映射类型**：解析文档提取 32 个类型映射并保存到根目录的 `mapped-types.yaml`
-3. **获取类型定义**：对每个映射类型，从官方文档获取 Kotlin 和 Java 类型签名并缓存到 `doc-cache/kotlin/` 和 `doc-cache/java/`
-4. **智能更新**：比较新内容与现有缓存文件，仅在有变化时更新
-5. **离线模式**：使用 `--offline` 标志在无网络访问的情况下验证缓存
+1. 获取包含映射类型表的 Kotlin 文档页面
+2. 提取 32 个类型映射并保存到 `mapped-types.yaml`
+3. 对每个类型，从官方文档获取 HTML 页面并缓存到 `doc-cache/`
+4. 使用 `--offline` 标志在无网络访问的情况下验证缓存
 
 **生成阶段** (`npm run generate`):
-1. **读取缓存数据**：从根目录的 `mapped-types.yaml` 加载类型映射
-2. **解析缓存的 HTML**：从 `doc-cache/` 读取并解析缓存的 HTML 文件以提取类型信息
-3. **生成定义**：在各个映射目录中创建格式化的类型定义文件
-4. **比较签名**：解析定义并匹配语言间的签名
-5. **生成映射**：创建记录签名到签名映射的 `mapping-details.yaml` 文件
-6. **聚合**：将所有映射信息合并到主 `mapped-types.yaml`
+1. 从 `mapped-types.yaml` 加载类型映射
+2. 对每组类型：
+   - 从 `doc-cache/` 读取缓存的 HTML
+   - 直接从 HTML 提取签名（Java: `.api-signature`，Kotlin: signature 元素）
+   - 生成带源 URL 头的定义文件
+3. 通过解析定义并创建简化映射来生成 `mapped-types-details.yaml`
 
-这种基于缓存的架构允许在初始同步后完全离线地进行生成过程。缓存被提交到仓库，因此 CI 环境可以在无网络访问的情况下运行。
+这种基于缓存的架构允许完全离线生成。缓存被提交到仓库供 CI 环境使用。
 
 ## 许可证
 

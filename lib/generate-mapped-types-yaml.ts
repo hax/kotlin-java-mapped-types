@@ -7,56 +7,12 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
-
-interface TypeInfo {
-  kind: string;
-  name: string;
-}
+import { extractTypeInfo } from './utils.ts';
+import type { TypeInfo } from './utils.ts';
 
 interface TypeMapping {
   kotlin: TypeInfo;
   java: TypeInfo;
-}
-
-async function extractTypeInfo(defFile: string): Promise<TypeInfo | null> {
-  try {
-    const content = await fs.readFile(defFile, 'utf-8');
-    const lines = content.split('\n');
-    
-    let kind = '';
-    let name = '';
-    let packageName = '';
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      
-      // Parse package
-      const pkgMatch = trimmed.match(/^package\s+([\w.]+)/);
-      if (pkgMatch) {
-        packageName = pkgMatch[1];
-      }
-      
-      // Parse class/interface for Java
-      const javaMatch = trimmed.match(/(?:public\s+)?(?:final\s+)?(class|interface)\s+(\w+)/);
-      if (javaMatch) {
-        kind = javaMatch[1];
-        name = packageName ? `${packageName}.${javaMatch[2]}` : javaMatch[2];
-        break;
-      }
-      
-      // Parse class/interface for Kotlin
-      const kotlinMatch = trimmed.match(/^(?:open\s+)?(class|interface)\s+(\w+)/);
-      if (kotlinMatch) {
-        kind = kotlinMatch[1];
-        name = packageName ? `${packageName}.${kotlinMatch[2]}` : kotlinMatch[2];
-        break;
-      }
-    }
-    
-    return kind && name ? { kind, name } : null;
-  } catch (error) {
-    return null;
-  }
 }
 
 async function main() {
@@ -106,5 +62,3 @@ async function main() {
 if (import.meta.url.endsWith(process.argv[1])) {
   main().catch(console.error);
 }
-
-export { extractTypeInfo };

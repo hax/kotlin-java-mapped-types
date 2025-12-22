@@ -7,11 +7,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
-
-interface TypeInfo {
-  kind: string;
-  name: string;
-}
+import { extractTypeInfo } from './utils.ts';
+import type { TypeInfo } from './utils.ts';
 
 interface SimplifiedMapping {
   kotlin: string;
@@ -46,10 +43,35 @@ function simplifySignature(signature: string): string {
     
     // Extract parameter names only (no types)
     if (params.trim()) {
-      const paramNames = params.split(',').map(p => {
-        const paramMatch = p.trim().match(/(\w+)\s*:/);
-        return paramMatch ? paramMatch[1] : '';
-      }).filter(n => n);
+      // Split Kotlin parameters while handling generic types with commas inside angle brackets
+      const paramSegments: string[] = [];
+      let current = '';
+      let depth = 0;
+      for (let i = 0; i < params.length; i++) {
+        const ch = params[i];
+        if (ch === '<') {
+          depth++;
+        } else if (ch === '>') {
+          depth = Math.max(0, depth - 1);
+        }
+        if (ch === ',' && depth === 0) {
+          if (current.trim()) {
+            paramSegments.push(current.trim());
+          }
+          current = '';
+          continue;
+        }
+        current += ch;
+      }
+      if (current.trim()) {
+        paramSegments.push(current.trim());
+      }
+      const paramNames = paramSegments
+        .map(p => {
+          const paramMatch = p.match(/(\w+)\s*:/);
+          return paramMatch ? paramMatch[1] : '';
+        })
+        .filter(n => n);
       return `${funcName}(${paramNames.join(', ')})`;
     }
     return `${funcName}()`;
@@ -125,45 +147,13 @@ function simplifySignature(signature: string): string {
   return trimmed;
 }
 
-async function extractTypeInfo(defFile: string): Promise<TypeInfo | null> {
-  try {
-    const content = await fs.readFile(defFile, 'utf-8');
-    const lines = content.split('\n');
-    
-    let kind = '';
-    let name = '';
-    let packageName = '';
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      
-      // Parse package
-      const pkgMatch = trimmed.match(/^package\s+([\w.]+)/);
-      if (pkgMatch) {
-        packageName = pkgMatch[1];
-      }
-      
-      // Parse class/interface for Java
-      const javaMatch = trimmed.match(/(?:public\s+)?(?:final\s+)?(class|interface)\s+(\w+)/);
-      if (javaMatch) {
-        kind = javaMatch[1];
-        name = packageName ? `${packageName}.${javaMatch[2]}` : javaMatch[2];
-        break;
-      }
-      
-      // Parse class/interface for Kotlin
-      const kotlinMatch = trimmed.match(/^(?:open\s+)?(class|interface)\s+(\w+)/);
-      if (kotlinMatch) {
-        kind = kotlinMatch[1];
-        name = packageName ? `${packageName}.${kotlinMatch[2]}` : kotlinMatch[2];
-        break;
-      }
-    }
-    
-    return kind && name ? { kind, name } : null;
-  } catch (error) {
-    return null;
-  }
+/**
+ * Extract the method name from a simplified signature
+ * e.g., "add(index, element)" -> "add"
+ */
+function extractMethodName(simplifiedSignature: string): string {
+  const match = simplifiedSignature.match(/^(\w+)\(/);
+  return match ? match[1] : simplifiedSignature;
 }
 
 async function main() {
@@ -199,16 +189,18 @@ async function main() {
         const mappingDetailsContent = await fs.readFile(mappingDetailsFile, 'utf-8');
         const detailedMappings = yaml.parse(mappingDetailsContent) as Array<{ kotlin: string; java: string }>;
         
-        // Simplify each mapping
-        const seenMappings = new Set<string>();
+        // Simplify each mapping and deduplicate by method name
+        const seenMethodNames = new Set<string>();
         for (const mapping of detailedMappings) {
           const kotlinSimplified = simplifySignature(mapping.kotlin);
           const javaSimplified = simplifySignature(mapping.java);
           
-          // Deduplicate mappings
-          const mappingKey = `${kotlinSimplified}::${javaSimplified}`;
-          if (!seenMappings.has(mappingKey)) {
-            seenMappings.add(mappingKey);
+          // Extract method name for deduplication (per user's request to omit overloads)
+          const kotlinMethodName = extractMethodName(kotlinSimplified);
+          
+          // Deduplicate by method name (keep only first occurrence)
+          if (!seenMethodNames.has(kotlinMethodName)) {
+            seenMethodNames.add(kotlinMethodName);
             simplifiedMappings.push({
               kotlin: kotlinSimplified,
               java: javaSimplified

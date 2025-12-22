@@ -28,18 +28,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(b)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
-      - kotlin: hashCode()
-        java: hashCode(value)
       - kotlin: toString()
         java: toString()
-      - kotlin: toString()
-        java: toString(b)
   - kotlin:
       kind: interface
       name: kotlin.Byte
@@ -49,18 +43,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherByte)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
-      - kotlin: hashCode()
-        java: hashCode(value)
       - kotlin: toString()
         java: toString()
-      - kotlin: toString()
-        java: toString(b)
   - kotlin:
       kind: interface
       name: kotlin.Char
@@ -70,20 +58,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherCharacter)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode(value)
-      - kotlin: hashCode()
-        java: hashCode()
       - kotlin: toString()
         java: toString()
-      - kotlin: toString()
-        java: toString(c)
-      - kotlin: toString()
-        java: toString(codePoint)
   - kotlin:
       kind: interface
       name: kotlin.CharSequence
@@ -162,12 +142,8 @@ mappings:
         java: hashCode()
       - kotlin: add(p0, p1)
         java: add(e)
-      - kotlin: add(p0, p1)
-        java: add(index, element)
       - kotlin: addAll(p0, p1)
         java: addAll(c)
-      - kotlin: addAll(p0, p1)
-        java: addAll(index, c)
       - kotlin: contains(element)
         java: contains(o)
       - kotlin: containsAll(elements)
@@ -184,8 +160,6 @@ mappings:
         java: lastIndexOf(o)
       - kotlin: listIterator()
         java: listIterator(index)
-      - kotlin: listIterator()
-        java: listIterator()
       - kotlin: subList(fromIndex, toIndex)
         java: subList(fromIndex, toIndex)
   - kotlin:
@@ -309,12 +283,8 @@ mappings:
         java: size()
       - kotlin: add(element)
         java: add(e)
-      - kotlin: add(element)
-        java: add(index, element)
       - kotlin: addAll(elements)
         java: addAll(c)
-      - kotlin: addAll(elements)
-        java: addAll(index, c)
       - kotlin: clear()
         java: clear()
       - kotlin: contains(element)
@@ -333,12 +303,8 @@ mappings:
         java: lastIndexOf(o)
       - kotlin: listIterator()
         java: listIterator(index)
-      - kotlin: listIterator()
-        java: listIterator()
       - kotlin: remove(element)
         java: remove(index)
-      - kotlin: remove(element)
-        java: remove(o)
       - kotlin: removeAll(elements)
         java: removeAll(c)
       - kotlin: removeAt(index)
@@ -401,8 +367,6 @@ mappings:
         java: putAll(m)
       - kotlin: remove(key)
         java: remove(key, value)
-      - kotlin: remove(key)
-        java: remove(key)
   - kotlin:
       kind: interface
       name: kotlin.collections.MutableSet
@@ -469,18 +433,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherDouble)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
-      - kotlin: hashCode()
-        java: hashCode(value)
       - kotlin: toString()
         java: toString(d)
-      - kotlin: toString()
-        java: toString()
   - kotlin:
       kind: interface
       name: kotlin.Enum
@@ -498,8 +456,6 @@ mappings:
         java: compareTo(o)
       - kotlin: equals(other)
         java: equals(other)
-      - kotlin: equals(other)
-        java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
       - kotlin: toString()
@@ -513,18 +469,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherFloat)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
-      - kotlin: hashCode()
-        java: hashCode(value)
       - kotlin: toString()
         java: toString()
-      - kotlin: toString()
-        java: toString(f)
   - kotlin:
       kind: interface
       name: kotlin.Int
@@ -534,20 +484,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherInteger)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
-      - kotlin: hashCode()
-        java: hashCode(value)
       - kotlin: toString()
         java: toString()
-      - kotlin: toString()
-        java: toString(i)
-      - kotlin: toString()
-        java: toString(i, radix)
   - kotlin:
       kind: interface
       name: kotlin.Long
@@ -557,20 +499,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherLong)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode()
-      - kotlin: hashCode()
-        java: hashCode(value)
       - kotlin: toString()
         java: toString(i, radix)
-      - kotlin: toString()
-        java: toString()
-      - kotlin: toString()
-        java: toString(i)
   - kotlin:
       kind: interface
       name: kotlin.Number
@@ -587,18 +521,12 @@ mappings:
     mappings:
       - kotlin: compareTo(other)
         java: compareTo(anotherShort)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(obj)
       - kotlin: hashCode()
         java: hashCode(value)
-      - kotlin: hashCode()
-        java: hashCode()
       - kotlin: toString()
         java: toString(s)
-      - kotlin: toString()
-        java: toString()
   - kotlin:
       kind: interface
       name: kotlin.String
@@ -610,20 +538,14 @@ mappings:
         java: length()
       - kotlin: compareTo(other)
         java: compareTo(anotherString)
-      - kotlin: compareTo(other)
-        java: compareTo(o)
       - kotlin: equals(other)
         java: equals(anObject)
-      - kotlin: equals(other)
-        java: equals(obj)
       - kotlin: get(index)
         java: charAt(index)
       - kotlin: hashCode()
         java: hashCode()
       - kotlin: subSequence(startIndex, endIndex)
         java: subSequence(beginIndex, endIndex)
-      - kotlin: subSequence(startIndex, endIndex)
-        java: subSequence(start, end)
       - kotlin: toString()
         java: toString()
   - kotlin:
@@ -645,7 +567,5 @@ mappings:
         java: getSuppressed()
       - kotlin: printStackTrace()
         java: printStackTrace()
-      - kotlin: printStackTrace()
-        java: printStackTrace(s)
       - kotlin: toString()
         java: toString()

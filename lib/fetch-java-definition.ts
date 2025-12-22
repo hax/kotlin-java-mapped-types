@@ -49,9 +49,7 @@ async function main() {
     process.exit(1);
   }
   
-  const javaType = args[0];
-  const url = typeNameToJavaUrl(javaType);
-  console.log(`Fetching ${javaType} from ${url}...`);
+  console.error('Error: Direct execution not supported. Use generate-all.ts instead.');
   process.exit(1);
 }
 

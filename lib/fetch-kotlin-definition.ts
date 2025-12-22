@@ -45,9 +45,7 @@ async function main() {
     process.exit(1);
   }
   
-  const kotlinType = args[0];
-  const url = typeNameToKotlinUrl(kotlinType);
-  console.log(`Fetching ${kotlinType} from ${url}...`);
+  console.error('Error: Direct execution not supported. Use generate-all.ts instead.');
   process.exit(1);
 }
 

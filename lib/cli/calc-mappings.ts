@@ -3,7 +3,7 @@
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 
-import { MAPPINGS_DIR } from '../config.ts';
+import { DEFS_DIR } from '../config.ts';
 import { calcMapping, parseJavaDef, parseKotlinDef } from '../mappings.ts';
 
 const args = process.argv.slice(2);
@@ -12,7 +12,7 @@ if (args.length < 1) {
     process.exit(1);
 }
 
-const dirname = join(MAPPINGS_DIR, args[0])
+const dirname = join(DEFS_DIR, args[0])
 
 const files = await readdir(dirname);
 

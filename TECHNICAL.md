@@ -13,33 +13,32 @@ Fetches raw HTML pages from official documentation and caches them locally.
 3. For each type pair:
    - Fetches raw HTML page for Kotlin type from kotlinlang.org/api/core/kotlin-stdlib/
    - Fetches raw HTML page for Java type from developer.android.com/reference/
-4. Caches all fetched HTML in `resources/` directory without parsing
-5. Uses smart comparison - only updates files that have changed
+4. Caches all fetched HTML in `doc-cache/` directory using HTTP caching
+5. Uses `--offline` flag to validate cache without network
 
 **Output:**
-- `resources/mapped-types.yaml` - List of 32 type mappings
-- `resources/kotlin/*.html` - Raw HTML pages from Kotlin documentation (29 files)
-- `resources/java/*.html` - Raw HTML pages from Android documentation (23 files)
+- `mapped-types.yaml` - List of 32 type mappings
+- `doc-cache/` - HTTP cache of HTML pages
 
 ### Phase 2: Generate (`npm run generate`)
 Parses cached HTML and generates mapping details without requiring network access.
 
 **Process:**
-1. Reads `resources/mapped-types.yaml` for the list of type mappings
+1. Reads `mapped-types.yaml` for the list of type mappings
 2. For each mapping:
    - Loads cached HTML pages for Kotlin and Java types
-   - Parses HTML to extract type definitions and signatures
-   - Matches signatures between languages
-   - Generates mapping details
+   - Extracts signatures directly from HTML (no complex parsing)
+     - Java: `.api-signature` elements
+     - Kotlin: signature code blocks
+   - Generates definition files with source URL headers
 3. Creates directory structure under `mappings/`
-4. Aggregates all mappings into master `mapped-types.yaml`
+4. Generates `mapped-types-details.yaml` by parsing definitions and matching signatures
 
 **Output:**
 - `mappings/<type>_to_<type>/` directories containing:
-  - `kotlin-definition.kt` - Parsed Kotlin type with signatures
-  - `java-definition.java` - Parsed Java type with signatures
-  - `mapping-details.yaml` - Signature-to-signature mappings
-- `mapped-types.yaml` - Master aggregated mapping file
+  - `kotlin-definition.kt` - Kotlin type with signatures and source URL
+  - `java-definition.java` - Java type with signatures and source URL
+- `mapped-types-details.yaml` - Master file with simplified mappings
 
 ## Benefits
 
@@ -56,13 +55,11 @@ Parses cached HTML and generates mapping details without requiring network acces
 **Separation of Concerns:**
 - Data fetching stores only raw HTML (original source material)
 - Parsing and processing happen during generation
-- Easier to test and maintain
 - Clear boundaries between phases
-- Version control can track upstream changes via HTML diffs
 
 ## Data Format
 
-### resources/mapped-types.yaml
+### mapped-types.yaml
 Simple list of type mapping pairs:
 ```yaml
 - kotlin: kotlin.String
@@ -72,76 +69,66 @@ Simple list of type mapping pairs:
 # ... 30 more mappings
 ```
 
-### resources/kotlin/*.html
-Raw HTML pages from Kotlin API documentation. These are the complete, unmodified HTML pages as fetched from kotlinlang.org, containing:
-- Full page structure with navigation, headers, and styling
-- Type declarations and inheritance information
-- Property and function signatures with documentation
-- Code examples and usage information
+### doc-cache/
+HTTP cache directory containing raw HTML pages from official documentation.
 
-Example URL: `https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/`
+### Generated Definitions
+Each definition file includes:
+- Source URL header (e.g., `// Source: https://...`)
+- Package declaration
+- Class/interface declaration
+- Method/property signatures extracted directly from HTML
 
-The HTML is parsed during the generate phase to extract structured type definitions.
+Example Java definition:
+```java
+// Source: https://developer.android.com/reference/java/lang/String
 
-### resources/java/*.html
-Raw HTML pages from Android API documentation. These are the complete, unmodified HTML pages as fetched from developer.android.com, containing:
-- Full page structure with navigation, headers, and styling
-- Class/interface declarations
-- Method signatures with documentation
-- Code examples and usage information
+package java.lang;
 
-Example URL: `https://developer.android.com/reference/java/lang/String`
-
-The HTML is parsed during the generate phase to extract structured type definitions.
-
-public final class String implements Comparable<String>, CharSequence {
-    @Override
+public final class String {
     public int length();
-    @Override
     public char charAt(int index);
     public String substring(int beginIndex);
-    // ... more methods
 }
 ```
 
-### mappings/.../mapping-details.yaml
-Signature-to-signature mappings:
-```yaml
-- kotlin: "override val length: Int"
-  java: public int length()
-- kotlin: "override operator fun get(index: Int): Char"
-  java: public char charAt(int index)
-# ... more mappings
+Example Kotlin definition:
+```kotlin
+// Source: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/
+
+package kotlin
+
+class String {
+    val length: Int
+    operator fun get(index: Int): Char
+    fun substring(startIndex: Int): String
+}
 ```
 
 ## Implementation Notes
 
-**File Naming Convention:**
-- Kotlin HTML files: `kotlin_<Type>.html` (dots replaced with underscores)
-- Java HTML files: `java_<package>_<Type>.html` (dots replaced with underscores)
-- Generated Kotlin files: `kotlin-definition.kt` in mapping directories
-- Generated Java files: `java-definition.java` in mapping directories
-- Example: `kotlin.collections.List` → cached as `kotlin_collections_List.html`
+**URL Conversion:**
+- `typeNameToKotlinUrl()` and `typeNameToJavaUrl()` in `utils.ts`
+- Handles nested types (e.g., `Map.Entry`)
+- Converts package.Class to appropriate URL format
+
+**Signature Extraction:**
+- Java: Direct extraction from `.api-signature` HTML elements
+- Kotlin: Direct extraction from signature code blocks
+- Minimal parsing, preserves original formatting
 
 **Signature Matching:**
-The generate phase matches signatures using:
 - Direct name matching (e.g., `toString` → `toString`)
 - Property to getter (e.g., Kotlin `length` → Java `length()`)
 - Special cases (e.g., Kotlin `get(index)` → Java `charAt(index)`)
 
-**@Override Annotations:**
-Java definitions include `@Override` annotations when:
-- The method is detected as overriding a parent class or interface method in the Android documentation
-- The annotation is parsed from the original HTML source
-- This preserves the semantic information about method inheritance
-
 **Error Handling:**
-- Sync phase: Falls back to predefined list if documentation fetch fails
-- Generate phase: Exits with error if resources directory is missing
-- Both phases: Logs errors for individual type failures but continues processing
+- Sync phase: Reports fetch failures, continues processing
+- Generate phase: Reports processing failures, continues with remaining types
+- Both phases log errors but don't halt execution
 
 ## Requirements
 
-- Node.js >= 22.0.0 (for native TypeScript support via --experimental-strip-types)
+- Node.js >= 24.0.0 (for native TypeScript support)
 - Network access for sync phase
-- Write permissions for resources and mappings directories
+- Write permissions for doc-cache and mappings directories

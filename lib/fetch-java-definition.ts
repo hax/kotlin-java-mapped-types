@@ -1,89 +1,45 @@
 #!/usr/bin/env node
-/**
- * Fetch Java type definitions from official Android API documentation
- */
 
-import { getJavaTypeInfo, parseJavaTypeFromHtml } from './fetch-java-api.ts';
+import { extractJavaSignatures } from './fetch-java-api.ts';
+import { typeNameToJavaUrl } from './utils.ts';
+import * as cheerio from 'cheerio';
 
-/**
- * Generate Java type definition from HTML content
- */
 export async function generateJavaDefinitionFromHtml(javaType: string, html: string): Promise<string> {
-  const typeInfo = parseJavaTypeFromHtml(html);
-  
-  if (!typeInfo) {
-    throw new Error(`Failed to parse type information for ${javaType} from HTML`);
-  }
-  
-  return formatJavaDefinition(javaType, typeInfo);
-}
-
-/**
- * Format Java type definition from type info
- */
-function formatJavaDefinition(javaType: string, typeInfo: any): string {
+  const $ = cheerio.load(html);
   const parts = javaType.split('.');
   const className = parts[parts.length - 1];
   
-  // Detect package vs nested classes
   let packageName = '';
   for (let i = 0; i < parts.length - 1; i++) {
-    if (parts[i][0] === parts[i][0].toUpperCase()) {
-      // Found a parent class
-      break;
-    }
+    if (parts[i][0] === parts[i][0].toUpperCase()) break;
     packageName += (packageName ? '.' : '') + parts[i];
   }
   
-  let definition = '';
+  const heading = $('h1').first().text();
+  const kind = heading.includes('interface ') ? 'interface' : 'class';
+  const modifiers = kind === 'class' ? 'public final' : 'public';
+  
+  const signatures = extractJavaSignatures(html);
+  
+  const url = typeNameToJavaUrl(javaType);
+  let definition = `// Source: ${url}\n\n`;
   
   if (packageName) {
     definition += `package ${packageName};\n\n`;
   }
   
-  // Generate class/interface declaration
-  const modifiers = typeInfo.modifiers.join(' ');
-  const kind = typeInfo.kind;
+  definition += `${modifiers} ${kind} ${className} {\n`;
   
-  let declaration = `${modifiers} ${kind} ${className}`;
-  
-  if (typeInfo.extends) {
-    declaration += ` extends ${typeInfo.extends}`;
-  }
-  
-  if (typeInfo.implements && typeInfo.implements.length > 0) {
-    declaration += ` implements ${typeInfo.implements.join(', ')}`;
-  }
-  
-  definition += `${declaration} {\n`;
-  
-  // Add method signatures
-  for (const method of typeInfo.methods) {
-    const methodModifiers = method.modifiers.join(' ');
-    const params = method.parameters.join(', ');
-    // Add @Override annotation if the method overrides a parent method
-    const overrideAnnotation = method.hasOverride ? '    @Override\n' : '';
-    definition += `${overrideAnnotation}    ${methodModifiers} ${method.returnType} ${method.name}(${params});\n`;
+  for (const sig of signatures) {
+    if (sig.hasOverride) {
+      definition += '    @Override\n';
+    }
+    definition += `    public ${sig.signature};\n`;
   }
   
   definition += `}\n`;
   
   return definition;
-}
-
-/**
- * Generate Java type definition from fetched data
- */
-async function generateJavaDefinition(javaType: string): Promise<string> {
-  // Fetch from official documentation
-  console.log(`Fetching ${javaType} from official Android API docs...`);
-  const typeInfo = await getJavaTypeInfo(javaType);
-  
-  if (!typeInfo) {
-    throw new Error(`Failed to fetch type information for ${javaType}`);
-  }
-  
-  return formatJavaDefinition(javaType, typeInfo);
 }
 
 async function main() {
@@ -93,14 +49,12 @@ async function main() {
     process.exit(1);
   }
   
-  const javaType = args[0];
-  const definition = await generateJavaDefinition(javaType);
-  console.log(definition);
+  console.error('Error: Direct execution not supported. Use generate-all.ts instead.');
+  process.exit(1);
 }
 
-// Run if this is the main module
 if (import.meta.url.endsWith(process.argv[1])) {
   main().catch(console.error);
 }
 
-export { generateJavaDefinition };
+export { generateJavaDefinitionFromHtml as generateJavaDefinition };

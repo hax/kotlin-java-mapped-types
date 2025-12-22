@@ -7,14 +7,14 @@ Documentation generator for Kotlin-Java type mappings with TypeScript/Node.js.
 This project generates comprehensive documentation for the 32 type mappings between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types).
 
 The project uses a **cache-based architecture**:
-1. **Sync Phase**: Fetch and cache type information from official documentation in `doc-cache/`
+1. **Sync Phase**: Fetch and cache type information from official documentation in `.cache/`
 2. **Generate Phase**: Generate mappings from cached data (offline-capable)
 
 Type information is sourced from:
 - **Java types**: [Android Developer Documentation](https://developer.android.com/reference/)
 - **Kotlin types**: [Kotlin API Reference](https://kotlinlang.org/api/core/kotlin-stdlib/)
 
-All documentation is cached in the `doc-cache/` directory and committed to the repository, enabling fully offline generation in CI environments.
+All documentation is cached in the `.cache/` directory and committed to the repository, enabling fully offline generation in CI environments.
 
 ## Quick Start
 
@@ -67,10 +67,10 @@ npm run generate:mapped-types-details
 │   ├── generate-mapping-details.ts # Create signature mappings
 │   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
 │   ├── generate-mapped-types-details-yaml.ts # Generate summary with simplified mappings
-│   ├── generate-all.ts          # Main generator (reads from doc-cache)
+│   ├── generate-all.ts          # Main generator (reads from .cache)
 │   └── sync-resources.ts        # Sync script to fetch and cache data
-├── doc-cache/                    # Cached documentation (committed to repo)
-├── mappings/                     # Generated mapping directories
+├── .cache/                    # Cached documentation (committed to repo)
+├── .defs/                     # Generated mapping directories
 │   └── <kotlin_Type>_to_<java_Type>/
 │       ├── java-definition.java     # Java type with signatures and source URL
 │       └── kotlin-definition.kt     # Kotlin type with signatures and source URL
@@ -216,13 +216,13 @@ The project covers 32 type mappings between Kotlin and Java:
 **Sync Phase** (`npm run sync`):
 1. Fetch Kotlin documentation page containing the mapped types table
 2. Extract the 32 type mappings and save to `mapped-types.yaml`
-3. For each type, fetch HTML pages from official documentation and cache to `doc-cache/`
+3. For each type, fetch HTML pages from official documentation and cache to `.cache/`
 4. Use `--offline` flag to validate cache without network access
 
 **Generate Phase** (`npm run generate`):
 1. Load type mappings from `mapped-types.yaml`
 2. For each type pair:
-   - Read cached HTML from `doc-cache/`
+   - Read cached HTML from `.cache/`
    - Extract signatures directly from HTML (Java: `.api-signature`, Kotlin: signature elements)
    - Generate definition files with source URL headers
 3. Generate `mapped-types-details.yaml` by parsing definitions and creating simplified mappings

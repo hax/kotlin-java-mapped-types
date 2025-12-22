@@ -5,7 +5,7 @@ import { join } from 'path';
 import { getMappedTypes } from '../get-mapped-types.ts';
 import { getKotlinDef } from '../get-kotlin-def.ts';
 import { getJavaDef } from '../get-java-def.ts';
-import { MAPPINGS_DIR } from '../config.ts';
+import { DEFS_DIR } from '../config.ts';
 import { isPrimitiveJavaType } from '../utils.ts';
 
 import './offline.ts'
@@ -17,7 +17,7 @@ if (dryMode) {
 
 const mappedTypes = await getMappedTypes();
 if (!dryMode) {
-  await mkdir(MAPPINGS_DIR, { recursive: true });
+  await mkdir(DEFS_DIR, { recursive: true });
 }
 
 let count = 0;
@@ -41,7 +41,7 @@ for (const [java, kotlin] of mappedTypes) {
     continue
   }
   
-  const mappingDir = join(MAPPINGS_DIR, javaName);
+  const mappingDir = join(DEFS_DIR, javaName);
   if (!dryMode) {
     await mkdir(mappingDir, { recursive: true });
   }

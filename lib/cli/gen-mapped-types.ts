@@ -5,7 +5,7 @@ import { join } from 'path';
 import { stringify } from 'yaml';
 import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
 import { extractTypeInfo, type TypeInfo } from '../utils.ts';
-import { MAPPINGS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
+import { DEFS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
 
 interface SimplifiedMapping {
   kotlin: string;
@@ -135,14 +135,14 @@ function extractMethodName(simplifiedSignature: string): string {
 async function main() {
   console.log('Generating mapped-types-details.yaml with simplified mappings...');
   
-  const entries = await readdir(MAPPINGS_DIR, { withFileTypes: true });
+  const entries = await readdir(DEFS_DIR, { withFileTypes: true });
   const mappings: TypeMappingWithDetails[] = [];
   const seen = new Set<string>();
   
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     
-    const dirPath = join(MAPPINGS_DIR, entry.name);
+    const dirPath = join(DEFS_DIR, entry.name);
     const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
     const javaDefFile = join(dirPath, 'java-definition.java');
     

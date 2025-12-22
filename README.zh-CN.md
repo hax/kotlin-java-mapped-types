@@ -7,14 +7,14 @@
 本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 32 个 Kotlin 与 Java 之间的类型映射生成全面的文档。
 
 项目使用**基于缓存的架构**：
-1. **同步阶段**：从官方文档获取并缓存类型信息到 `doc-cache/` 目录
+1. **同步阶段**：从官方文档获取并缓存类型信息到 `.cache/` 目录
 2. **生成阶段**：从缓存数据生成映射（可离线工作）
 
 类型信息来源：
 - **Java 类型**: [Android 开发者文档](https://developer.android.com/reference/)
 - **Kotlin 类型**: [Kotlin API 参考](https://kotlinlang.org/api/core/kotlin-stdlib/)
 
-所有文档都缓存在 `doc-cache/` 目录中并提交到仓库，使得 CI 环境中可以完全离线生成。
+所有文档都缓存在 `.cache/` 目录中并提交到仓库，使得 CI 环境中可以完全离线生成。
 
 ## 快速开始
 
@@ -60,10 +60,10 @@ npm run generate:mapped-types-details
 │   ├── get-def-cli.ts           # 通过语言选项获取 Kotlin/Java 定义的 CLI
 │   ├── generate-mapping-details.ts # 创建签名映射
 │   ├── generate-mapped-types-details-yaml.ts # 生成带简化映射的汇总文件
-│   ├── generate-all.ts          # 主生成器（从 doc-cache 读取）
+│   ├── generate-all.ts          # 主生成器（从 .cache 读取）
 │   └── sync-resources.ts        # 同步脚本，获取并缓存数据
-├── doc-cache/                    # 缓存的文档（提交到仓库）
-├── mappings/                     # 生成的映射目录
+├── .cache/                    # 缓存的文档（提交到仓库）
+├── .defs/                     # 生成的映射目录
 │   └── <kotlin类型>_to_<java类型>/
 │       ├── java-definition.java     # 带签名和源 URL 的 Java 类型
 │       └── kotlin-definition.kt     # 带签名和源 URL 的 Kotlin 类型
@@ -173,13 +173,13 @@ mappings:
 **同步阶段** (`npm run sync`):
 1. 获取包含映射类型表的 Kotlin 文档页面
 2. 提取 32 个类型映射并保存到 `mapped-types.yaml`
-3. 对每个类型，从官方文档获取 HTML 页面并缓存到 `doc-cache/`
+3. 对每个类型，从官方文档获取 HTML 页面并缓存到 `.cache/`
 4. 使用 `--offline` 标志在无网络访问的情况下验证缓存
 
 **生成阶段** (`npm run generate`):
 1. 从 `mapped-types.yaml` 加载类型映射
 2. 对每组类型：
-   - 从 `doc-cache/` 读取缓存的 HTML
+   - 从 `.cache/` 读取缓存的 HTML
    - 直接从 HTML 提取签名（Java: `.api-signature`，Kotlin: signature 元素）
    - 生成带源 URL 头的定义文件
 3. 通过解析定义并创建简化映射来生成 `mapped-types-details.yaml`

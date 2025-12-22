@@ -13,12 +13,12 @@ Fetches raw HTML pages from official documentation and caches them locally.
 3. For each type pair:
    - Fetches raw HTML page for Kotlin type from kotlinlang.org/api/core/kotlin-stdlib/
    - Fetches raw HTML page for Java type from developer.android.com/reference/
-4. Caches all fetched HTML in `doc-cache/` directory using HTTP caching
+4. Caches all fetched HTML in `.cache/` directory using HTTP caching
 5. Uses `--offline` flag to validate cache without network
 
 **Output:**
 - `mapped-types.yaml` - List of 32 type mappings
-- `doc-cache/` - HTTP cache of HTML pages
+- `.cache/` - HTTP cache of HTML pages
 
 ### Phase 2: Generate (`npm run generate`)
 Parses cached HTML and generates mapping details without requiring network access.
@@ -31,11 +31,11 @@ Parses cached HTML and generates mapping details without requiring network acces
      - Java: `.api-signature` elements
      - Kotlin: signature code blocks
    - Generates definition files with source URL headers
-3. Creates directory structure under `mappings/`
+3. Creates directory structure under `.defs/`
 4. Generates `mapped-types-details.yaml` by parsing definitions and matching signatures
 
 **Output:**
-- `mappings/<type>_to_<type>/` directories containing:
+- `.defs/<type>_to_<type>/` directories containing:
   - `kotlin-definition.kt` - Kotlin type with signatures and source URL
   - `java-definition.java` - Java type with signatures and source URL
 - `mapped-types-details.yaml` - Master file with simplified mappings
@@ -69,7 +69,7 @@ Simple list of type mapping pairs:
 # ... 30 more mappings
 ```
 
-### doc-cache/
+### .cache/
 HTTP cache directory containing raw HTML pages from official documentation.
 
 ### Generated Definitions
@@ -131,4 +131,4 @@ class String {
 
 - Node.js >= 24.0.0 (for native TypeScript support)
 - Network access for sync phase
-- Write permissions for doc-cache and mappings directories
+- Write permissions for .cache and .defs directories

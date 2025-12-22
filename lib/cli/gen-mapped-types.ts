@@ -7,17 +7,15 @@
  * 1. Scans all type mapping directories in .defs/
  * 2. Parses Java and Kotlin definition files using the same logic as calc-mappings.ts
  * 3. Calculates mappings between Java and Kotlin members
- * 4. Simplifies signatures to show only method names and parameter names
- * 5. Outputs a YAML file with all type mappings
+ * 4. Outputs a YAML file with all type mappings
  */
 
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringify } from 'yaml';
-import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
+import { parseJavaDef, parseKotlinDef } from '../mappings.ts';
 import type { TypeInfo } from '../utils.ts';
 import { DEFS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
-import { simplifySignature, extractMethodName } from '../signature-utils.ts';
 
 interface SimplifiedMapping {
   kotlin: string;
@@ -45,7 +43,6 @@ async function processTypeMapping(dirPath: string): Promise<TypeMappingWithDetai
     // Parse definitions using the same logic as calc-mappings.ts
     const kotlinType = parseKotlinDef(kotlinContent);
     const javaType = parseJavaDef(javaContent);
-    const detailedMappings = calcMapping(javaType, kotlinType);
     
     // Build type info from parsed types
     const kotlinInfo: TypeInfo = {
@@ -57,21 +54,38 @@ async function processTypeMapping(dirPath: string): Promise<TypeMappingWithDetai
       name: `${javaType.package}.${javaType.name}`
     };
     
-    // Simplify mappings and deduplicate
+    // Build mappings directly from member names (already simplified)
     const simplifiedMappings: SimplifiedMapping[] = [];
     const seenMethodNames = new Set<string>();
-    for (const mapping of detailedMappings) {
-      const kotlinSimplified = simplifySignature(mapping.kotlin);
-      const javaSimplified = simplifySignature(mapping.java);
-      
-      const kotlinMethodName = extractMethodName(kotlinSimplified);
-      
-      if (!seenMethodNames.has(kotlinMethodName)) {
-        seenMethodNames.add(kotlinMethodName);
-        simplifiedMappings.push({
-          kotlin: kotlinSimplified,
-          java: javaSimplified
-        });
+    
+    for (const kotlinMember of kotlinType.members) {
+      for (const javaMember of javaType.members) {
+        let isMatch = false;
+        
+        if (kotlinMember.name === javaMember.name) {
+          isMatch = true;
+        } else if (kotlinMember.kind === 'property') {
+          const getterName = 'get' + kotlinMember.name.charAt(0).toUpperCase() + kotlinMember.name.slice(1);
+          if (javaMember.name === getterName) {
+            isMatch = true;
+          }
+        } else if (kotlinMember.name === 'get' && javaMember.name === 'charAt') {
+          isMatch = true;
+        } else if (kotlinMember.name === 'removeAt' && javaMember.name === 'remove') {
+          if (javaMember.signature.includes('int index') || javaMember.signature.includes('int,')) {
+            isMatch = true;
+          }
+        }
+        
+        if (isMatch) {
+          if (!seenMethodNames.has(kotlinMember.name)) {
+            seenMethodNames.add(kotlinMember.name);
+            simplifiedMappings.push({
+              kotlin: kotlinMember.name,
+              java: javaMember.name
+            });
+          }
+        }
       }
     }
     

@@ -6,9 +6,13 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as url from 'url';
 import * as yaml from 'yaml';
 import { extractTypeInfo } from './utils.ts';
 import type { TypeInfo } from './utils.ts';
+
+const MAPPINGS_DIR = url.fileURLToPath(import.meta.resolve('../mappings'));
+const OUTPUT_FILE = url.fileURLToPath(import.meta.resolve('../mapped-types.yaml'));
 
 interface TypeMapping {
   kotlin: TypeInfo;
@@ -16,8 +20,8 @@ interface TypeMapping {
 }
 
 async function main() {
-  const mappingsDir = path.join(process.cwd(), 'mappings');
-  const outputFile = path.join(process.cwd(), 'mapped-types.yaml');
+  const mappingsDir = MAPPINGS_DIR;
+  const outputFile = OUTPUT_FILE;
   
   console.log('Scanning mapping directories...');
   

@@ -5,7 +5,7 @@
   "type": "module",
   "description": "This project documents the mapped types between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types).",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -14,11 +14,10 @@
     "generate:mapping-details": "node lib/generate-mapping-details.ts",
     "generate:mapped-types": "node lib/generate-mapped-types-yaml.ts",
     "generate:mapped-types-details": "node lib/generate-mapped-types-details-yaml.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --run typecheck && node --run generate"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "hax",
   "devDependencies": {
     "@types/make-fetch-happen": "^10.0.4",
     "@types/node": "^25.0.3",

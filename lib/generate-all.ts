@@ -6,6 +6,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as url from 'url';
 import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details.ts';
 import { generateKotlinDefinitionFromHtml } from './fetch-kotlin-definition.ts';
 import { generateJavaDefinitionFromHtml } from './fetch-java-definition.ts';
@@ -17,6 +18,9 @@ interface TypeMapping {
   kotlin: string;
   java: string;
 }
+
+const MAPPED_TYPES_PATH = url.fileURLToPath(import.meta.resolve('../mapped-types.yaml'));
+const MAPPINGS_DIR = url.fileURLToPath(import.meta.resolve('../mappings'));
 
 function sanitizeDirName(kotlinType: string, javaType: string): string {
   return `${kotlinType.replace(/\./g, '_')}_to_${javaType.replace(/\./g, '_')}`;
@@ -79,7 +83,7 @@ async function main() {
   
   console.log('Generating Kotlin-Java type mappings...\n');
   
-  const mappedTypesPath = path.join(process.cwd(), 'mapped-types.yaml');
+  const mappedTypesPath = MAPPED_TYPES_PATH;
   
   // Check if mapped-types.yaml exists
   try {
@@ -93,7 +97,7 @@ async function main() {
   const mappedTypesContent = await fs.readFile(mappedTypesPath, 'utf-8');
   const MAPPED_TYPES: TypeMapping[] = yaml.parse(mappedTypesContent);
   
-  const mappingsDir = path.join(process.cwd(), 'mappings');
+  const mappingsDir = MAPPINGS_DIR;
   await fs.mkdir(mappingsDir, { recursive: true });
   
   for (const mapping of MAPPED_TYPES) {

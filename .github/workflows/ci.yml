@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [24.x]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,16 +26,5 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
-
-    - name: TypeScript type checking
-      run: npm run typecheck
-
-    - name: Test script execution
-      run: |
-        # Run sync in offline mode to validate cache exists
-        npm run sync -- --offline
-        
-        # Run generate in offline mode (default)
-        npm run generate
+    - name: Install dependencies and run CI tasks
+      run: npm cit

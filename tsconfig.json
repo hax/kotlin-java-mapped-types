@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2024",
+    "target": "ESNext",
+    "lib": ["ESNext"],
     "module": "NodeNext",
-    "lib": ["ES2024"],
+    "allowImportingTsExtensions": true,
     "types": ["node"],
     "rootDir": "./lib",
     "strict": true,
-    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "NodeNext",
-    "allowImportingTsExtensions": true,
     "noEmit": true
   },
   "include": ["lib/**/*"]

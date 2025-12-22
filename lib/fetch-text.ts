@@ -41,7 +41,7 @@ export async function fetchText(url: string, options: fetch.MakeFetchHappenOptio
     }
   } catch (error) {
     const duration = Date.now() - startTime;
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = Error.isError(error) ? error.message : String(error);
     console.error(`Failed ${url} after ${duration}ms (${errMessage})`);
     return null;
   }

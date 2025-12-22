@@ -58,7 +58,12 @@ function parseKotlinParams(params: string): string[] {
     if (ch === '<') {
       depth++;
     } else if (ch === '>') {
-      depth = Math.max(0, depth - 1);
+      depth--;
+      // Validate depth doesn't go negative (malformed input)
+      if (depth < 0) {
+        console.warn(`Warning: Unmatched '>' in parameter list: ${params}`);
+        depth = 0;
+      }
     }
     if (ch === ',' && depth === 0) {
       if (current.trim()) {
@@ -75,7 +80,8 @@ function parseKotlinParams(params: string): string[] {
   
   return paramSegments
     .map(p => {
-      const paramMatch = p.match(/(\w+)\s*:/);
+      // Match valid Kotlin identifier: starts with letter or underscore, followed by letters, digits, or underscores
+      const paramMatch = p.match(/([a-zA-Z_][a-zA-Z0-9_]*)\s*:/);
       return paramMatch ? paramMatch[1] : '';
     })
     .filter(n => n);
@@ -119,10 +125,14 @@ function parseJavaParams(params: string): string[] {
         depth++;
       } else if (char === '>') {
         depth--;
-      } else if (depth === 0 && /\w/.test(char)) {
+      } else if (depth === 0 && /[a-zA-Z_$]/.test(char)) {
+        // Check if this is the start of a new identifier (Java allows _, $, and letters)
         if (lastIdentifierStart === -1 || /\s/.test(trimmedParam[i - 1] || ' ')) {
           lastIdentifierStart = i;
         }
+        lastIdentifierEnd = i;
+      } else if (depth === 0 && lastIdentifierStart !== -1 && /[a-zA-Z0-9_$]/.test(char)) {
+        // Continue the identifier (Java allows letters, digits, _, $)
         lastIdentifierEnd = i;
       }
     }
@@ -141,6 +151,7 @@ function parseJavaParams(params: string): string[] {
  * @returns The method name without parameters
  */
 export function extractMethodName(simplifiedSignature: string): string {
-  const match = simplifiedSignature.match(/^(\w+)\(/);
+  // Match valid Java/Kotlin identifier: starts with letter, underscore, or $, followed by letters, digits, underscores, or $
+  const match = simplifiedSignature.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\(/);
   return match ? match[1] : simplifiedSignature;
 }

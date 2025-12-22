@@ -19,12 +19,9 @@ export async function fetchText(url: string, options: fetch.MakeFetchHappenOptio
   
   try {
     const response = await fetch(url, options);
+    const cacheStatus = response.headers.get('x-local-cache-status') ?? 'no';
     const duration = Date.now() - startTime;
-    const cacheEvent = response.ok
-      ? response.headers?.get('X-Local-Cache-Status')
-      : 'request failed';
-    const modeLabel = offlineMode ? 'offline' : 'online';
-    const logMessage = `${modeLabel} ${cacheEvent} ${response.status} ${response.statusText} ${url} ${duration}ms`;
+    const logMessage = `[${cacheStatus} cache ${duration}ms] ${response.status} ${response.statusText} ${url}`;
     if (!response.ok) {
       console.warn(logMessage);
       return null;
@@ -35,7 +32,7 @@ export async function fetchText(url: string, options: fetch.MakeFetchHappenOptio
   } catch (error) {
     const duration = Date.now() - startTime;
     const errMessage = Error.isError(error) ? error.message : String(error);
-    console.error(`Failed ${url} after ${duration}ms (${errMessage})`);
+    console.error(`Failed to fetch ${url} after ${duration}ms (${errMessage})`);
     return null;
   }
 }

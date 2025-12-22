@@ -57,6 +57,7 @@ npm run generate:mapped-types-details
 │   ├── fetch-kotlin-api.ts      # 从 HTML 提取 Kotlin 签名
 │   ├── fetch-java-definition.ts # 生成 Java 定义
 │   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
+│   ├── get-def-cli.ts           # 通过语言选项获取 Kotlin/Java 定义的 CLI
 │   ├── generate-mapping-details.ts # 创建签名映射
 │   ├── generate-mapped-types-details-yaml.ts # 生成带简化映射的汇总文件
 │   ├── generate-all.ts          # 主生成器（从 doc-cache 读取）
@@ -68,6 +69,15 @@ npm run generate:mapped-types-details
 │       └── kotlin-definition.kt     # 带签名和源 URL 的 Kotlin 类型
 ├── mapped-types.yaml             # 主映射列表（在根目录，从文档生成）
 └── mapped-types-details.yaml     # 带简化映射列表的汇总文件
+```
+
+## 定义 CLI
+
+手动获取定义可以使用：
+
+```bash
+node lib/get-def-cli.ts java java.lang.String
+node lib/get-def-cli.ts kotlin kotlin.CharSequence
 ```
 
 ## 类型定义

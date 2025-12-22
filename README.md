@@ -63,6 +63,7 @@ npm run generate:mapped-types-details
 │   ├── fetch-kotlin-api.ts      # Extract Kotlin signatures from HTML
 │   ├── fetch-java-definition.ts # Generate Java definitions
 │   ├── fetch-kotlin-definition.ts # Generate Kotlin definitions
+│   ├── get-def-cli.ts           # CLI that fetches Kotlin/Java definitions on demand
 │   ├── generate-mapping-details.ts # Create signature mappings
 │   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
 │   ├── generate-mapped-types-details-yaml.ts # Generate summary with simplified mappings
@@ -75,6 +76,15 @@ npm run generate:mapped-types-details
 │       └── kotlin-definition.kt     # Kotlin type with signatures and source URL
 ├── mapped-types.yaml             # Master mapping list (in root, generated from docs)
 └── mapped-types-details.yaml     # Summary with simplified mapping list
+```
+
+## Definition CLI
+
+Fetch a definition manually with:
+
+```bash
+node lib/get-def-cli.ts java java.lang.String
+node lib/get-def-cli.ts kotlin kotlin.CharSequence
 ```
 
 ## Type Definitions

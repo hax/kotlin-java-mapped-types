@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as yaml from 'yaml';
-import { parseJavaDefinition, parseKotlinDefinition, generateMapping } from './generate-mapping-details.ts';
-import { extractTypeInfo } from './utils.ts';
-import type { TypeInfo } from './utils.ts';
-import { MAPPINGS_DIR, MAPPED_TYPES_DETAILS_FILE } from './config.ts';
+import { readdir, readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
+import { stringify } from 'yaml';
+import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
+import { extractTypeInfo, type TypeInfo } from '../utils.ts';
+import { MAPPINGS_DIR, MAPPED_TYPES_DETAILS_FILE } from '../config.ts';
 
 interface SimplifiedMapping {
   kotlin: string;
@@ -136,16 +135,16 @@ function extractMethodName(simplifiedSignature: string): string {
 async function main() {
   console.log('Generating mapped-types-details.yaml with simplified mappings...');
   
-  const entries = await fs.readdir(MAPPINGS_DIR, { withFileTypes: true });
+  const entries = await readdir(MAPPINGS_DIR, { withFileTypes: true });
   const mappings: TypeMappingWithDetails[] = [];
   const seen = new Set<string>();
   
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     
-    const dirPath = path.join(MAPPINGS_DIR, entry.name);
-    const kotlinDefFile = path.join(dirPath, 'kotlin-definition.kt');
-    const javaDefFile = path.join(dirPath, 'java-definition.java');
+    const dirPath = join(MAPPINGS_DIR, entry.name);
+    const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
+    const javaDefFile = join(dirPath, 'java-definition.java');
     
     const kotlinInfo = await extractTypeInfo(kotlinDefFile);
     const javaInfo = await extractTypeInfo(javaDefFile);
@@ -155,12 +154,12 @@ async function main() {
       if (seen.has(key)) continue;
       seen.add(key);
       
-      const kotlinContent = await fs.readFile(kotlinDefFile, 'utf-8');
-      const javaContent = await fs.readFile(javaDefFile, 'utf-8');
+      const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
+      const javaContent = await readFile(javaDefFile, 'utf-8');
       
-      const kotlinType = parseKotlinDefinition(kotlinContent);
-      const javaType = parseJavaDefinition(javaContent);
-      const detailedMappings = generateMapping(javaType, kotlinType);
+      const kotlinType = parseKotlinDef(kotlinContent);
+      const javaType = parseJavaDef(javaContent);
+      const detailedMappings = calcMapping(javaType, kotlinType);
       
       const simplifiedMappings: SimplifiedMapping[] = [];
       const seenMethodNames = new Set<string>();
@@ -191,8 +190,8 @@ async function main() {
   
   mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
   
-  const output = yaml.stringify({ mappings });
-  await fs.writeFile(MAPPED_TYPES_DETAILS_FILE, output, 'utf-8');
+  const output = stringify({ mappings });
+  await writeFile(MAPPED_TYPES_DETAILS_FILE, output, 'utf-8');
   
   console.log(`\nGenerated ${MAPPED_TYPES_DETAILS_FILE} with ${mappings.length} type mappings`);
 }

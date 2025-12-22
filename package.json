@@ -9,12 +9,13 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "sync": "node lib/sync-resources.ts",
-    "generate": "node lib/generate-all.ts",
-    "generate:mapping-details": "node lib/generate-mapping-details.ts",
-    "generate:mapped-types": "node lib/generate-mapped-types-yaml.ts",
-    "generate:mapped-types-details": "node lib/generate-mapped-types-details-yaml.ts",
-    "test": "node --run typecheck && node --run generate"
+    "start": "node --run gen:defs && node --run gen:mt",
+    "get:mt": "node lib/cli/get-mapped-types.ts --offline",
+    "get:def": "node lib/cli/get-def.ts --offline",
+    "gen:defs": "node lib/cli/gen-defs.ts",
+    "calc:mappings": "node lib/cli/calc-mappings.ts",
+    "gen:mt": "node lib/cli/gen-mapped-types.ts",
+    "test": "node --run typecheck"
   },
   "keywords": [],
   "author": "hax",

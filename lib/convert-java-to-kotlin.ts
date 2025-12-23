@@ -11,7 +11,7 @@
 
 import { parseJavaDef, parseKotlinDef, calcMapping, type ParsedMember } from './mappings.ts';
 import { getMappedTypes, type MappedType } from './get-mapped-types.ts';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { DEFS_DIR } from './config.ts';
 
@@ -170,8 +170,25 @@ export async function loadMemberMappings(
     const javaParsed = parseJavaDef(javaContent);
     
     // Find the Kotlin definition file
-    const kotlinDefFile = join(defDir, kotlinType.split('.').pop() + '.kt');
-    const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
+    // The file might be named with the full qualified name
+    const kotlinSimpleName = kotlinType.split('.').pop()!;
+    let kotlinDefFile = join(defDir, `${kotlinType}.kt`);
+    
+    // Try to read the file
+    let kotlinContent: string;
+    try {
+      kotlinContent = await readFile(kotlinDefFile, 'utf-8');
+    } catch {
+      // File not found with full name, try to find any .kt file matching the simple name
+      const files = await readdir(defDir);
+      const ktFile = files.find(f => f.endsWith('.kt') && f.endsWith(`${kotlinSimpleName}.kt`));
+      if (!ktFile) {
+        return new Map();
+      }
+      kotlinDefFile = join(defDir, ktFile);
+      kotlinContent = await readFile(kotlinDefFile, 'utf-8');
+    }
+    
     const kotlinParsed = parseKotlinDef(kotlinContent);
     
     // Calculate mappings
@@ -416,7 +433,9 @@ function formatKotlinMember(member: ParsedMember): string {
   
   if (member.kind === 'property') {
     // Property format: modifiers val/var name: Type
-    return `${mods}val ${member.name}: ${member.type}`;
+    // The type already includes the colon, so just append it
+    const typeStr = member.type.startsWith(':') ? member.type : `: ${member.type}`;
+    return `${mods}val ${member.name}${typeStr}`;
   } else if (member.kind === 'method') {
     // Method format: modifiers fun name(params): ReturnType
     return `${mods}fun ${member.name}${member.type}`;

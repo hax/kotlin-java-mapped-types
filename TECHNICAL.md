@@ -1,4 +1,4 @@
-# Technical Documentation | 技术文档
+# Technical Documentation / 技术文档
 
 [English](#english) | [中文](#chinese)
 

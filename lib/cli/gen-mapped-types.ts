@@ -10,11 +10,10 @@
  * 4. Outputs a YAML file with all type mappings
  */
 
-import { stringify } from 'yaml';
 import { readdir, readFile } from 'fs/promises';
 import { createWriteStream, type WriteStream } from 'fs';
 import { join } from 'path';
-import { parseJavaDef, parseKotlinDef, calcMapping, type ParsedMember } from '../mappings.ts';
+import { parseJavaDef, parseKotlinDef, calcMapping, toDTS } from '../mappings.ts';
 import { DEFS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
 import { getMappedTypes } from '../get-mapped-types.ts';
 
@@ -33,11 +32,6 @@ for (const [java, kotlin] of mappedTypes) {
 }
 outputStream.end();
 console.log(`\nGenerated ${MAPPED_TYPES_FILE}`);
-
-interface SimplifiedMapping {
-  java: string;
-  kotlin: string;
-}
 
 async function processTypeMapping(output: WriteStream, java: string, kotlin: string): Promise<void> {
   const dirname = dirnames.find(dirname => java.startsWith(dirname));
@@ -68,14 +62,5 @@ async function processTypeMapping(output: WriteStream, java: string, kotlin: str
   \`${toDTS(java)}\`
   \`${toDTS(kotlin)}\`
 `);
-  }
-}
-
-function toDTS(member: ParsedMember): string {
-  const mods = member.modifiers.length > 0 ? member.modifiers.join(' ') + ' ' : '';
-  if (member.kind === 'constructor') {
-    return `${mods}constructor${member.type}`;
-  } else {
-    return `${mods}${member.name}${member.type}`;
   }
 }

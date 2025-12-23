@@ -14,6 +14,15 @@ interface ParsedType {
   members: ParsedMember[];
 }
 
+export function toDTS(member: ParsedMember): string {
+  const mods = member.modifiers.length > 0 ? member.modifiers.join(' ') + ' ' : '';
+  if (member.kind === 'constructor') {
+    return `${mods}constructor${member.type}`;
+  } else {
+    return `${mods}${member.name}${member.type}`;
+  }
+}
+
 function removeComments(content: string): string {
   return content
     .replace(/\/\*[\s\S]*?\*\//g, '') // Remove block comments

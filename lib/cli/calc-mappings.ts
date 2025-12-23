@@ -4,7 +4,7 @@ import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 
 import { DEFS_DIR } from '../config.ts';
-import { calcMapping, parseJavaDef, parseKotlinDef } from '../mappings.ts';
+import { calcMapping, parseJavaDef, parseKotlinDef, toDTS } from '../mappings.ts';
 
 const args = process.argv.slice(2);
 if (args.length < 1) {
@@ -30,6 +30,6 @@ console.log(kotlinType)
 const mappings = calcMapping(javaType, kotlinType);
 
 console.log(`Mappings for ${javaType.package}.${javaType.name} <-> ${kotlinType.package}.${kotlinType.name}:`);
-for (const mapping of mappings) {
-  console.log(`  ${mapping.java}  <->  ${mapping.kotlin}`);
+for (const [java, kotlin] of mappings) {
+  console.log(`  ${toDTS(java)}  <->  ${toDTS(kotlin)}`);
 }

@@ -41,7 +41,27 @@ npm run gen:defs
 
 # 3. 生成带详细映射的 mapped-types.md
 npm run gen:mt
+
+# 4. 将 Java 类型定义转换为 Kotlin（新功能！）
+npm run convert java.util.SortedMap
 ```
+
+## Java 到 Kotlin 转换器
+
+本项目现在包含一个工具，可以根据映射关系将 Java 类型定义转换为 Kotlin 定义。详细文档请参阅 [CONVERTER.md](CONVERTER.md)。
+
+**快速示例：**
+```bash
+# 将 java.util.Map 转换为 Kotlin
+npm run convert java.util.Map
+```
+
+转换器自动完成：
+- 转换类型名称（java.util.Map → kotlin.collections.MutableMap）
+- 转换接口和父类
+- 将方法转换为 Kotlin 语法
+- 在适当的地方将 Java 方法映射到 Kotlin 属性（例如 `keySet()` → `keys`）
+
 
 ## 项目结构
 

@@ -1,6 +1,6 @@
 # Technical Documentation | 技术文档
 
-[English](#english) | [中文](#中文)
+[English](#english) | [中文](#chinese)
 
 ---
 
@@ -397,7 +397,7 @@ This documentation serves multiple purposes:
 
 ---
 
-<a name="中文"></a>
+<a name="chinese"></a>
 ## 中文
 
 ### 架构概述

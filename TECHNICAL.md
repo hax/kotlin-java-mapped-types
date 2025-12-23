@@ -384,17 +384,6 @@ function toDTS(member: ParsedMember): string {
 5. **Default Parameters**: Kotlin default parameters not reflected in mappings
 6. **Extension Functions**: Not included (not part of Java interop mappings)
 
-### Use Cases
-
-This documentation serves multiple purposes:
-
-1. **Learning Resource**: Understand Kotlin-Java interoperability
-2. **Reference Guide**: Look up specific type mappings when writing code
-3. **Migration Tool**: Assist in converting Java code to Kotlin
-4. **Teaching Material**: Educational resource for Kotlin courses
-5. **API Documentation**: Comprehensive reference for library authors
-6. **Code Generation**: Potential input for automated code generators
-
 ---
 
 <a name="chinese"></a>
@@ -776,14 +765,3 @@ function toDTS(member: ParsedMember): string {
 4. **注解详情**：注解从解析中过滤掉
 5. **默认参数**：Kotlin 默认参数未反映在映射中
 6. **扩展函数**：不包括（不是 Java 互操作映射的一部分）
-
-### 用例
-
-此文档服务于多个目的：
-
-1. **学习资源**：理解 Kotlin-Java 互操作性
-2. **参考指南**：编写代码时查找特定类型映射
-3. **迁移工具**：协助将 Java 代码转换为 Kotlin
-4. **教学材料**：Kotlin 课程的教育资源
-5. **API 文档**：库作者的综合参考
-6. **代码生成**：自动代码生成器的潜在输入

@@ -15,10 +15,7 @@
     "gen:defs": "node lib/cli/gen-defs.ts",
     "calc:mappings": "node lib/cli/calc-mappings.ts",
     "gen:mt": "node lib/cli/gen-mapped-types.ts",
-    "gen:mt:json": "node lib/cli/gen-mapped-types-json.ts",
-    "convert": "node lib/cli/convert-to-kotlin.ts",
     "map": "node lib/cli/map-to-dts.ts",
-    "demo": "node lib/cli/demo-converter.ts",
     "test": "node --run typecheck"
   },
   "keywords": [],

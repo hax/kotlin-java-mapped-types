@@ -167,7 +167,7 @@ function parseGenericParams(generics: string): string[] {
 /**
  * Main mapping function: Map a Java definition to d.ts format
  */
-export async function mapJavaToDTS(javaDefContent: string): Promise<MappingResult> {
+export async function mapJavaToKotlin(javaDefContent: string): Promise<MappingResult> {
   // Parse the Java definition
   const javaParsed = parseJavaDef(javaDefContent);
   

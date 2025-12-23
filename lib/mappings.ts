@@ -30,26 +30,40 @@ export function javaTypeToDTS(parsedType: ParsedType): string {
   const { package: pkg, name, kind, modifiers, super: superTypes, members } = parsedType;
   
   // Build the declaration line
-  const mods = modifiers.filter(m => m && m !== 'public').join(' ');
+  const mods = modifiers.filter(m => m && m !== '').join(' ');
   const modStr = mods ? mods + ' ' : '';
   
-  // Handle inheritance/implements
+  // Handle inheritance - separate extends and implements
   let extendsClause = '';
-  if (superTypes.length > 0) {
+  let implementsClause = '';
+  
+  if (kind === 'class' && superTypes.length > 0) {
+    // First superType is the extends clause, rest are implements
+    extendsClause = ' extends ' + superTypes[0];
+    if (superTypes.length > 1) {
+      implementsClause = ' implements ' + superTypes.slice(1).join(', ');
+    }
+  } else if (kind === 'interface' && superTypes.length > 0) {
+    // For interfaces, all are extends
     extendsClause = ' extends ' + superTypes.join(', ');
   }
   
   // Format members
   const memberLines = members.map(member => {
-    return '  ' + toDTS(member) + ';';
+    return '  ' + toDTS(member);
   });
   
   // Build the complete DTS
-  const declaration = `${modStr}${kind} ${name}${extendsClause} {
+  const declaration = `${modStr}${kind} ${name}${extendsClause}${implementsClause} {
 ${memberLines.join('\n')}
 }`;
   
-  return `// Package: ${pkg}\n\n${declaration}`;
+  return `/**
+ * @packageDocumentation
+ * Package: ${pkg}
+ */
+
+${declaration}`;
 }
 
 function removeComments(content: string): string {

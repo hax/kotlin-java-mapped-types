@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * Generate mapped-types-details.yaml file with type mappings and simplified signatures.
+ * Generate mapped types documentation in both markdown and JSON formats.
  * 
  * This script:
  * 1. Scans all type mapping directories in .defs/
- * 2. Parses Java and Kotlin definition files using the same logic as calc-mappings.ts
+ * 2. Parses Java and Kotlin definition files
  * 3. Calculates mappings between Java and Kotlin members
- * 4. Outputs a YAML file with all type mappings
+ * 4. Outputs both mapped-types.md and mapped-types.json files
  */
 
-import { readdir, readFile } from 'fs/promises';
+import { readdir, readFile, writeFile } from 'fs/promises';
 import { createWriteStream, type WriteStream } from 'fs';
 import { join } from 'path';
 import { parseJavaDef, parseKotlinDef, calcMapping, toDTS } from '../mappings.ts';
@@ -19,48 +19,95 @@ import { getMappedTypes } from '../get-mapped-types.ts';
 
 console.log('Generating mapped types documentation...\n');
 
+// Markdown output
 const outputStream = createWriteStream(MAPPED_TYPES_FILE, { encoding: 'utf-8' });
 outputStream.write('# Mapped Types\n');
 
-const dirnames = await readdir(DEFS_DIR);
+// JSON output
+interface MemberMapping {
+  javaName: string;
+  javaSig: string;
+  kotlinName: string;
+  kotlinSig: string;
+}
 
+interface TypeMapping {
+  javaType: string;
+  kotlinType: string;
+  members: MemberMapping[];
+}
+
+const jsonMappings: TypeMapping[] = [];
+
+const dirnames = await readdir(DEFS_DIR);
 const mappedTypes = await getMappedTypes();
+
 for (const [java, kotlin] of mappedTypes) {
   outputStream.write(`\n## ${java} <-> ${kotlin}\n`);
-
-  await processTypeMapping(outputStream, java, kotlin);
+  const typeMapping = await processTypeMapping(outputStream, java, kotlin);
+  if (typeMapping) {
+    jsonMappings.push(typeMapping);
+  }
 }
+
 outputStream.end();
 console.log(`\nGenerated ${MAPPED_TYPES_FILE}`);
 
-async function processTypeMapping(output: WriteStream, java: string, kotlin: string): Promise<void> {
+// Write JSON output
+const jsonOutputPath = join(DEFS_DIR, '..', 'mapped-types.json');
+await writeFile(jsonOutputPath, JSON.stringify(jsonMappings, null, 2), 'utf-8');
+console.log(`Generated ${jsonMappings.length} type mappings`);
+console.log(`JSON output: ${jsonOutputPath}`);
+
+async function processTypeMapping(output: WriteStream, java: string, kotlin: string): Promise<TypeMapping | null> {
   const dirname = dirnames.find(dirname => java.startsWith(dirname));
   if (dirname == null) {
-    return;
+    return null;
   }
 
-  const files = await readdir(join(DEFS_DIR, dirname));
-  const javaName = files.find(file => file.endsWith('.java'));
-  const kotlinName = files.find(file => file.endsWith('.kt') && kotlin.startsWith(file.slice(0, -3)));
-  if (javaName == null || kotlinName == null) {
-    return;
-  }
+  try {
+    const files = await readdir(join(DEFS_DIR, dirname));
+    const javaName = files.find(file => file.endsWith('.java'));
+    const kotlinName = files.find(file => file.endsWith('.kt') && kotlin.startsWith(file.slice(0, -3)));
+    if (javaName == null || kotlinName == null) {
+      return null;
+    }
 
-  const javaDefFile = join(DEFS_DIR, dirname, javaName);
-  const kotlinDefFile = join(DEFS_DIR, dirname, kotlinName);
+    const javaDefFile = join(DEFS_DIR, dirname, javaName);
+    const kotlinDefFile = join(DEFS_DIR, dirname, kotlinName);
 
-  const javaContent = await readFile(javaDefFile, 'utf-8');
-  const javaType = parseJavaDef(javaContent);
+    const javaContent = await readFile(javaDefFile, 'utf-8');
+    const javaType = parseJavaDef(javaContent);
 
-  const kotlinContent = await readFile(kotlinDefFile, 'utf-8');  
-  const kotlinType = parseKotlinDef(kotlinContent);
-  
-  const mappings = calcMapping(javaType, kotlinType);
-  for (const [java, kotlin] of mappings) {
-    output.write(
-`- ${java.name}
-  \`${toDTS(java)}\`
-  \`${toDTS(kotlin)}\`
+    const kotlinContent = await readFile(kotlinDefFile, 'utf-8');  
+    const kotlinType = parseKotlinDef(kotlinContent);
+    
+    const mappings = calcMapping(javaType, kotlinType);
+    
+    const members: MemberMapping[] = [];
+    
+    for (const [javaMember, kotlinMember] of mappings) {
+      output.write(
+`- ${javaMember.name}
+  \`${toDTS(javaMember)}\`
+  \`${toDTS(kotlinMember)}\`
 `);
+      
+      members.push({
+        javaName: javaMember.name,
+        javaSig: toDTS(javaMember),
+        kotlinName: kotlinMember.name,
+        kotlinSig: toDTS(kotlinMember)
+      });
+    }
+    
+    return {
+      javaType: java,
+      kotlinType: kotlin,
+      members
+    };
+  } catch (error) {
+    console.error(`Error processing ${java}: ${error}`);
+    return null;
   }
 }

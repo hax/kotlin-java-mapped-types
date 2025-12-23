@@ -1,7 +1,5 @@
 # 映射 Java 类型定义到 Kotlin 类型定义
 
-本工具根据 [Kotlin 官方文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中记录的映射关系，将 Java 类型定义映射到 TypeScript 声明格式 (.d.ts)。
-
 类型定义以 **d.ts 格式**描述。详细的映射关系请参考：
 - [Kotlin 官方映射文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)
 - [本项目生成的详细映射](mapped-types.md)
@@ -30,27 +28,26 @@
 # 映射单个 Java 类型
 npm run map java.util.SortedMap
 
-# 从 Java 定义文件映射
-npm run map ./my-type.java
-
-# 从 d.ts 文件映射（应用映射规则）
-npm run map ./my-type.d.ts
+# 从 stdin 读取 Java 定义文件或 d.ts 文件
+cat my-type.java | npm run map
+cat my-type.d.ts | npm run map
 
 # 或直接使用 node
 node lib/cli/map-to-dts.ts java.util.ArrayList
+cat my-type.java | node lib/cli/map-to-dts.ts
 ```
 
 ### 编程 API
 
 ```typescript
-import { mapJavaToDTS } from './lib/map-java-to-dts.ts';
+import { mapJavaToKotlin } from './lib/map-java-to-dts.ts';
 import { getJavaDef } from './lib/get-java-def.ts';
 
 // 获取 Java 定义
 const javaDefContent = await getJavaDef('java.util.ArrayList');
 
 // 映射到 d.ts
-const result = await mapJavaToDTS(javaDefContent);
+const result = await mapJavaToKotlin(javaDefContent);
 
 console.log(result.dts);
 console.log('应用的映射:', result.appliedMappings);
@@ -78,10 +75,10 @@ public class ArrayList<E> extends AbstractList<E> implements List<E> {
 // Package: java.util
 
 class ArrayList<E> extends AbstractList<E>, List<E> {
-  public add(e: E): boolean;
-  public get(index: number): E;
-  public size(): number;
-  public isEmpty(): boolean;
+  public add(e: E): kotlin.Boolean
+  public get(index: kotlin.Int): E
+  public size(): kotlin.Int
+  public isEmpty(): kotlin.Boolean
 }
 ```
 
@@ -104,8 +101,8 @@ public class MyMap<K, V> extends java.util.HashMap<K, V> {
 // Package: com.example
 
 class MyMap<K, V> extends HashMap<K, V> {
-  public getValue(key: K): V;
-  public keys: Set<K>;  // keySet() 映射为属性
+  public getValue(key: K): V
+  public keys: Set<K>  // keySet() 映射为属性
 }
 ```
 

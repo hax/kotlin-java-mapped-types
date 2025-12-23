@@ -16,7 +16,8 @@
     "calc:mappings": "node lib/cli/calc-mappings.ts",
     "gen:mt": "node lib/cli/gen-mapped-types.ts",
     "map": "node lib/cli/map-to-dts.ts",
-    "test": "node --run typecheck"
+    "test": "node --test test/*.test.ts",
+    "test:typecheck": "node --run typecheck"
   },
   "keywords": [],
   "author": "hax",

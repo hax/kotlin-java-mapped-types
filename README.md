@@ -41,8 +41,8 @@ npm run gen:mt
 
 **Additional options:**
 - Use `--offline` flag with commands to use cached content only (e.g., `npm run get:mt -- --offline`)
-- Use `--dry-run` flag to preview operations without writing files
-- All HTTP requests are automatically cached, enabling offline operation after initial fetch
+- Use `--dry-run` flag to preview operations without writing files.
+- All HTTP requests are automatically cached, enabling offline operation after initial fetch.
 
 ## How It Works
 

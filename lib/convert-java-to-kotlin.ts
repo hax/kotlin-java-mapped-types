@@ -171,7 +171,11 @@ export async function loadMemberMappings(
     
     // Find the Kotlin definition file
     // The file might be named with the full qualified name
-    const kotlinSimpleName = kotlinType.split('.').pop()!;
+    const kotlinParts = kotlinType.split('.');
+    if (kotlinParts.length === 0) {
+      return new Map();
+    }
+    const kotlinSimpleName = kotlinParts[kotlinParts.length - 1];
     let kotlinDefFile = join(defDir, `${kotlinType}.kt`);
     
     // Try to read the file
@@ -202,7 +206,11 @@ export async function loadMemberMappings(
     
     return memberMap;
   } catch (error) {
-    // Return empty map if definitions not found
+    // Log the error for debugging but don't fail the conversion
+    if (process.env.DEBUG) {
+      console.error(`Failed to load member mappings for ${javaType}: ${error}`);
+    }
+    // Return empty map if definitions not found or parsing fails
     return new Map();
   }
 }
@@ -351,7 +359,8 @@ export async function convertJavaToKotlin(javaDefContent: string): Promise<Conve
   
   // Convert type name
   const javaFullType = `${javaParsed.package}.${javaParsed.name}`;
-  const kotlinTypeName = convertJavaTypeToKotlin(javaFullType, typeMap).split('.').pop() || javaParsed.name;
+  const convertedType = convertJavaTypeToKotlin(javaFullType, typeMap, javaParsed.package);
+  const kotlinTypeName = convertedType.split('.').pop() || javaParsed.name;
   
   // Convert superclasses and interfaces
   const kotlinSuper: string[] = [];

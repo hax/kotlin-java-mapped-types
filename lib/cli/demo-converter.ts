@@ -71,7 +71,8 @@ for (const example of examples) {
     console.log('\n✅ Conversion successful!');
     
   } catch (error) {
-    console.error(`\n❌ Error: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`\n❌ Error: ${errorMessage}`);
   }
 }
 

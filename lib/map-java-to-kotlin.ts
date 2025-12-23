@@ -1,0 +1,97 @@
+/**
+ * Map Java type definitions to Kotlin types in d.ts format
+ * using TypeScript parser for AST manipulation.
+ */
+
+import { parseJavaDef, javaTypeToDTS } from './mappings.ts';
+import { getMappedTypes } from './get-mapped-types.ts';
+import * as ts from 'typescript';
+
+export interface MappingResult {
+  dts: string;
+  unmappedTypes: string[];
+  appliedMappings: Array<{ from: string; to: string }>;
+}
+
+/**
+ * Build a map from Java types to Kotlin types
+ */
+export async function buildTypeMappings(): Promise<Map<string, { kotlinType: string; nullable: '?' | '!' | '' }>> {
+  const mappedTypes = await getMappedTypes();
+  const typeMap = new Map<string, { kotlinType: string; nullable: '?' | '!' | '' }>();
+  
+  for (const [javaType, kotlinType] of mappedTypes) {
+    // Detect nullability suffix
+    let nullable: '?' | '!' | '' = '';
+    let cleanKotlinType = kotlinType;
+    
+    if (kotlinType.endsWith('?')) {
+      nullable = '?';
+      cleanKotlinType = kotlinType.slice(0, -1);
+    } else if (kotlinType.endsWith('!')) {
+      nullable = '!';
+      cleanKotlinType = kotlinType.slice(0, -1);
+    }
+    
+    // Store both with and without generic parameters
+    typeMap.set(javaType, { kotlinType: cleanKotlinType, nullable });
+    
+    // Also store the base type without generics
+    const javaBaseType = javaType.replace(/<.+>$/, '').trim();
+    typeMap.set(javaBaseType, { kotlinType: cleanKotlinType, nullable });
+  }
+  
+  return typeMap;
+}
+
+/**
+ * Main mapping function: Map a Java definition to d.ts format with Kotlin types
+ */
+export async function mapJavaToKotlin(javaDefContent: string): Promise<MappingResult> {
+  // Parse the Java definition
+  const javaParsed = parseJavaDef(javaDefContent);
+  
+  // Convert to initial d.ts
+  const initialDTS = javaTypeToDTS(javaParsed);
+  
+  // Build type mappings
+  const typeMap = await buildTypeMappings();
+  
+  // Parse the d.ts with TypeScript
+  const sourceFile = ts.createSourceFile(
+    'temp.d.ts',
+    initialDTS,
+    ts.ScriptTarget.Latest,
+    true
+  );
+  
+  const unmappedTypes: string[] = [];
+  const appliedMappings: Array<{ from: string; to: string }> = [];
+  
+  // Transform the AST
+  const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
+    return (sourceFile) => {
+      const visitor = (node: ts.Node): ts.Node => {
+        // TODO: Implement AST transformation logic
+        // This will be implemented incrementally with tests
+        return ts.visitEachChild(node, visitor, context);
+      };
+      return ts.visitNode(sourceFile, visitor) as ts.SourceFile;
+    };
+  };
+  
+  const result = ts.transform(sourceFile, [transformer]);
+  const transformedSourceFile = result.transformed[0];
+  
+  // Print the transformed AST back to string
+  const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+  const mappedDTS = printer.printFile(transformedSourceFile);
+  
+  result.dispose();
+  
+  return {
+    dts: mappedDTS,
+    unmappedTypes,
+    appliedMappings
+  };
+}

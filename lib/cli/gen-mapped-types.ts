@@ -65,49 +65,44 @@ async function processTypeMapping(output: WriteStream, java: string, kotlin: str
     return null;
   }
 
-  try {
-    const files = await readdir(join(DEFS_DIR, dirname));
-    const javaName = files.find(file => file.endsWith('.java'));
-    const kotlinName = files.find(file => file.endsWith('.kt') && kotlin.startsWith(file.slice(0, -3)));
-    if (javaName == null || kotlinName == null) {
-      return null;
-    }
+  const files = await readdir(join(DEFS_DIR, dirname));
+  const javaName = files.find(file => file.endsWith('.java'));
+  const kotlinName = files.find(file => file.endsWith('.kt') && kotlin.startsWith(file.slice(0, -3)));
+  if (javaName == null || kotlinName == null) {
+    return null;
+  }
 
-    const javaDefFile = join(DEFS_DIR, dirname, javaName);
-    const kotlinDefFile = join(DEFS_DIR, dirname, kotlinName);
+  const javaDefFile = join(DEFS_DIR, dirname, javaName);
+  const kotlinDefFile = join(DEFS_DIR, dirname, kotlinName);
 
-    const javaContent = await readFile(javaDefFile, 'utf-8');
-    const javaType = parseJavaDef(javaContent);
+  const javaContent = await readFile(javaDefFile, 'utf-8');
+  const javaType = parseJavaDef(javaContent);
 
-    const kotlinContent = await readFile(kotlinDefFile, 'utf-8');  
-    const kotlinType = parseKotlinDef(kotlinContent);
-    
-    const mappings = calcMapping(javaType, kotlinType);
-    
-    const members: MemberMapping[] = [];
-    
-    for (const [javaMember, kotlinMember] of mappings) {
-      output.write(
+  const kotlinContent = await readFile(kotlinDefFile, 'utf-8');  
+  const kotlinType = parseKotlinDef(kotlinContent);
+  
+  const mappings = calcMapping(javaType, kotlinType);
+  
+  const members: MemberMapping[] = [];
+  
+  for (const [javaMember, kotlinMember] of mappings) {
+    output.write(
 `- ${javaMember.name}
   \`${toDTS(javaMember)}\`
   \`${toDTS(kotlinMember)}\`
 `);
-      
-      members.push({
-        javaName: javaMember.name,
-        javaSig: toDTS(javaMember),
-        kotlinName: kotlinMember.name,
-        kotlinSig: toDTS(kotlinMember)
-      });
-    }
     
-    return {
-      javaType: java,
-      kotlinType: kotlin,
-      members
-    };
-  } catch (error) {
-    console.error(`Error processing ${java}: ${error}`);
-    return null;
+    members.push({
+      javaName: javaMember.name,
+      javaSig: toDTS(javaMember),
+      kotlinName: kotlinMember.name,
+      kotlinSig: toDTS(kotlinMember)
+    });
   }
+  
+  return {
+    javaType: java,
+    kotlinType: kotlin,
+    members
+  };
 }

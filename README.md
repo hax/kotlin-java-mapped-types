@@ -41,27 +41,7 @@ npm run gen:defs
 
 # 3. Generate mapped-types.md with detailed mappings
 npm run gen:mt
-
-# 4. Convert Java type definition to Kotlin (NEW!)
-npm run convert java.util.SortedMap
 ```
-
-## Java to Kotlin Converter
-
-This project now includes a tool to convert Java type definitions to Kotlin definitions based on the mapping relationships. See [CONVERTER.md](CONVERTER.md) for detailed documentation.
-
-**Quick Example:**
-```bash
-# Convert java.util.Map to Kotlin
-npm run convert java.util.Map
-```
-
-The converter automatically:
-- Converts type names (java.util.Map → kotlin.collections.MutableMap)
-- Transforms interfaces and superclasses
-- Converts methods to Kotlin syntax
-- Maps Java methods to Kotlin properties where appropriate (e.g., `keySet()` → `keys`)
-
 
 ## Project Structure
 

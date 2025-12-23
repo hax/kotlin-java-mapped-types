@@ -5,7 +5,7 @@ export interface ParsedMember {
   type: string;
 }
 
-interface ParsedType {
+export interface ParsedType {
   package: string;
   name: string;
   kind: 'class' | 'interface';
@@ -21,6 +21,35 @@ export function toDTS(member: ParsedMember): string {
   } else {
     return `${mods}${member.name}${member.type}`;
   }
+}
+
+/**
+ * Convert a parsed Java type to TypeScript declaration format (.d.ts)
+ */
+export function javaTypeToDTS(parsedType: ParsedType): string {
+  const { package: pkg, name, kind, modifiers, super: superTypes, members } = parsedType;
+  
+  // Build the declaration line
+  const mods = modifiers.filter(m => m && m !== 'public').join(' ');
+  const modStr = mods ? mods + ' ' : '';
+  
+  // Handle inheritance/implements
+  let extendsClause = '';
+  if (superTypes.length > 0) {
+    extendsClause = ' extends ' + superTypes.join(', ');
+  }
+  
+  // Format members
+  const memberLines = members.map(member => {
+    return '  ' + toDTS(member) + ';';
+  });
+  
+  // Build the complete DTS
+  const declaration = `${modStr}${kind} ${name}${extendsClause} {
+${memberLines.join('\n')}
+}`;
+  
+  return `// Package: ${pkg}\n\n${declaration}`;
 }
 
 function removeComments(content: string): string {

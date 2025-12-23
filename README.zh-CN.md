@@ -40,9 +40,9 @@ npm run gen:mt
 ```
 
 **附加选项：**
-- 使用 `--offline` 标志仅使用缓存内容（例如 `npm run get:mt -- --offline`）
-- 使用 `--dry-run` 标志预览操作而不写入文件（例如 `npm run gen:defs -- --dry-run`）
-- 所有 HTTP 请求自动缓存，首次获取后可离线操作
+- 使用 `--offline` 标志仅使用缓存内容（例如 `npm run get:mt -- --offline`）。
+- 使用 `--dry-run` 标志预览操作而不写入文件。
+- 所有 HTTP 请求自动缓存，首次获取后可离线操作。
 
 ## 工作原理
 

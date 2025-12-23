@@ -1,8 +1,8 @@
-interface ParsedMember {
+export interface ParsedMember {
   name: string;
   kind: 'property' | 'method' | 'constructor';
   modifiers: string[];
-  signature: string;
+  type: string;
 }
 
 interface ParsedType {
@@ -21,7 +21,8 @@ function removeComments(content: string): string {
 }
 
 export function parseJavaDef(content: string): ParsedType {
-  const lines = removeComments(content).split('\n').filter(line => line.trim() != '');
+  const lines = removeComments(content).split('\n')
+    .filter(line => line.trim() != '');
 
   const packageLine = lines.shift()
   if (packageLine == null || !packageLine.startsWith('package ')) {
@@ -68,27 +69,31 @@ export function parseJavaDef(content: string): ParsedType {
     const i = line.lastIndexOf(' ');
     const name = line.slice(i + 1)
     line = line.slice(0, i + 1);
-    const groups = /^(?<modifiers>(public|private|protected|static|final|abstract|synchronized|native|transient|volatile|strictfp)\s+)*(?<type>.*?)$/.exec(line)!.groups!;
+    const groups = /^(?<modifiers>((public|private|protected|static|final|abstract|synchronized|native|transient|volatile|strictfp)\s+)*)(?<type>.*?)$/.exec(line)!.groups!;
     const modifiers = groups.modifiers.trim().split(/\s+/);
-    const type = groups.type.trim();
-    if (type == "") {
+    const typePart = groups.type.trim();
+    if (typePart == "") {
       if (kind == "method" && typeName == name) {
         kind = "constructor"
       } else {
         throw new Error(`Could not determine type for member: ${line}`);
       }
     }
-    const signature = params ? kind == "method" ? `${params} -> ${type}` : params : type;
+    const type = params ? kind == "method" ? `${params}: ${typePart}` : params : typePart;
     
-    return { kind, name, modifiers, signature };
+    return { kind, name, modifiers, type };
   })  
   
   return { package: packageName, name: typeName, kind, modifiers, super: superTypes, members };
 }
 
 export function parseKotlinDef(content: string): ParsedType {
-  const lines = removeComments(content).split('\n').map(line => line.trim()).filter(line => line != '');
-
+  const lines = removeComments(content).split('\n')
+    .map(line => line.trim())
+    .filter(line => line != '')
+    .filter(line => !line.startsWith("@"))
+    .filter(line => !line.endsWith("{}"))
+  
   const packageLine = lines.shift()
   if (packageLine == null || !packageLine.startsWith('package ')) {
     throw new Error('No package declaration found in Kotlin definition.');
@@ -97,6 +102,7 @@ export function parseKotlinDef(content: string): ParsedType {
 
   const declarationLine = lines.shift()
   if (declarationLine == null || (!declarationLine.includes(' class ') && !declarationLine.includes(' interface '))) {
+    console.error(content);
     throw new Error('No class or interface declaration found in Kotlin definition.');
   }
   const groups = declarationLine.match(
@@ -114,7 +120,7 @@ export function parseKotlinDef(content: string): ParsedType {
       kind: 'constructor',
       name: typeName,
       modifiers: [],
-      signature: name.slice(i)
+      type: name.slice(i)
     };
   } else {
     typeName = name;
@@ -128,15 +134,24 @@ export function parseKotlinDef(content: string): ParsedType {
     }
   }
 
-  const members: ParsedMember[] = lines.filter(line => !line.startsWith("@")).map(line => {
-    console.log(line)
-    const groups = /^(?<modifiers>.*?)\s+(?<kind>var|val|fun|constructor)\s+(?<name>.+?\b)(?<signature>.+)$/.exec(line)!.groups!;
+  // remove nested declarations
+  for (;;) {
+    const i = lines.findIndex(line => line.endsWith("{"))
+    if (!(i >= 0)) break;
+    const n = lines.slice(i).findIndex(line => line == "}")
+    if (!(n >= 0)) {
+      throw new Error('Kotlin definition nest declaration is not closed.');
+    }
+    lines.splice(i, n + 1)
+  }
+ 
+  const members: ParsedMember[] = lines.map(line => {
+    const groups = /^(?<modifiers>.*?)\s+((?<kind>var|val|fun)\s+(?<name>.+?\b)|(?<kind>constructor))(?<type>.+)$/.exec(line)!.groups!;
     const modifiers = groups.modifiers.trim().split(/\s+/);
     const kind = groups.kind == 'var' || groups.kind == 'val' ? 'property' : groups.kind == 'fun' ? 'method' : 'constructor';
     const name = groups.name
-    const signature = groups.signature
-
-    return { kind, name, modifiers, signature };
+    const type = groups.type
+    return { kind, name, modifiers, type };
   })
   if (primaryConstructor) {
     members.unshift(primaryConstructor);
@@ -146,36 +161,102 @@ export function parseKotlinDef(content: string): ParsedType {
 }
 
 export function calcMapping(javaType: ParsedType, kotlinType: ParsedType) {
-  const mappings: Array<{ kotlin: string; java: string }> = [];
+  const mappings: [java: ParsedMember, kotlin: ParsedMember][] = [];
+
+  if (javaType.kind != kotlinType.kind) {
+    throw new Error(`Type kinds do not match: Java is ${javaType.kind}, Kotlin is ${kotlinType.kind}`);
+  }
   
-  for (const kotlinMember of kotlinType.members) {
-    for (const javaMember of javaType.members) {
-      let isMatch = false;
+  const javaNullaryInstanceMethods = javaType.members.filter(m => 
+    !m.modifiers.includes('static') && isNullaryMethod(m)
+  );
+
+  for (const method of javaNullaryInstanceMethods) {
       
-      if (kotlinMember.name === javaMember.name) {
-        isMatch = true;
-      } else if (kotlinMember.kind === 'property') {
-        const getterName = 'get' + kotlinMember.name.charAt(0).toUpperCase() + kotlinMember.name.slice(1);
-        if (javaMember.name === getterName) {
-          isMatch = true;
-        }
-      } else if (kotlinMember.name === 'get' && javaMember.name === 'charAt') {
-        isMatch = true;
-      } else if (kotlinMember.name === 'removeAt' && javaMember.name === 'remove') {
-        if (javaMember.signature.includes('int index') || javaMember.signature.includes('int,')) {
-          isMatch = true;
-        }
+    const propertyName = accessorPropertyName(method.name);
+    if (propertyName != null) {
+      const kotlinProperty = findProperty(kotlinType, propertyName);
+      if (kotlinProperty != null) {
+        mappings.push([method, kotlinProperty]);
+        continue;
       }
-      
-      if (isMatch) {
-        mappings.push({
-          kotlin: kotlinMember.name,
-          java: javaMember.name
-        });
+    }
+
+    const kotlinProperty = findProperty(kotlinType, method.name);
+    if (kotlinProperty != null) {
+      mappings.push([method, kotlinProperty]);
+      continue;
+    }
+
+    if (method.name == "keySet") {
+      const kotlinProperty = findProperty(kotlinType, "keys");
+      if (kotlinProperty != null) {
+        mappings.push([method, kotlinProperty]);
+        continue;
+      }
+    }
+
+    if (method.name == "entrySet") {
+      const kotlinProperty = findProperty(kotlinType, "entries");
+      if (kotlinProperty != null) {
+        mappings.push([method, kotlinProperty]);
+        continue;
+      }
+    }
+
+    if (method.name.endsWith("Value")) {
+      const baseName = method.name.slice(0, -"Value".length);
+      if (baseName) {
+        const kotlinMethodName = "to" + upperCaseFirst(baseName);
+        const kotlinMethod = findNullaryMethod(kotlinType, kotlinMethodName);
+        if (kotlinMethod != null) {
+          mappings.push([method, kotlinMethod]);
+          continue;
+        }
       }
     }
   }
   
+  const javaMethod = findUnaryMethod(javaType, "charAt");
+  const kotlinMethod = findUnaryMethod(kotlinType, "get");
+  if (javaMethod != null && kotlinMethod != null) {
+    mappings.push([javaMethod, kotlinMethod]);
+  }
+
   return mappings;
 }
+
+function findProperty(type: ParsedType, name: string): ParsedMember | undefined {
+  return type.members.find(m => m.name == name && m.kind == 'property');
+}
+
+function findNullaryMethod(type: ParsedType, name: string): ParsedMember | undefined {
+  return type.members.find(m => m.name == name && isNullaryMethod(m));
+}
+
+function isNullaryMethod(member: ParsedMember) {
+  return member.kind == 'method' && /^\s*\(\s*\)/.test(member.type) 
+}
+
+function findUnaryMethod(type: ParsedType, name: string): ParsedMember | undefined {
+  return type.members.find(m => m.name == name && m.kind == 'method' && /^\s*\(\s*[^,]+\s*\)/.test(m.type));
+}
+
+function upperCaseFirst(str: string) {
+  return str[0].toUpperCase() + str.slice(1);
+}
+
+function lowerCaseFirst(str: string) {
+  return str[0].toLowerCase() + str.slice(1);
+}
+
+function accessorPropertyName(name: string): string | undefined {
+  for (const prefix of ["get", "set"]) {
+    if (name.startsWith(prefix) && name.length > prefix.length) {
+      return lowerCaseFirst(name.slice(prefix.length));
+    }
+  }
+  return undefined;
+}
+
 

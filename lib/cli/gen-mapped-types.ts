@@ -10,109 +10,72 @@
  * 4. Outputs a YAML file with all type mappings
  */
 
-import { readdir, readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
 import { stringify } from 'yaml';
-import { parseJavaDef, parseKotlinDef, calcMapping } from '../mappings.ts';
-import type { TypeInfo } from '../utils.ts';
+import { readdir, readFile } from 'fs/promises';
+import { createWriteStream, type WriteStream } from 'fs';
+import { join } from 'path';
+import { parseJavaDef, parseKotlinDef, calcMapping, type ParsedMember } from '../mappings.ts';
 import { DEFS_DIR, MAPPED_TYPES_FILE } from '../config.ts';
+import { getMappedTypes } from '../get-mapped-types.ts';
+
+console.log('Generating mapped types documentation...\n');
+
+const outputStream = createWriteStream(MAPPED_TYPES_FILE, { encoding: 'utf-8' });
+outputStream.write('# Mapped Types\n');
+
+const dirnames = await readdir(DEFS_DIR);
+
+const mappedTypes = await getMappedTypes();
+for (const [java, kotlin] of mappedTypes) {
+  outputStream.write(`\n## ${java} <-> ${kotlin}\n`);
+
+  await processTypeMapping(outputStream, java, kotlin);
+}
+outputStream.end();
+console.log(`\nGenerated ${MAPPED_TYPES_FILE}`);
 
 interface SimplifiedMapping {
-  kotlin: string;
   java: string;
+  kotlin: string;
 }
 
-interface TypeMappingWithDetails {
-  kotlin: TypeInfo;
-  java: TypeInfo;
-  mappings: SimplifiedMapping[];
-}
+async function processTypeMapping(output: WriteStream, java: string, kotlin: string): Promise<void> {
+  const dirname = dirnames.find(dirname => java.startsWith(dirname));
+  if (dirname == null) {
+    return;
+  }
 
-/**
- * Process a single type mapping directory
- */
-async function processTypeMapping(dirPath: string): Promise<TypeMappingWithDetails | null> {
-  const kotlinDefFile = join(dirPath, 'kotlin-definition.kt');
-  const javaDefFile = join(dirPath, 'java-definition.java');
+  const files = await readdir(join(DEFS_DIR, dirname));
+  const javaName = files.find(file => file.endsWith('.java'));
+  const kotlinName = files.find(file => file.endsWith('.kt') && kotlin.startsWith(file.slice(0, -3)));
+  if (javaName == null || kotlinName == null) {
+    return;
+  }
+
+  const javaDefFile = join(DEFS_DIR, dirname, javaName);
+  const kotlinDefFile = join(DEFS_DIR, dirname, kotlinName);
+
+  const javaContent = await readFile(javaDefFile, 'utf-8');
+  const javaType = parseJavaDef(javaContent);
+
+  const kotlinContent = await readFile(kotlinDefFile, 'utf-8');  
+  const kotlinType = parseKotlinDef(kotlinContent);
   
-  try {
-    // Read definition files
-    const kotlinContent = await readFile(kotlinDefFile, 'utf-8');
-    const javaContent = await readFile(javaDefFile, 'utf-8');
-    
-    // Parse definitions using the same logic as calc-mappings.ts
-    const kotlinType = parseKotlinDef(kotlinContent);
-    const javaType = parseJavaDef(javaContent);
-    
-    // Build type info from parsed types
-    const kotlinInfo: TypeInfo = {
-      kind: kotlinType.kind,
-      name: `${kotlinType.package}.${kotlinType.name}`
-    };
-    const javaInfo: TypeInfo = {
-      kind: javaType.kind,
-      name: `${javaType.package}.${javaType.name}`
-    };
-    
-    // Calculate mappings using the same logic as calc-mappings.ts
-    const mappings = calcMapping(javaType, kotlinType);
-    
-    // Deduplicate by Kotlin member name
-    const simplifiedMappings: SimplifiedMapping[] = [];
-    const seenMethodNames = new Set<string>();
-    
-    for (const mapping of mappings) {
-      if (!seenMethodNames.has(mapping.kotlin)) {
-        seenMethodNames.add(mapping.kotlin);
-        simplifiedMappings.push(mapping);
-      }
-    }
-    
-    return {
-      kotlin: kotlinInfo,
-      java: javaInfo,
-      mappings: simplifiedMappings
-    };
-  } catch (error) {
-    // Log the error but continue processing other directories
-    console.warn(`Warning: Failed to process directory ${dirPath}: ${error}`);
-    return null;
+  const mappings = calcMapping(javaType, kotlinType);
+  for (const [java, kotlin] of mappings) {
+    output.write(
+`- ${java.name}
+  \`${toDTS(java)}\`
+  \`${toDTS(kotlin)}\`
+`);
   }
 }
 
-async function main() {
-  console.log('Generating mapped-types-details.yaml with simplified mappings...');
-  
-  const entries = await readdir(DEFS_DIR, { withFileTypes: true });
-  const mappings: TypeMappingWithDetails[] = [];
-  const seen = new Set<string>();
-  
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    
-    const dirPath = join(DEFS_DIR, entry.name);
-    const mapping = await processTypeMapping(dirPath);
-    
-    if (mapping) {
-      const key = `${mapping.kotlin.name}::${mapping.java.name}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      
-      mappings.push(mapping);
-      console.log(`Found mapping: ${mapping.kotlin.name} <-> ${mapping.java.name} (${mapping.mappings.length} mappings)`);
-    }
+function toDTS(member: ParsedMember): string {
+  const mods = member.modifiers.length > 0 ? member.modifiers.join(' ') + ' ' : '';
+  if (member.kind === 'constructor') {
+    return `${mods}constructor${member.type}`;
+  } else {
+    return `${mods}${member.name}${member.type}`;
   }
-  
-  mappings.sort((a, b) => a.kotlin.name.localeCompare(b.kotlin.name));
-  
-  const output = stringify({ mappings });
-  await writeFile(MAPPED_TYPES_FILE, output, 'utf-8');
-  
-  console.log(`\nGenerated ${MAPPED_TYPES_FILE} with ${mappings.length} type mappings`);
 }
-
-if (import.meta.url.endsWith(process.argv[1])) {
-  main().catch(console.error);
-}
-
-export { main as generateMappedTypesDetails };

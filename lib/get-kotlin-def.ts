@@ -24,9 +24,13 @@ export async function extractKotlinDef(html: string) {
     throw new Error(`Failed to fetch source code from ${url.toString()}`);
   }
   const lines = source.split('\n').slice(startLine - 1);
-  const end = lines[0].match(/^(\s*)/)![1] + "}";
-  const endLineIndex = lines.findIndex(line => line.startsWith(end));
-  return lines.slice(0, endLineIndex + 1).join('\n');
+  if (lines[0].trim().endsWith('{')) {
+    const end = lines[0].match(/^(\s*)/)![1] + "}";
+    const endLineIndex = lines.findIndex(line => line.startsWith(end));
+    return lines.slice(0, endLineIndex + 1).join('\n');
+  } else {
+    return lines[0];
+  }
 }
 
 export async function getKotlinDef(kotlinType: string) {

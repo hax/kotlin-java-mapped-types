@@ -2,19 +2,17 @@
 
 使用 TypeScript/Node.js 为 Kotlin-Java 类型映射生成文档。
 
+中文文档 | [English](README.md)
+
 ## 概述
 
-本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 32 个 Kotlin 与 Java 之间的类型映射生成全面的文档。
+本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 Kotlin 与 Java 之间的类型映射生成全面的文档。
 
-项目使用**基于缓存的架构**：
-1. **同步阶段**：从官方文档获取并缓存类型信息到 `.cache/` 目录
-2. **生成阶段**：从缓存数据生成映射（可离线工作）
-
-类型信息来源：
+类型信息自动从官方文档获取并缓存：
 - **Java 类型**: [Android 开发者文档](https://developer.android.com/reference/)
 - **Kotlin 类型**: [Kotlin API 参考](https://kotlinlang.org/api/core/kotlin-stdlib/)
 
-所有文档都缓存在 `.cache/` 目录中并提交到仓库，使得 CI 环境中可以完全离线生成。
+项目使用自动 HTTP 缓存（通过 `make-fetch-happen`），在首次获取后可离线生成。
 
 ## 快速开始
 
@@ -28,20 +26,21 @@
 npm install
 ```
 
-### 生成映射
+### 使用
 
 ```bash
-# 步骤 1：从缓存数据生成映射（可离线，默认模式）
-npm run generate
+# 生成所有映射类型文档（默认工作流程）
+npm start
 
-# 步骤 2（可选）：使用最新文档更新缓存（需要网络）
-npm run sync
+# 单独命令：
+# 1. 获取映射类型列表（使用 --offline 标志仅使用缓存）
+npm run get:mt
 
-# 可选：在离线模式下验证缓存
-npm run sync -- --offline
+# 2. 为所有映射生成类型定义
+npm run gen:defs
 
-# 可选：仅生成带详细映射的汇总文件
-npm run generate:mapped-types-details
+# 3. 生成带详细映射的 mapped-types.md
+npm run gen:mt
 ```
 
 ## 项目结构
@@ -49,57 +48,56 @@ npm run generate:mapped-types-details
 ```
 .
 ├── lib/                          # TypeScript 源文件
+│   ├── cli/                     # 命令行入口
+│   │   ├── gen-defs.ts          # 生成类型定义
+│   │   ├── gen-mapped-types.ts  # 生成 mapped-types.md
+│   │   ├── calc-mappings.ts     # 计算成员映射
+│   │   ├── get-def.ts           # 获取单个类型定义
+│   │   └── get-mapped-types.ts  # 获取映射类型列表
 │   ├── config.ts                # 路径配置
-│   ├── utils.ts                 # 共享工具函数（URL 转换、类型信息提取）
+│   ├── utils.ts                 # 共享工具函数
 │   ├── fetch-text.ts            # 带缓存的 HTTP 请求
-│   ├── extract-mapped-types.ts  # 从 Kotlin 文档提取类型映射
-│   ├── fetch-java-api.ts        # 从 HTML 提取 Java 签名
-│   ├── fetch-kotlin-api.ts      # 从 HTML 提取 Kotlin 签名
-│   ├── fetch-java-definition.ts # 生成 Java 定义
-│   ├── fetch-kotlin-definition.ts # 生成 Kotlin 定义
-│   ├── get-def-cli.ts           # 通过语言选项获取 Kotlin/Java 定义的 CLI
-│   ├── generate-mapping-details.ts # 创建签名映射
-│   ├── generate-mapped-types-details-yaml.ts # 生成带简化映射的汇总文件
-│   ├── generate-all.ts          # 主生成器（从 .cache 读取）
-│   └── sync-resources.ts        # 同步脚本，获取并缓存数据
-├── .cache/                    # 缓存的文档（提交到仓库）
-├── .defs/                     # 生成的映射目录
-│   └── <kotlin类型>_to_<java类型>/
-│       ├── java-definition.java     # 带签名和源 URL 的 Java 类型
-│       └── kotlin-definition.kt     # 带签名和源 URL 的 Kotlin 类型
-├── mapped-types.yaml             # 主映射列表（在根目录，从文档生成）
-└── mapped-types-details.yaml     # 带简化映射列表的汇总文件
+│   ├── get-java-def.ts          # 获取并解析 Java 定义
+│   ├── get-kotlin-def.ts        # 获取并解析 Kotlin 定义
+│   └── mappings.ts              # 解析和映射类型成员
+├── .cache/                      # HTTP 缓存（自动生成）
+├── .defs/                       # 生成的类型定义
+│   └── <java.type.Name>/
+│       ├── def.java             # Java 类型定义
+│       └── kotlin.Type.kt       # Kotlin 类型定义
+└── mapped-types.md              # 生成的文档
 ```
 
-## 定义 CLI
+## 工作原理
 
-手动获取定义可以使用：
+1. **获取映射类型**：从 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)提取类型映射列表
+2. **生成定义**：对每个类型对：
+   - 从 Android Developer 和 Kotlin API 文档获取 HTML
+   - 直接从 HTML 提取类型签名
+   - 生成带源 URL 头的定义文件
+3. **计算映射**：解析定义文件并匹配 Java 和 Kotlin 之间对应的成员
+4. **输出文档**：生成带详细成员映射的 `mapped-types.md`
 
-```bash
-node lib/get-def-cli.ts java java.lang.String
-node lib/get-def-cli.ts kotlin kotlin.CharSequence
-```
+所有 HTTP 请求使用 `make-fetch-happen` 自动缓存，在首次获取后可离线操作。使用 `--offline` 标志确保不访问网络。
 
-## 类型定义
+## 示例输出
 
-类型定义通过从官方文档获取的完整方法/函数签名生成。
+类型定义包含从官方文档提取的完整签名：
 
-### Java 示例
-
+### Java 定义
 ```java
 // Source: https://developer.android.com/reference/java/lang/String
 
 package java.lang;
 
 public final class String {
-    public char charAt(int index);
     public int length();
+    public char charAt(int index);
     public String substring(int beginIndex);
 }
 ```
 
-### Kotlin 示例
-
+### Kotlin 定义
 ```kotlin
 // Source: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/
 
@@ -112,79 +110,94 @@ class String {
 }
 ```
 
-## 映射详情
+### 映射类型文档
 
-映射使用直接的签名到签名比较：
+生成的 `mapped-types.md` 展示成员间的映射：
 
-```yaml
-- kotlin: "val length: Int"
-  java: public int length()
-- kotlin: "operator fun get(index: Int): Char"
-  java: public char charAt(int index)
-```
-
-## 主 YAML 文件
-
-`mapped-types.yaml` 文件聚合所有映射，仅包含类型和名称：
-
-```yaml
-mappings:
-  - kotlin:
-      kind: class
-      name: kotlin.String
-    java:
-      kind: class
-      name: java.lang.String
-```
-
-## 映射详情 YAML 文件
-
-`mapped-types-details.yaml` 文件在 `mapped-types.yaml` 的基础上增加了 `mappings` 列表。通过解析定义文件并比较签名来生成方法/属性映射，仅显示简化的名称和参数名：
-
-```yaml
-mappings:
-  - kotlin:
-      kind: class
-      name: kotlin.String
-    java:
-      kind: class
-      name: java.lang.String
-    mappings:
-      - kotlin: length
-        java: length()
-      - kotlin: get(index)
-        java: charAt(index)
-      - kotlin: compareTo(other)
-        java: compareTo(anotherString)
+```markdown
+## java.lang.String <-> kotlin.String!
+- length
+  `public length(): int`
+  `public override length: Int`
+- charAt
+  `public charAt(int index): char`
+  `public override get(index: Int): Char`
 ```
 
 ## 映射类型
 
-项目涵盖 32 个类型映射：
+项目涵盖 Kotlin 官方文档中指定的所有 Kotlin 与 Java 之间的类型映射：
 
-- **基本类型** (8): Byte, Short, Int, Long, Char, Float, Double, Boolean
-- **常用类型** (4): Any, String, CharSequence, Throwable
-- **接口** (4): Cloneable, Comparable, Enum, Annotation
-- **只读集合** (8): Iterator, Iterable, Collection, Set, List, ListIterator, Map, Map.Entry
-- **可变集合** (8): MutableIterator, MutableIterable, MutableCollection, MutableSet, MutableList, MutableListIterator, MutableMap, MutableMap.MutableEntry
+### 基本类型
+- `kotlin.Byte` ↔ `java.lang.Byte`
+- `kotlin.Short` ↔ `java.lang.Short`
+- `kotlin.Int` ↔ `java.lang.Integer`
+- `kotlin.Long` ↔ `java.lang.Long`
+- `kotlin.Char` ↔ `java.lang.Character`
+- `kotlin.Float` ↔ `java.lang.Float`
+- `kotlin.Double` ↔ `java.lang.Double`
+- `kotlin.Boolean` ↔ `java.lang.Boolean`
 
-## 工作原理
+### 常用类型
+- `kotlin.Any` ↔ `java.lang.Object`
+- `kotlin.String` ↔ `java.lang.String`
+- `kotlin.CharSequence` ↔ `java.lang.CharSequence`
+- `kotlin.Throwable` ↔ `java.lang.Throwable`
 
-**同步阶段** (`npm run sync`):
-1. 获取包含映射类型表的 Kotlin 文档页面
-2. 提取 32 个类型映射并保存到 `mapped-types.yaml`
-3. 对每个类型，从官方文档获取 HTML 页面并缓存到 `.cache/`
-4. 使用 `--offline` 标志在无网络访问的情况下验证缓存
+### 接口
+- `kotlin.Cloneable` ↔ `java.lang.Cloneable`
+- `kotlin.Comparable` ↔ `java.lang.Comparable`
+- `kotlin.Enum` ↔ `java.lang.Enum`
+- `kotlin.Annotation` ↔ `java.lang.annotation.Annotation`
 
-**生成阶段** (`npm run generate`):
-1. 从 `mapped-types.yaml` 加载类型映射
-2. 对每组类型：
-   - 从 `.cache/` 读取缓存的 HTML
-   - 直接从 HTML 提取签名（Java: `.api-signature`，Kotlin: signature 元素）
-   - 生成带源 URL 头的定义文件
-3. 通过解析定义并创建简化映射来生成 `mapped-types-details.yaml`
+### 只读集合
+- `kotlin.collections.Iterator` ↔ `java.util.Iterator`
+- `kotlin.collections.Iterable` ↔ `java.lang.Iterable`
+- `kotlin.collections.Collection` ↔ `java.util.Collection`
+- `kotlin.collections.Set` ↔ `java.util.Set`
+- `kotlin.collections.List` ↔ `java.util.List`
+- `kotlin.collections.ListIterator` ↔ `java.util.ListIterator`
+- `kotlin.collections.Map` ↔ `java.util.Map`
+- `kotlin.collections.Map.Entry` ↔ `java.util.Map.Entry`
 
-这种基于缓存的架构允许完全离线生成。缓存被提交到仓库供 CI 环境使用。
+### 可变集合
+- `kotlin.collections.MutableIterator` ↔ `java.util.Iterator`
+- `kotlin.collections.MutableIterable` ↔ `java.lang.Iterable`
+- `kotlin.collections.MutableCollection` ↔ `java.util.Collection`
+- `kotlin.collections.MutableSet` ↔ `java.util.Set`
+- `kotlin.collections.MutableList` ↔ `java.util.List`
+- `kotlin.collections.MutableListIterator` ↔ `java.util.ListIterator`
+- `kotlin.collections.MutableMap` ↔ `java.util.Map`
+- `kotlin.collections.MutableMap.MutableEntry` ↔ `java.util.Map.Entry`
+
+## 技术细节
+
+### 缓存策略
+
+项目使用 `make-fetch-happen` 进行 HTTP 缓存：
+- 首次获取下载并缓存内容到 `.cache/`
+- 后续运行自动使用缓存内容
+- 使用 `--offline` 标志强制仅使用缓存模式（如果缓存缺失则失败）
+- 缓存可提交到仓库供 CI/CD 环境使用
+
+### 定义提取
+
+**Java 类型**：从 Android Developer 文档 HTML 解析 `.api-signature` 元素。
+
+**Kotlin 类型**：
+1. 解析 Kotlin API 文档 HTML 查找源代码链接
+2. 从 GitHub 获取源代码
+3. 从文档指示的行开始提取类型定义
+
+### 成员映射算法
+
+映射算法比较 Java 和 Kotlin 成员以识别对应的功能：
+
+1. **属性到 Getter**：Kotlin 属性映射到 Java getter 方法（例如 `length` → `length()`）
+2. **访问器方法**：Java 访问器映射到 Kotlin 属性（例如 `getMessage()` → `message`）
+3. **特殊情况**：运算符函数映射到特定方法（例如 `get(index)` → `charAt(index)`）
+4. **集合属性**：集合的特殊映射（例如 `keySet()` → `keys`，`entrySet()` → `entries`）
+5. **转换方法**：Java 的 `*Value()` 方法映射到 Kotlin 的 `to*()` 函数
 
 ## 许可证
 

@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project generates comprehensive and precise documentation for the type mappings between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types). The generated documentation can be used by tools and provides detailed member-to-member mappings.
+This project generates comprehensive and precise documentation for the type mappings between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types). The generated documentation provides structured, machine-readable member-to-member mappings that can be parsed and processed by automated tools.
 
 Type information is automatically fetched from official documentation:
 - **Java types**: [Android Developer Documentation](https://developer.android.com/reference/)

@@ -4,7 +4,7 @@
 
 ## 概述
 
-本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 Kotlin 与 Java 之间的类型映射生成全面而精确的文档。生成的文档可供工具使用，并提供详细的成员间映射。
+本项目为 [Kotlin 文档](https://kotlinlang.org/docs/java-interop.html#mapped-types)中指定的 Kotlin 与 Java 之间的类型映射生成全面而精确的文档。生成的文档采用适合自动化处理的结构化格式，可被其他工具（如 IDE 插件或静态分析工具）以编程方式消费，并提供详细的成员间映射。
 
 类型信息自动从官方文档获取：
 - **Java 类型**: [Android 开发者文档](https://developer.android.com/reference/)

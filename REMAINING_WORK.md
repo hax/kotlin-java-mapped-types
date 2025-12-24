@@ -10,6 +10,20 @@
 - [x] Type-level mappings working (e.g., `Map` → `kotlin.collections.MutableMap`)
 - [x] All tests passing (8/8)
 
+## Known Issues in Generated Data ⚠️
+
+The `mapped-types.json` file has some incorrect member mappings (identified by code review):
+- Map.Entry interface incorrectly includes entrySet, keySet, size, values methods (these belong to Map)
+- ListIterator incorrectly shows size method
+- Spacing inconsistency in generic types (K,V vs K, V)
+
+**Root Cause**: These are bugs in either:
+1. The `calcMapping()` function in `mappings.ts`
+2. The source definition files in `.defs/` directory  
+3. The definition extraction logic
+
+**Note**: These issues were pre-existing and not introduced by the current changes. They should be fixed in a separate PR focused on the generation logic.
+
 ## Remaining Tasks 🚧
 
 ### 1. Member Mapping with Supertype Checking

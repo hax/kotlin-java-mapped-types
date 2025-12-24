@@ -219,6 +219,33 @@ describe('transformTypesInAST - complex types', () => {
     assert.strictEqual(output, expectedOutput);
     assert.ok(result.appliedMappings.some(m => m.from === 'String' && m.to === 'kotlin.String'));
   });
+
+  test('should replace SortedMap with kotlin.collections.MutableMap', () => {
+    const dtsInput = `interface Test {
+  getSortedMap(): SortedMap<String, Integer>;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['SortedMap', { kotlinType: 'kotlin.collections.MutableMap', nullable: '' }],
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }],
+      ['Integer', { kotlinType: 'kotlin.Int', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    getSortedMap(): kotlin.collections.MutableMap<kotlin.String, kotlin.Int>;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 3);
+    assert.ok(result.appliedMappings.some(m => m.from === 'SortedMap' && m.to === 'kotlin.collections.MutableMap'));
+  });
 });
 
 describe('transformTypesInAST - parameter and property mappings', () => {

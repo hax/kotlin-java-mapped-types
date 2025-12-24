@@ -17,12 +17,30 @@ export function transformTypesInAST(
   typeMap: Map<string, TypeMapping>
 ): { 
   transformed: ts.SourceFile;
-  appliedMappings: Array<{ from: string; to: string }>;
-  unmappedTypes: string[];
+  appliedMappings: Array<{ from: string; to: string; path: string }>;
 } {
-  const appliedMappings: Array<{ from: string; to: string }> = [];
-  const unmappedTypes: string[] = [];
-  const seenUnmapped = new Set<string>();
+  const appliedMappings: Array<{ from: string; to: string; path: string }> = [];
+  
+  // Helper to build node path for better testability
+  function getNodePath(node: ts.Node): string {
+    const parts: string[] = [];
+    let current: ts.Node | undefined = node;
+    
+    while (current && current !== sourceFile) {
+      if (ts.isInterfaceDeclaration(current) || ts.isClassDeclaration(current)) {
+        parts.unshift(current.name?.getText(sourceFile) || 'anonymous');
+      } else if (ts.isMethodSignature(current) || ts.isMethodDeclaration(current)) {
+        parts.unshift((current.name?.getText(sourceFile) || 'anonymous') + '()');
+      } else if (ts.isPropertySignature(current) || ts.isPropertyDeclaration(current)) {
+        parts.unshift(current.name?.getText(sourceFile) || 'anonymous');
+      } else if (ts.isParameter(current)) {
+        parts.unshift('param:' + (current.name?.getText(sourceFile) || 'anonymous'));
+      }
+      current = current.parent;
+    }
+    
+    return parts.join('.');
+  }
   
   const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
     return (sourceFile) => {
@@ -35,7 +53,8 @@ export function transformTypesInAST(
           if (mapping) {
             // Found a mapping - replace the type
             const kotlinTypeName = mapping.kotlinType;
-            appliedMappings.push({ from: typeName, to: kotlinTypeName });
+            const nodePath = getNodePath(node);
+            appliedMappings.push({ from: typeName, to: kotlinTypeName, path: nodePath });
             
             // Create new type reference with Kotlin type name
             const newTypeName = ts.factory.createIdentifier(kotlinTypeName);
@@ -53,12 +72,6 @@ export function transformTypesInAST(
               newTypeName,
               newTypeArguments
             );
-          } else {
-            // Track unmapped types
-            if (!seenUnmapped.has(typeName)) {
-              seenUnmapped.add(typeName);
-              unmappedTypes.push(typeName);
-            }
           }
         }
         
@@ -70,7 +83,8 @@ export function transformTypesInAST(
           if (mapping) {
             // Replace keyword type with mapped type reference
             const kotlinTypeName = mapping.kotlinType;
-            appliedMappings.push({ from: text, to: kotlinTypeName });
+            const nodePath = getNodePath(node);
+            appliedMappings.push({ from: text, to: kotlinTypeName, path: nodePath });
             
             return ts.factory.createTypeReferenceNode(
               ts.factory.createIdentifier(kotlinTypeName),
@@ -91,7 +105,6 @@ export function transformTypesInAST(
   
   return {
     transformed,
-    appliedMappings,
-    unmappedTypes
+    appliedMappings
   };
 }

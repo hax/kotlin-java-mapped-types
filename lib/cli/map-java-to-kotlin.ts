@@ -77,15 +77,7 @@ console.log(result.dts);
 if (result.appliedMappings.length > 0) {
   console.log('\n=== Applied Mappings ===');
   for (const mapping of result.appliedMappings) {
-    console.log(`  ${mapping.from} → ${mapping.to}`);
-  }
-}
-
-if (result.unmappedTypes.length > 0) {
-  console.log('\n=== Unmapped Types ===');
-  console.log('The following types could not be mapped:');
-  for (const type of result.unmappedTypes) {
-    console.log(`  - ${type}`);
+    console.log(`  ${mapping.from} → ${mapping.to} (at ${mapping.path})`);
   }
 }
 

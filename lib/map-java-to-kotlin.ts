@@ -11,8 +11,7 @@ import { readFileSync } from 'fs';
 
 export interface MappingResult {
   dts: string;
-  unmappedTypes: string[];
-  appliedMappings: Array<{ from: string; to: string }>;
+  appliedMappings: Array<{ from: string; to: string; path: string }>;
 }
 
 export interface MappingOptions {
@@ -101,7 +100,7 @@ export function applyKotlinMappings(dtsContent: string, options: MappingOptions 
   );
   
   // Transform the AST to apply type mappings
-  const { transformed, appliedMappings, unmappedTypes } = transformTypesInAST(sourceFile, typeMap);
+  const { transformed, appliedMappings } = transformTypesInAST(sourceFile, typeMap);
   
   // Print the transformed AST back to string
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
@@ -109,7 +108,6 @@ export function applyKotlinMappings(dtsContent: string, options: MappingOptions 
   
   return {
     dts: mappedDTS,
-    unmappedTypes,
     appliedMappings
   };
 }

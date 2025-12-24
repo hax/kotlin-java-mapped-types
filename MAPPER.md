@@ -74,7 +74,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E> {
 ```typescript
 // Package: java.util
 
-class ArrayList<E> extends AbstractList<E>, List<E> {
+class ArrayList<E> extends AbstractList<E> implements List<E> {
   public add(e: E): kotlin.Boolean
   public get(index: kotlin.Int): E
   public size(): kotlin.Int

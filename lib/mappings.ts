@@ -198,32 +198,11 @@ export function parseKotlinDef(content: string): ParsedType {
   }
  
   const members: ParsedMember[] = lines.map(line => {
-    // Match either: (var|val|fun) name type  OR  constructor type
-    const match1 = /^(?<modifiers>.*?)\s+(?<keyword>var|val|fun)\s+(?<name>.+?\b)(?<type>.+)$/.exec(line);
-    const match2 = /^(?<modifiers>.*?)\s+constructor(?<type>.+)$/.exec(line);
-    
-    let modifiers: string[];
-    let kind: 'property' | 'method' | 'constructor';
-    let name: string;
-    let type: string;
-    
-    if (match1) {
-      const groups = match1.groups!;
-      modifiers = groups.modifiers.trim().split(/\s+/);
-      const keyword = groups.keyword;
-      kind = keyword == 'var' || keyword == 'val' ? 'property' : 'method';
-      name = groups.name;
-      type = groups.type;
-    } else if (match2) {
-      const groups = match2.groups!;
-      modifiers = groups.modifiers.trim().split(/\s+/);
-      kind = 'constructor';
-      name = typeName;
-      type = groups.type;
-    } else {
-      throw new Error(`Could not parse Kotlin member: ${line}`);
-    }
-    
+    const groups = /^(?<modifiers>.*?)\s+((?<kind>var|val|fun)\s+(?<name>.+?\b)|(?<kind>constructor))(?<type>.+)$/.exec(line)!.groups!;
+    const modifiers = groups.modifiers.trim().split(/\s+/);
+    const kind = groups.kind == 'var' || groups.kind == 'val' ? 'property' : groups.kind == 'fun' ? 'method' : 'constructor';
+    const name = groups.name
+    const type = groups.type
     return { kind, name, modifiers, type };
   })
   if (primaryConstructor) {

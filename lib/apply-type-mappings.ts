@@ -21,25 +21,46 @@ export function transformTypesInAST(
 } {
   const appliedMappings: Array<{ from: string; to: string; path: string }> = [];
   
-  // Helper to build node path for better testability
+  // Helper to build TypeScript-style location path for the type
   function getNodePath(node: ts.Node): string {
-    const parts: string[] = [];
-    let current: ts.Node | undefined = node;
+    let current: ts.Node | undefined = node.parent;
+    let typeName: string | undefined;
+    let memberName: string | undefined;
+    let context: 'return' | 'param' | 'property' | undefined;
     
+    // Walk up to find the containing member and type
     while (current && current !== sourceFile) {
-      if (ts.isInterfaceDeclaration(current) || ts.isClassDeclaration(current)) {
-        parts.unshift(current.name?.getText(sourceFile) || 'anonymous');
-      } else if (ts.isMethodSignature(current) || ts.isMethodDeclaration(current)) {
-        parts.unshift((current.name?.getText(sourceFile) || 'anonymous') + '()');
+      if (ts.isMethodSignature(current) || ts.isMethodDeclaration(current)) {
+        memberName = current.name?.getText(sourceFile) || 'anonymous';
+        // Check if we're in the return type
+        if (current.type && node.pos >= current.type.pos && node.pos < current.type.end) {
+          context = 'return';
+        } else {
+          context = 'param';
+        }
       } else if (ts.isPropertySignature(current) || ts.isPropertyDeclaration(current)) {
-        parts.unshift(current.name?.getText(sourceFile) || 'anonymous');
-      } else if (ts.isParameter(current)) {
-        parts.unshift('param:' + (current.name?.getText(sourceFile) || 'anonymous'));
+        memberName = current.name?.getText(sourceFile) || 'anonymous';
+        context = 'property';
+      } else if (ts.isInterfaceDeclaration(current) || ts.isClassDeclaration(current)) {
+        typeName = current.name?.getText(sourceFile) || 'anonymous';
+        break;
       }
       current = current.parent;
     }
     
-    return parts.join('.');
+    // Build TypeScript-style path
+    if (typeName && memberName) {
+      if (context === 'return') {
+        return `ReturnType<${typeName}["${memberName}"]>`;
+      } else if (context === 'param') {
+        return `Parameters<${typeName}["${memberName}"]>`;
+      } else if (context === 'property') {
+        return `${typeName}["${memberName}"]`;
+      }
+    }
+    
+    // Fallback for cases we haven't handled
+    return typeName || 'unknown';
   }
   
   const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {

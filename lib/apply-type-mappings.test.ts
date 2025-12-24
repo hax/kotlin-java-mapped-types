@@ -33,7 +33,7 @@ describe('transformTypesInAST - primitive types', () => {
     assert.strictEqual(result.appliedMappings.length, 1);
     assert.strictEqual(result.appliedMappings[0].from, 'String');
     assert.strictEqual(result.appliedMappings[0].to, 'kotlin.String');
-    assert.ok(result.appliedMappings[0].path.includes('Test'));
+    assert.strictEqual(result.appliedMappings[0].path, 'ReturnType<Test["getValue"]>');
   });
 
   test('should replace boolean with kotlin.Boolean', () => {
@@ -60,6 +60,7 @@ describe('transformTypesInAST - primitive types', () => {
     assert.strictEqual(result.appliedMappings.length, 1);
     assert.strictEqual(result.appliedMappings[0].from, 'boolean');
     assert.strictEqual(result.appliedMappings[0].to, 'kotlin.Boolean');
+    assert.strictEqual(result.appliedMappings[0].path, 'ReturnType<Test["isValid"]>');
   });
 
   test('should replace int with kotlin.Int', () => {
@@ -84,6 +85,7 @@ describe('transformTypesInAST - primitive types', () => {
 `;
     assert.strictEqual(output, expectedOutput);
     assert.strictEqual(result.appliedMappings.length, 1);
+    assert.strictEqual(result.appliedMappings[0].path, 'ReturnType<Test["getCount"]>');
   });
 
   test('should replace multiple primitive types', () => {

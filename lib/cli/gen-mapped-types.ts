@@ -54,7 +54,7 @@ outputStream.end();
 console.log(`\nGenerated ${MAPPED_TYPES_FILE}.md`);
 
 // Write JSON output
-const jsonOutputPath = MAPPED_TYPES_FILE.replace(/\.md$/, '') + '.json';
+const jsonOutputPath = MAPPED_TYPES_FILE + '.json';
 await writeFile(jsonOutputPath, JSON.stringify(mappings, null, 2), 'utf-8');
 console.log(`Generated ${mappings.length} type mappings`);
 console.log(`JSON output: ${jsonOutputPath}`);

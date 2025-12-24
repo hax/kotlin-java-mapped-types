@@ -17,12 +17,73 @@ export function transformTypesInAST(
   typeMap: Map<string, TypeMapping>
 ): { 
   transformed: ts.SourceFile;
-  appliedMappings: Array<{ from: string; to: string }>;
-  unmappedTypes: string[];
+  appliedMappings: Array<{ from: string; to: string; path: string }>;
 } {
-  const appliedMappings: Array<{ from: string; to: string }> = [];
-  const unmappedTypes: string[] = [];
-  const seenUnmapped = new Set<string>();
+  const appliedMappings: Array<{ from: string; to: string; path: string }> = [];
+  
+  // Helper to build TypeScript-style location path for the type
+  function getNodePath(node: ts.Node): string {
+    // Helper to check if a node is a descendant of another
+    function isNodeDescendantOf(node: ts.Node, ancestor: ts.Node): boolean {
+      let current: ts.Node | undefined = node;
+      while (current) {
+        if (current === ancestor) return true;
+        current = current.parent;
+      }
+      return false;
+    }
+    
+    let current: ts.Node | undefined = node.parent;
+    let typeName: string | undefined;
+    let memberName: string | undefined;
+    let context: 'return' | 'param' | 'property' | undefined;
+    let paramIndex: number | undefined;
+    
+    // Walk up to find the containing member and type
+    while (current && current !== sourceFile) {
+      if (ts.isParameter(current)) {
+        // We're inside a parameter - find its index
+        const methodNode = current.parent;
+        if (methodNode && (ts.isMethodSignature(methodNode) || ts.isMethodDeclaration(methodNode))) {
+          paramIndex = methodNode.parameters.indexOf(current as ts.ParameterDeclaration);
+          memberName = methodNode.name?.getText(sourceFile) || 'anonymous';
+          context = 'param';
+        }
+      } else if (ts.isMethodSignature(current) || ts.isMethodDeclaration(current)) {
+        if (!memberName) {
+          memberName = current.name?.getText(sourceFile) || 'anonymous';
+          // Check if we're in the return type by checking node ancestry
+          if (current.type && isNodeDescendantOf(node, current.type)) {
+            context = 'return';
+          } else if (context !== 'param') {
+            // If we haven't identified as param yet, default to return for method context
+            context = 'return';
+          }
+        }
+      } else if (ts.isPropertySignature(current) || ts.isPropertyDeclaration(current)) {
+        memberName = current.name?.getText(sourceFile) || 'anonymous';
+        context = 'property';
+      } else if (ts.isInterfaceDeclaration(current) || ts.isClassDeclaration(current)) {
+        typeName = current.name?.getText(sourceFile) || 'anonymous';
+        break;
+      }
+      current = current.parent;
+    }
+    
+    // Build TypeScript-style path
+    if (typeName && memberName) {
+      if (context === 'return') {
+        return `ReturnType<${typeName}["${memberName}"]>`;
+      } else if (context === 'param' && paramIndex !== undefined) {
+        return `Parameters<${typeName}["${memberName}"]>[${paramIndex}]`;
+      } else if (context === 'property') {
+        return `${typeName}["${memberName}"]`;
+      }
+    }
+    
+    // Fallback for cases we haven't handled
+    return typeName || 'unknown';
+  }
   
   const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
     return (sourceFile) => {
@@ -35,7 +96,8 @@ export function transformTypesInAST(
           if (mapping) {
             // Found a mapping - replace the type
             const kotlinTypeName = mapping.kotlinType;
-            appliedMappings.push({ from: typeName, to: kotlinTypeName });
+            const nodePath = getNodePath(node);
+            appliedMappings.push({ from: typeName, to: kotlinTypeName, path: nodePath });
             
             // Create new type reference with Kotlin type name
             const newTypeName = ts.factory.createIdentifier(kotlinTypeName);
@@ -53,12 +115,6 @@ export function transformTypesInAST(
               newTypeName,
               newTypeArguments
             );
-          } else {
-            // Track unmapped types
-            if (!seenUnmapped.has(typeName)) {
-              seenUnmapped.add(typeName);
-              unmappedTypes.push(typeName);
-            }
           }
         }
         
@@ -70,7 +126,8 @@ export function transformTypesInAST(
           if (mapping) {
             // Replace keyword type with mapped type reference
             const kotlinTypeName = mapping.kotlinType;
-            appliedMappings.push({ from: text, to: kotlinTypeName });
+            const nodePath = getNodePath(node);
+            appliedMappings.push({ from: text, to: kotlinTypeName, path: nodePath });
             
             return ts.factory.createTypeReferenceNode(
               ts.factory.createIdentifier(kotlinTypeName),
@@ -91,7 +148,6 @@ export function transformTypesInAST(
   
   return {
     transformed,
-    appliedMappings,
-    unmappedTypes
+    appliedMappings
   };
 }

@@ -1,0 +1,596 @@
+[
+  {
+    "javaType": "java.lang.Object",
+    "kotlinType": "kotlin.Any!",
+    "members": []
+  },
+  {
+    "javaType": "java.lang.Comparable",
+    "kotlinType": "kotlin.Comparable!",
+    "members": []
+  },
+  {
+    "javaType": "java.lang.Enum",
+    "kotlinType": "kotlin.Enum!",
+    "members": [
+      {
+        "javaName": "name",
+        "javaSignature": "public final name(): String",
+        "kotlinName": "name",
+        "kotlinSignature": "public final name: String"
+      },
+      {
+        "javaName": "ordinal",
+        "javaSignature": "public final ordinal(): int",
+        "kotlinName": "ordinal",
+        "kotlinSignature": "public final ordinal: Int"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.annotation.Annotation",
+    "kotlinType": "kotlin.Annotation!",
+    "members": []
+  },
+  {
+    "javaType": "java.lang.CharSequence",
+    "kotlinType": "kotlin.CharSequence!",
+    "members": [
+      {
+        "javaName": "length",
+        "javaSignature": "public abstract length(): int",
+        "kotlinName": "length",
+        "kotlinSignature": "public length: Int"
+      },
+      {
+        "javaName": "charAt",
+        "javaSignature": "public abstract charAt(int index): char",
+        "kotlinName": "get",
+        "kotlinSignature": "public operator get(index: Int): Char"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.String",
+    "kotlinType": "kotlin.String!",
+    "members": [
+      {
+        "javaName": "length",
+        "javaSignature": "public length(): int",
+        "kotlinName": "length",
+        "kotlinSignature": "public override length: Int"
+      },
+      {
+        "javaName": "charAt",
+        "javaSignature": "public charAt(int index): char",
+        "kotlinName": "get",
+        "kotlinSignature": "public override get(index: Int): Char"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Number",
+    "kotlinType": "kotlin.Number!",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public abstract toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public abstract doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public abstract toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public abstract floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public abstract toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public abstract intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public abstract toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public abstract longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public abstract toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public abstract toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Throwable",
+    "kotlinType": "kotlin.Throwable!",
+    "members": [
+      {
+        "javaName": "getCause",
+        "javaSignature": "public getCause(): Throwable",
+        "kotlinName": "cause",
+        "kotlinSignature": "public open cause: Throwable?"
+      },
+      {
+        "javaName": "getMessage",
+        "javaSignature": "public getMessage(): String",
+        "kotlinName": "message",
+        "kotlinSignature": "public open message: String?"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Byte",
+    "kotlinType": "kotlin.Byte?",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public override toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public override toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public override toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public override toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public override toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public override toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Short",
+    "kotlinType": "kotlin.Short?",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public override toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public override toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public override toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public override toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public override toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public override toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Integer",
+    "kotlinType": "kotlin.Int?",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public override toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public override toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public override toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public override toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public override toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public override toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Long",
+    "kotlinType": "kotlin.Long?",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public override toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public override toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public override toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public override toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public override toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public override toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Character",
+    "kotlinType": "kotlin.Char?",
+    "members": [
+      {
+        "javaName": "charValue",
+        "javaSignature": "public charValue(): char",
+        "kotlinName": "toChar",
+        "kotlinSignature": "public toChar(): Char"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Float",
+    "kotlinType": "kotlin.Float?",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public override toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public override toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public override toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public override toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public override toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public override toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Double",
+    "kotlinType": "kotlin.Double?",
+    "members": [
+      {
+        "javaName": "byteValue",
+        "javaSignature": "public byteValue(): byte",
+        "kotlinName": "toByte",
+        "kotlinSignature": "public override toByte(): Byte"
+      },
+      {
+        "javaName": "doubleValue",
+        "javaSignature": "public doubleValue(): double",
+        "kotlinName": "toDouble",
+        "kotlinSignature": "public override toDouble(): Double"
+      },
+      {
+        "javaName": "floatValue",
+        "javaSignature": "public floatValue(): float",
+        "kotlinName": "toFloat",
+        "kotlinSignature": "public override toFloat(): Float"
+      },
+      {
+        "javaName": "intValue",
+        "javaSignature": "public intValue(): int",
+        "kotlinName": "toInt",
+        "kotlinSignature": "public override toInt(): Int"
+      },
+      {
+        "javaName": "longValue",
+        "javaSignature": "public longValue(): long",
+        "kotlinName": "toLong",
+        "kotlinSignature": "public override toLong(): Long"
+      },
+      {
+        "javaName": "shortValue",
+        "javaSignature": "public shortValue(): short",
+        "kotlinName": "toShort",
+        "kotlinSignature": "public override toShort(): Short"
+      }
+    ]
+  },
+  {
+    "javaType": "java.lang.Boolean",
+    "kotlinType": "kotlin.Boolean?",
+    "members": []
+  },
+  {
+    "javaType": "java.util.Iterator<T>",
+    "kotlinType": "kotlin.collections.Iterator<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.util.Iterator<T>",
+    "kotlinType": "kotlin.collections.MutableIterator<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.lang.Iterable<T>",
+    "kotlinType": "kotlin.collections.Iterable<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.lang.Iterable<T>",
+    "kotlinType": "kotlin.collections.MutableIterable<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.util.Collection<T>",
+    "kotlinType": "kotlin.collections.Collection<T>",
+    "members": [
+      {
+        "javaName": "size",
+        "javaSignature": "public abstract size(): int",
+        "kotlinName": "size",
+        "kotlinSignature": "public size: Int"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.Collection<T>",
+    "kotlinType": "kotlin.collections.MutableCollection<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.util.Set<T>",
+    "kotlinType": "kotlin.collections.Set<T>",
+    "members": [
+      {
+        "javaName": "size",
+        "javaSignature": "public abstract size(): int",
+        "kotlinName": "size",
+        "kotlinSignature": "override size: Int"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.Set<T>",
+    "kotlinType": "kotlin.collections.MutableSet<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.util.List<T>",
+    "kotlinType": "kotlin.collections.List<T>",
+    "members": [
+      {
+        "javaName": "size",
+        "javaSignature": "public abstract size(): int",
+        "kotlinName": "size",
+        "kotlinSignature": "override size: Int"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.List<T>",
+    "kotlinType": "kotlin.collections.MutableList<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.util.ListIterator<T>",
+    "kotlinType": "kotlin.collections.ListIterator<T>",
+    "members": [
+      {
+        "javaName": "size",
+        "javaSignature": "public abstract size(): int",
+        "kotlinName": "size",
+        "kotlinSignature": "override size: Int"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.ListIterator<T>",
+    "kotlinType": "kotlin.collections.MutableListIterator<T>",
+    "members": []
+  },
+  {
+    "javaType": "java.util.Map<K, V>",
+    "kotlinType": "kotlin.collections.Map<K, V>",
+    "members": [
+      {
+        "javaName": "entrySet",
+        "javaSignature": "public abstract entrySet(): Set<Entry<K, V>>",
+        "kotlinName": "entries",
+        "kotlinSignature": "public entries: Set<Map.Entry<K, V>>"
+      },
+      {
+        "javaName": "keySet",
+        "javaSignature": "public abstract keySet(): Set<K>",
+        "kotlinName": "keys",
+        "kotlinSignature": "public keys: Set<K>"
+      },
+      {
+        "javaName": "size",
+        "javaSignature": "public abstract size(): int",
+        "kotlinName": "size",
+        "kotlinSignature": "public size: Int"
+      },
+      {
+        "javaName": "values",
+        "javaSignature": "public abstract values(): Collection<V>",
+        "kotlinName": "values",
+        "kotlinSignature": "public values: Collection<V>"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.Map<K, V>",
+    "kotlinType": "kotlin.collections.MutableMap<K, V>",
+    "members": [
+      {
+        "javaName": "entrySet",
+        "javaSignature": "public abstract entrySet(): Set<Entry<K, V>>",
+        "kotlinName": "entries",
+        "kotlinSignature": "public override entries: MutableSet<MutableMap.MutableEntry<K, V>>"
+      },
+      {
+        "javaName": "keySet",
+        "javaSignature": "public abstract keySet(): Set<K>",
+        "kotlinName": "keys",
+        "kotlinSignature": "public override keys: MutableSet<K>"
+      },
+      {
+        "javaName": "values",
+        "javaSignature": "public abstract values(): Collection<V>",
+        "kotlinName": "values",
+        "kotlinSignature": "public override values: MutableCollection<V>"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.Map.Entry<K, V>",
+    "kotlinType": "kotlin.collections.Map.Entry<K, V>",
+    "members": [
+      {
+        "javaName": "entrySet",
+        "javaSignature": "public abstract entrySet(): Set<Entry<K, V>>",
+        "kotlinName": "entries",
+        "kotlinSignature": "public entries: Set<Map.Entry<K, V>>"
+      },
+      {
+        "javaName": "keySet",
+        "javaSignature": "public abstract keySet(): Set<K>",
+        "kotlinName": "keys",
+        "kotlinSignature": "public keys: Set<K>"
+      },
+      {
+        "javaName": "size",
+        "javaSignature": "public abstract size(): int",
+        "kotlinName": "size",
+        "kotlinSignature": "public size: Int"
+      },
+      {
+        "javaName": "values",
+        "javaSignature": "public abstract values(): Collection<V>",
+        "kotlinName": "values",
+        "kotlinSignature": "public values: Collection<V>"
+      }
+    ]
+  },
+  {
+    "javaType": "java.util.Map.Entry<K, V>",
+    "kotlinType": "kotlin.collections.MutableMap.MutableEntry<K,V>",
+    "members": [
+      {
+        "javaName": "entrySet",
+        "javaSignature": "public abstract entrySet(): Set<Entry<K, V>>",
+        "kotlinName": "entries",
+        "kotlinSignature": "public override entries: MutableSet<MutableMap.MutableEntry<K, V>>"
+      },
+      {
+        "javaName": "keySet",
+        "javaSignature": "public abstract keySet(): Set<K>",
+        "kotlinName": "keys",
+        "kotlinSignature": "public override keys: MutableSet<K>"
+      },
+      {
+        "javaName": "values",
+        "javaSignature": "public abstract values(): Collection<V>",
+        "kotlinName": "values",
+        "kotlinSignature": "public override values: MutableCollection<V>"
+      }
+    ]
+  }
+]

@@ -24,10 +24,16 @@ describe('transformTypesInAST - primitive types', () => {
     const printer = ts.createPrinter();
     const output = printer.printFile(result.transformed);
     
-    assert.ok(output.includes('kotlin.String'), 'Should contain kotlin.String');
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    getValue(): kotlin.String;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
     assert.strictEqual(result.appliedMappings.length, 1);
     assert.strictEqual(result.appliedMappings[0].from, 'String');
     assert.strictEqual(result.appliedMappings[0].to, 'kotlin.String');
+    assert.strictEqual(result.appliedMappings[0].path, 'ReturnType<Test["getValue"]>');
   });
 
   test('should replace boolean with kotlin.Boolean', () => {
@@ -45,10 +51,16 @@ describe('transformTypesInAST - primitive types', () => {
     const printer = ts.createPrinter();
     const output = printer.printFile(result.transformed);
     
-    assert.ok(output.includes('kotlin.Boolean'), 'Should contain kotlin.Boolean');
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    isValid(): kotlin.Boolean;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
     assert.strictEqual(result.appliedMappings.length, 1);
     assert.strictEqual(result.appliedMappings[0].from, 'boolean');
     assert.strictEqual(result.appliedMappings[0].to, 'kotlin.Boolean');
+    assert.strictEqual(result.appliedMappings[0].path, 'ReturnType<Test["isValid"]>');
   });
 
   test('should replace int with kotlin.Int', () => {
@@ -66,8 +78,14 @@ describe('transformTypesInAST - primitive types', () => {
     const printer = ts.createPrinter();
     const output = printer.printFile(result.transformed);
     
-    assert.ok(output.includes('kotlin.Int'), 'Should contain kotlin.Int');
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    getCount(): kotlin.Int;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
     assert.strictEqual(result.appliedMappings.length, 1);
+    assert.strictEqual(result.appliedMappings[0].path, 'ReturnType<Test["getCount"]>');
   });
 
   test('should replace multiple primitive types', () => {
@@ -89,13 +107,18 @@ describe('transformTypesInAST - primitive types', () => {
     const printer = ts.createPrinter();
     const output = printer.printFile(result.transformed);
     
-    assert.ok(output.includes('kotlin.String'), 'Should contain kotlin.String');
-    assert.ok(output.includes('kotlin.Boolean'), 'Should contain kotlin.Boolean');
-    assert.ok(output.includes('kotlin.Int'), 'Should contain kotlin.Int');
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    getValue(): kotlin.String;
+    isValid(): kotlin.Boolean;
+    getCount(): kotlin.Int;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
     assert.strictEqual(result.appliedMappings.length, 3);
   });
 
-  test('should track unmapped types', () => {
+  test('should apply mappings to mapped types while leaving unmapped types unchanged', () => {
     const dtsInput = `interface Test {
   getValue(): String;
   getCustom(): CustomType;
@@ -108,12 +131,20 @@ describe('transformTypesInAST - primitive types', () => {
     const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
     const result = transformTypesInAST(sourceFile, typeMap);
     
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string - CustomType should remain unchanged
+    const expectedOutput = `interface Test {
+    getValue(): kotlin.String;
+    getCustom(): CustomType;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
     assert.strictEqual(result.appliedMappings.length, 1);
-    assert.strictEqual(result.unmappedTypes.length, 1);
-    assert.strictEqual(result.unmappedTypes[0], 'CustomType');
   });
 
-  test('should not duplicate unmapped types', () => {
+  test('should handle duplicate type references', () => {
     const dtsInput = `interface Test {
   getFirst(): CustomType;
   getSecond(): CustomType;
@@ -124,8 +155,17 @@ describe('transformTypesInAST - primitive types', () => {
     const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
     const result = transformTypesInAST(sourceFile, typeMap);
     
-    assert.strictEqual(result.unmappedTypes.length, 1);
-    assert.strictEqual(result.unmappedTypes[0], 'CustomType');
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string - should remain unchanged
+    const expectedOutput = `interface Test {
+    getFirst(): CustomType;
+    getSecond(): CustomType;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 0);
   });
 });
 
@@ -147,9 +187,13 @@ describe('transformTypesInAST - complex types', () => {
     const printer = ts.createPrinter();
     const output = printer.printFile(result.transformed);
     
-    assert.ok(output.includes('kotlin.collections.MutableMap'), 'Should contain kotlin.collections.MutableMap');
-    assert.ok(output.includes('kotlin.String'), 'Should contain kotlin.String in generic');
-    assert.ok(output.includes('kotlin.Int'), 'Should contain kotlin.Int in generic');
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    getMap(): kotlin.collections.MutableMap<kotlin.String, kotlin.Int>;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 3);
   });
 
   test('should handle interface with extends', () => {
@@ -167,7 +211,106 @@ describe('transformTypesInAST - complex types', () => {
     const printer = ts.createPrinter();
     const output = printer.printFile(result.transformed);
     
-    assert.ok(output.includes('kotlin.String'), 'Should contain kotlin.String');
-    assert.ok(output.includes('extends BaseInterface'), 'Should preserve extends clause');
+    // Verify the entire output string
+    const expectedOutput = `interface TestInterface extends BaseInterface {
+    getValue(): kotlin.String;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.ok(result.appliedMappings.some(m => m.from === 'String' && m.to === 'kotlin.String'));
+  });
+});
+
+describe('transformTypesInAST - parameter and property mappings', () => {
+  test('should track path for method parameter types', () => {
+    const dtsInput = `interface Test {
+  setName(name: String): void;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    setName(name: kotlin.String): void;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 1);
+    assert.strictEqual(result.appliedMappings[0].from, 'String');
+    assert.strictEqual(result.appliedMappings[0].to, 'kotlin.String');
+    assert.strictEqual(result.appliedMappings[0].path, 'Parameters<Test["setName"]>[0]');
+  });
+
+  test('should track path for property types', () => {
+    const dtsInput = `interface Test {
+  name: String;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    name: kotlin.String;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 1);
+    assert.strictEqual(result.appliedMappings[0].from, 'String');
+    assert.strictEqual(result.appliedMappings[0].to, 'kotlin.String');
+    assert.strictEqual(result.appliedMappings[0].path, 'Test["name"]');
+  });
+
+  test('should track path for multiple parameters', () => {
+    const dtsInput = `interface Test {
+  compare(a: String, b: int): boolean;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }],
+      ['int', { kotlinType: 'kotlin.Int', nullable: '' }],
+      ['boolean', { kotlinType: 'kotlin.Boolean', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    compare(a: kotlin.String, b: kotlin.Int): kotlin.Boolean;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 3);
+    
+    // Check parameter paths include index
+    const stringParam = result.appliedMappings.find(m => m.from === 'String');
+    const intParam = result.appliedMappings.find(m => m.from === 'int');
+    const boolReturn = result.appliedMappings.find(m => m.from === 'boolean');
+    
+    assert.ok(stringParam);
+    assert.ok(intParam);
+    assert.ok(boolReturn);
+    assert.strictEqual(stringParam.path, 'Parameters<Test["compare"]>[0]');
+    assert.strictEqual(intParam.path, 'Parameters<Test["compare"]>[1]');
+    assert.strictEqual(boolReturn.path, 'ReturnType<Test["compare"]>');
   });
 });

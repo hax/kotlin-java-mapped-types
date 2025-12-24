@@ -40,7 +40,7 @@ cat my-type.java | node lib/cli/map-to-dts.ts
 ### 编程 API
 
 ```typescript
-import { mapJavaToKotlin } from './lib/map-java-to-dts.ts';
+import { mapJavaToKotlin } from './lib/map-java-to-kotlin.ts';
 import { getJavaDef } from './lib/get-java-def.ts';
 
 // 获取 Java 定义

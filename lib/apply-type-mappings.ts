@@ -23,6 +23,16 @@ export function transformTypesInAST(
   
   // Helper to build TypeScript-style location path for the type
   function getNodePath(node: ts.Node): string {
+    // Helper to check if a node is a descendant of another
+    function isNodeDescendantOf(node: ts.Node, ancestor: ts.Node): boolean {
+      let current: ts.Node | undefined = node;
+      while (current) {
+        if (current === ancestor) return true;
+        current = current.parent;
+      }
+      return false;
+    }
+    
     let current: ts.Node | undefined = node.parent;
     let typeName: string | undefined;
     let memberName: string | undefined;
@@ -58,16 +68,6 @@ export function transformTypesInAST(
         break;
       }
       current = current.parent;
-    }
-    
-    // Helper to check if a node is a descendant of another
-    function isNodeDescendantOf(node: ts.Node, ancestor: ts.Node): boolean {
-      let current: ts.Node | undefined = node;
-      while (current) {
-        if (current === ancestor) return true;
-        current = current.parent;
-      }
-      return false;
     }
     
     // Build TypeScript-style path

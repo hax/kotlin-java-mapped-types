@@ -33,8 +33,8 @@ cat my-type.java | npm run map
 cat my-type.d.ts | npm run map
 
 # 或直接使用 node
-node lib/cli/map-to-dts.ts java.util.ArrayList
-cat my-type.java | node lib/cli/map-to-dts.ts
+node lib/cli/map-java-to-kotlin.ts java.util.ArrayList
+cat my-type.java | node lib/cli/map-java-to-kotlin.ts
 ```
 
 ### 编程 API

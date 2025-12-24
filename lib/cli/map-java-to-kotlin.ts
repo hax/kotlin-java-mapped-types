@@ -36,7 +36,6 @@ async function readStdin(): Promise<string> {
 }
 
 let dtsContent: string | undefined;
-let typeName: string | undefined;
 
 // Check if we have stdin input
 const hasStdin = !processStdin.isTTY;
@@ -54,16 +53,11 @@ if (hasStdin) {
     // Assume it's already d.ts format
     dtsContent = input;
   }
-  
-  // Check if type name was provided as argument for validation
-  if (process.argv.length >= 3) {
-    typeName = process.argv[2];
-  }
 }
 
 if (process.argv.length >= 3 && !hasStdin) {
   // Treat as Java type name
-  typeName = process.argv[2];
+  const typeName = process.argv[2];
   console.log(`Mapping ${typeName} to d.ts format...\n`);
   const javaDefContent = await getJavaDef(typeName);
   dtsContent = javaDefToDTS(javaDefContent);

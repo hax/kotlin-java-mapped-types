@@ -15,7 +15,8 @@
     "gen:defs": "node lib/cli/gen-defs.ts",
     "calc:mappings": "node lib/cli/calc-mappings.ts",
     "gen:mt": "node lib/cli/gen-mapped-types.ts",
-    "test": "node --run typecheck"
+    "map": "node lib/cli/map-java-to-kotlin.ts",
+    "test": "tsc --noEmit && node --import tsx --test lib/*.test.ts"
   },
   "keywords": [],
   "author": "hax",
@@ -23,9 +24,10 @@
     "@types/make-fetch-happen": "^10.0.4",
     "@types/node": "^25.0.3",
     "cheerio": "^1.1.2",
-    "typescript": "^5.9.3"
+    "tsx": "^4.21.0"
   },
   "dependencies": {
-    "make-fetch-happen": "^15.0.3"
+    "make-fetch-happen": "^15.0.3",
+    "typescript": "^5.9.3"
   }
 }

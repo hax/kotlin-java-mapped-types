@@ -5,6 +5,7 @@
 
 import { parseJavaDef, javaTypeToDTS } from './mappings.ts';
 import { getMappedTypes } from './get-mapped-types.ts';
+import { transformTypesInAST, type TypeMapping } from './ast-transform.ts';
 import * as ts from 'typescript';
 
 export interface MappingResult {
@@ -16,9 +17,9 @@ export interface MappingResult {
 /**
  * Build a map from Java types to Kotlin types
  */
-export async function buildTypeMappings(): Promise<Map<string, { kotlinType: string; nullable: '?' | '!' | '' }>> {
+export async function buildTypeMappings(): Promise<Map<string, TypeMapping>> {
   const mappedTypes = await getMappedTypes();
-  const typeMap = new Map<string, { kotlinType: string; nullable: '?' | '!' | '' }>();
+  const typeMap = new Map<string, TypeMapping>();
   
   for (const [javaType, kotlinType] of mappedTypes) {
     // Detect nullability suffix
@@ -67,29 +68,12 @@ export async function applyKotlinMappings(dtsContent: string): Promise<MappingRe
     true
   );
   
-  const unmappedTypes: string[] = [];
-  const appliedMappings: Array<{ from: string; to: string }> = [];
-  
-  // Transform the AST
-  const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
-    return (sourceFile) => {
-      const visitor = (node: ts.Node): ts.Node => {
-        // TODO: Implement AST transformation logic
-        // This will be implemented incrementally with tests
-        return ts.visitEachChild(node, visitor, context);
-      };
-      return ts.visitNode(sourceFile, visitor) as ts.SourceFile;
-    };
-  };
-  
-  const result = ts.transform(sourceFile, [transformer]);
-  const transformedSourceFile = result.transformed[0];
+  // Transform the AST to apply type mappings
+  const { transformed, appliedMappings, unmappedTypes } = transformTypesInAST(sourceFile, typeMap);
   
   // Print the transformed AST back to string
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-  const mappedDTS = printer.printFile(transformedSourceFile);
-  
-  result.dispose();
+  const mappedDTS = printer.printFile(transformed);
   
   return {
     dts: mappedDTS,

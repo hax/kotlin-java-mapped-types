@@ -68,8 +68,8 @@ if (!dtsContent) {
   process.exit(1);
 }
 
-// Apply Kotlin type mappings
-const result = await applyKotlinMappings(dtsContent);
+// Apply Kotlin type mappings (without mapping primitives by default)
+const result = applyKotlinMappings(dtsContent, { mapPrimitives: false });
 
 console.log('=== TypeScript Declaration (.d.ts) ===');
 console.log(result.dts);

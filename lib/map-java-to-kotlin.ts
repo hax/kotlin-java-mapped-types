@@ -4,9 +4,10 @@
  */
 
 import { parseJavaDef, javaTypeToDTS } from './mappings.ts';
-import { getMappedTypes } from './get-mapped-types.ts';
-import { transformTypesInAST, type TypeMapping } from './ast-transform.ts';
+import { transformTypesInAST, type TypeMapping } from './apply-type-mappings.ts';
+import { MAPPED_TYPES_FILE } from './config.ts';
 import * as ts from 'typescript';
+import { readFileSync } from 'fs';
 
 export interface MappingResult {
   dts: string;
@@ -14,14 +15,45 @@ export interface MappingResult {
   appliedMappings: Array<{ from: string; to: string }>;
 }
 
+export interface MappingOptions {
+  mapPrimitives?: boolean; // Default: false - don't map primitive types
+}
+
+interface MappedTypeEntry {
+  javaType: string;
+  kotlinType: string;
+  memberMappings?: Array<{
+    javaSignature: string;
+    kotlinSignature: string;
+  }>;
+}
+
 /**
- * Build a map from Java types to Kotlin types
+ * Build a map from Java types to Kotlin types from mapped-types.json
  */
-export async function buildTypeMappings(): Promise<Map<string, TypeMapping>> {
-  const mappedTypes = await getMappedTypes();
+export function buildTypeMappings(options: MappingOptions = {}): Map<string, TypeMapping> {
+  const { mapPrimitives = false } = options;
+  
+  // Read from mapped-types.json
+  const jsonPath = MAPPED_TYPES_FILE + '.json';
+  const jsonContent = readFileSync(jsonPath, 'utf-8');
+  const mappedTypes: MappedTypeEntry[] = JSON.parse(jsonContent);
+  
   const typeMap = new Map<string, TypeMapping>();
   
-  for (const [javaType, kotlinType] of mappedTypes) {
+  const primitiveTypes = new Set([
+    'boolean', 'byte', 'short', 'int', 'long', 'char', 'float', 'double',
+    'Boolean', 'Byte', 'Short', 'Integer', 'Long', 'Character', 'Float', 'Double'
+  ]);
+  
+  for (const entry of mappedTypes) {
+    const { javaType, kotlinType } = entry;
+    
+    // Skip primitive types if mapPrimitives is false
+    if (!mapPrimitives && primitiveTypes.has(javaType)) {
+      continue;
+    }
+    
     // Detect nullability suffix
     let nullable: '?' | '!' | '' = '';
     let cleanKotlinType = kotlinType;
@@ -56,9 +88,9 @@ export function javaDefToDTS(javaDefContent: string): string {
 /**
  * Apply Kotlin type mappings to a d.ts string
  */
-export async function applyKotlinMappings(dtsContent: string): Promise<MappingResult> {
+export function applyKotlinMappings(dtsContent: string, options: MappingOptions = {}): MappingResult {
   // Build type mappings
-  const typeMap = await buildTypeMappings();
+  const typeMap = buildTypeMappings(options);
   
   // Parse the d.ts with TypeScript
   const sourceFile = ts.createSourceFile(
@@ -85,10 +117,10 @@ export async function applyKotlinMappings(dtsContent: string): Promise<MappingRe
 /**
  * Main mapping function: Map a Java definition to d.ts format with Kotlin types
  */
-export async function mapJavaToKotlin(javaDefContent: string): Promise<MappingResult> {
+export function mapJavaToKotlin(javaDefContent: string, options: MappingOptions = {}): MappingResult {
   // Convert Java definition to d.ts
   const dtsContent = javaDefToDTS(javaDefContent);
   
   // Apply Kotlin type mappings
-  return await applyKotlinMappings(dtsContent);
+  return applyKotlinMappings(dtsContent, options);
 }

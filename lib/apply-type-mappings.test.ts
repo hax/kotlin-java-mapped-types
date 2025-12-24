@@ -5,7 +5,7 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { transformTypesInAST, type TypeMapping } from '../lib/ast-transform.ts';
+import { transformTypesInAST, type TypeMapping } from './apply-type-mappings.ts';
 import * as ts from 'typescript';
 
 describe('transformTypesInAST - primitive types', () => {

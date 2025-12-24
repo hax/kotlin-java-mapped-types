@@ -16,7 +16,7 @@
     "calc:mappings": "node lib/cli/calc-mappings.ts",
     "gen:mt": "node lib/cli/gen-mapped-types.ts",
     "map": "node lib/cli/map-java-to-kotlin.ts",
-    "test": "tsc --noEmit && node --import tsx --test test/*.test.ts"
+    "test": "tsc --noEmit && node --import tsx --test lib/*.test.ts"
   },
   "keywords": [],
   "author": "hax",

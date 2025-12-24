@@ -220,3 +220,97 @@ describe('transformTypesInAST - complex types', () => {
     assert.ok(result.appliedMappings.some(m => m.from === 'String' && m.to === 'kotlin.String'));
   });
 });
+
+describe('transformTypesInAST - parameter and property mappings', () => {
+  test('should track path for method parameter types', () => {
+    const dtsInput = `interface Test {
+  setName(name: String): void;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    setName(name: kotlin.String): void;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 1);
+    assert.strictEqual(result.appliedMappings[0].from, 'String');
+    assert.strictEqual(result.appliedMappings[0].to, 'kotlin.String');
+    assert.strictEqual(result.appliedMappings[0].path, 'Parameters<Test["setName"]>[0]');
+  });
+
+  test('should track path for property types', () => {
+    const dtsInput = `interface Test {
+  name: String;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    name: kotlin.String;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 1);
+    assert.strictEqual(result.appliedMappings[0].from, 'String');
+    assert.strictEqual(result.appliedMappings[0].to, 'kotlin.String');
+    assert.strictEqual(result.appliedMappings[0].path, 'Test["name"]');
+  });
+
+  test('should track path for multiple parameters', () => {
+    const dtsInput = `interface Test {
+  compare(a: String, b: int): boolean;
+}`;
+    
+    const typeMap = new Map<string, TypeMapping>([
+      ['String', { kotlinType: 'kotlin.String', nullable: '' }],
+      ['int', { kotlinType: 'kotlin.Int', nullable: '' }],
+      ['boolean', { kotlinType: 'kotlin.Boolean', nullable: '' }]
+    ]);
+    
+    const sourceFile = ts.createSourceFile('test.d.ts', dtsInput, ts.ScriptTarget.Latest, true);
+    const result = transformTypesInAST(sourceFile, typeMap);
+    
+    const printer = ts.createPrinter();
+    const output = printer.printFile(result.transformed);
+    
+    // Verify the entire output string
+    const expectedOutput = `interface Test {
+    compare(a: kotlin.String, b: kotlin.Int): kotlin.Boolean;
+}
+`;
+    assert.strictEqual(output, expectedOutput);
+    assert.strictEqual(result.appliedMappings.length, 3);
+    
+    // Check parameter paths include index
+    const stringParam = result.appliedMappings.find(m => m.from === 'String');
+    const intParam = result.appliedMappings.find(m => m.from === 'int');
+    const boolReturn = result.appliedMappings.find(m => m.from === 'boolean');
+    
+    assert.ok(stringParam);
+    assert.ok(intParam);
+    assert.ok(boolReturn);
+    assert.strictEqual(stringParam.path, 'Parameters<Test["compare"]>[0]');
+    assert.strictEqual(intParam.path, 'Parameters<Test["compare"]>[1]');
+    assert.strictEqual(boolReturn.path, 'ReturnType<Test["compare"]>');
+  });
+});

@@ -27,16 +27,28 @@ export function transformTypesInAST(
     let typeName: string | undefined;
     let memberName: string | undefined;
     let context: 'return' | 'param' | 'property' | undefined;
+    let paramIndex: number | undefined;
     
     // Walk up to find the containing member and type
     while (current && current !== sourceFile) {
-      if (ts.isMethodSignature(current) || ts.isMethodDeclaration(current)) {
-        memberName = current.name?.getText(sourceFile) || 'anonymous';
-        // Check if we're in the return type
-        if (current.type && node.pos >= current.type.pos && node.pos < current.type.end) {
-          context = 'return';
-        } else {
+      if (ts.isParameter(current)) {
+        // We're inside a parameter - find its index
+        const methodNode = current.parent;
+        if (methodNode && (ts.isMethodSignature(methodNode) || ts.isMethodDeclaration(methodNode))) {
+          paramIndex = methodNode.parameters.indexOf(current as ts.ParameterDeclaration);
+          memberName = methodNode.name?.getText(sourceFile) || 'anonymous';
           context = 'param';
+        }
+      } else if (ts.isMethodSignature(current) || ts.isMethodDeclaration(current)) {
+        if (!memberName) {
+          memberName = current.name?.getText(sourceFile) || 'anonymous';
+          // Check if we're in the return type by checking node ancestry
+          if (current.type && isNodeDescendantOf(node, current.type)) {
+            context = 'return';
+          } else if (context !== 'param') {
+            // If we haven't identified as param yet, default to return for method context
+            context = 'return';
+          }
         }
       } else if (ts.isPropertySignature(current) || ts.isPropertyDeclaration(current)) {
         memberName = current.name?.getText(sourceFile) || 'anonymous';
@@ -48,12 +60,22 @@ export function transformTypesInAST(
       current = current.parent;
     }
     
+    // Helper to check if a node is a descendant of another
+    function isNodeDescendantOf(node: ts.Node, ancestor: ts.Node): boolean {
+      let current: ts.Node | undefined = node;
+      while (current) {
+        if (current === ancestor) return true;
+        current = current.parent;
+      }
+      return false;
+    }
+    
     // Build TypeScript-style path
     if (typeName && memberName) {
       if (context === 'return') {
         return `ReturnType<${typeName}["${memberName}"]>`;
-      } else if (context === 'param') {
-        return `Parameters<${typeName}["${memberName}"]>`;
+      } else if (context === 'param' && paramIndex !== undefined) {
+        return `Parameters<${typeName}["${memberName}"]>[${paramIndex}]`;
       } else if (context === 'property') {
         return `${typeName}["${memberName}"]`;
       }

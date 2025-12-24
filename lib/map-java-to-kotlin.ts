@@ -45,22 +45,24 @@ export async function buildTypeMappings(): Promise<Map<string, { kotlinType: str
 }
 
 /**
- * Main mapping function: Map a Java definition to d.ts format with Kotlin types
+ * Convert Java definition to d.ts format
  */
-export async function mapJavaToKotlin(javaDefContent: string): Promise<MappingResult> {
-  // Parse the Java definition
+export function javaDefToDTS(javaDefContent: string): string {
   const javaParsed = parseJavaDef(javaDefContent);
-  
-  // Convert to initial d.ts
-  const initialDTS = javaTypeToDTS(javaParsed);
-  
+  return javaTypeToDTS(javaParsed);
+}
+
+/**
+ * Apply Kotlin type mappings to a d.ts string
+ */
+export async function applyKotlinMappings(dtsContent: string): Promise<MappingResult> {
   // Build type mappings
   const typeMap = await buildTypeMappings();
   
   // Parse the d.ts with TypeScript
   const sourceFile = ts.createSourceFile(
     'temp.d.ts',
-    initialDTS,
+    dtsContent,
     ts.ScriptTarget.Latest,
     true
   );
@@ -94,4 +96,15 @@ export async function mapJavaToKotlin(javaDefContent: string): Promise<MappingRe
     unmappedTypes,
     appliedMappings
   };
+}
+
+/**
+ * Main mapping function: Map a Java definition to d.ts format with Kotlin types
+ */
+export async function mapJavaToKotlin(javaDefContent: string): Promise<MappingResult> {
+  // Convert Java definition to d.ts
+  const dtsContent = javaDefToDTS(javaDefContent);
+  
+  // Apply Kotlin type mappings
+  return await applyKotlinMappings(dtsContent);
 }

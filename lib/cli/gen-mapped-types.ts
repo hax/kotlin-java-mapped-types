@@ -20,15 +20,15 @@ import { getMappedTypes } from '../get-mapped-types.ts';
 console.log('Generating mapped types documentation...\n');
 
 // Markdown output
-const outputStream = createWriteStream(MAPPED_TYPES_FILE, { encoding: 'utf-8' });
+const outputStream = createWriteStream(MAPPED_TYPES_FILE + '.md', { encoding: 'utf-8' });
 outputStream.write('# Mapped Types\n');
 
 // JSON output
 interface MemberMapping {
   javaName: string;
-  javaSig: string;
+  javaSignature: string;
   kotlinName: string;
-  kotlinSig: string;
+  kotlinSignature: string;
 }
 
 interface TypeMapping {
@@ -37,7 +37,7 @@ interface TypeMapping {
   members: MemberMapping[];
 }
 
-const jsonMappings: TypeMapping[] = [];
+const mappings: TypeMapping[] = [];
 
 const dirnames = await readdir(DEFS_DIR);
 const mappedTypes = await getMappedTypes();
@@ -46,17 +46,17 @@ for (const [java, kotlin] of mappedTypes) {
   outputStream.write(`\n## ${java} <-> ${kotlin}\n`);
   const typeMapping = await processTypeMapping(outputStream, java, kotlin);
   if (typeMapping) {
-    jsonMappings.push(typeMapping);
+    mappings.push(typeMapping);
   }
 }
 
 outputStream.end();
-console.log(`\nGenerated ${MAPPED_TYPES_FILE}`);
+console.log(`\nGenerated ${MAPPED_TYPES_FILE}.md`);
 
 // Write JSON output
-const jsonOutputPath = join(DEFS_DIR, '..', 'mapped-types.json');
-await writeFile(jsonOutputPath, JSON.stringify(jsonMappings, null, 2), 'utf-8');
-console.log(`Generated ${jsonMappings.length} type mappings`);
+const jsonOutputPath = MAPPED_TYPES_FILE.replace(/\.md$/, '') + '.json';
+await writeFile(jsonOutputPath, JSON.stringify(mappings, null, 2), 'utf-8');
+console.log(`Generated ${mappings.length} type mappings`);
 console.log(`JSON output: ${jsonOutputPath}`);
 
 async function processTypeMapping(output: WriteStream, java: string, kotlin: string): Promise<TypeMapping | null> {
@@ -94,9 +94,9 @@ async function processTypeMapping(output: WriteStream, java: string, kotlin: str
     
     members.push({
       javaName: javaMember.name,
-      javaSig: toDTS(javaMember),
+      javaSignature: toDTS(javaMember),
       kotlinName: kotlinMember.name,
-      kotlinSig: toDTS(kotlinMember)
+      kotlinSignature: toDTS(kotlinMember)
     });
   }
   

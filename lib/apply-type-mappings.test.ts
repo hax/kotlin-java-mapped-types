@@ -118,7 +118,7 @@ describe('transformTypesInAST - primitive types', () => {
     assert.strictEqual(result.appliedMappings.length, 3);
   });
 
-  test('should handle types without mappings unchanged', () => {
+  test('should apply mappings to mapped types while leaving unmapped types unchanged', () => {
     const dtsInput = `interface Test {
   getValue(): String;
   getCustom(): CustomType;

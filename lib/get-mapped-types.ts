@@ -43,16 +43,5 @@ export async function getMappedTypes(): Promise<MappedType[]> {
   }
   
   console.log(`Extracted ${mappings.length} type mappings from documentation`);
-  
-  // Add additional mapped types that are not in the official Kotlin docs
-  // but are documented in Android documentation
-  // See: https://developer.android.com/reference/kotlin/java/util/SortedMap
-  // See: https://developer.android.com/reference/kotlin/java/util/SortedSet
-  mappings.push(['java.util.SortedMap<K, V>', 'kotlin.collections.MutableMap<K, V>']);
-  mappings.push(['java.util.SortedSet<E>', 'kotlin.collections.MutableSet<E>']);
-  
-  console.log(`Added ${2} additional mapped types from Android documentation`);
-  console.log(`Total: ${mappings.length} type mappings`);
-  
   return mappings;
 }

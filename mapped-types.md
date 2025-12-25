@@ -292,3 +292,16 @@
 ## int[] <-> kotlin.IntArray!
 
 ## java.lang.String[] <-> kotlin.Array<(out) String!>!
+
+## java.util.SortedMap<K, V> <-> kotlin.collections.MutableMap<K, V>
+- entrySet
+  `public abstract entrySet(): Set<Entry<K, V>>`
+  `public override entries: MutableSet<MutableMap.MutableEntry<K, V>>`
+- keySet
+  `public abstract keySet(): Set<K>`
+  `public override keys: MutableSet<K>`
+- values
+  `public abstract values(): Collection<V>`
+  `public override values: MutableCollection<V>`
+
+## java.util.SortedSet<E> <-> kotlin.collections.MutableSet<E>

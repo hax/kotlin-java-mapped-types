@@ -314,3 +314,58 @@ describe('transformTypesInAST - parameter and property mappings', () => {
     assert.strictEqual(boolReturn.path, 'ReturnType<Test["compare"]>');
   });
 });
+
+describe('transformTypesInAST - SortedMap integration test', () => {
+  test('should correctly map SortedMap types when using getJavaDef', async () => {
+    const getJavaDefModule = await import('./get-java-def.ts');
+    const { parseJavaDef } = await import('./mappings.ts');
+    const { buildTypeMappings } = await import('./map-java-to-kotlin.ts');
+    
+    // Get the Java definition of SortedMap from Android docs
+    const javaDef = await getJavaDefModule.getJavaDef('java.util.SortedMap');
+    
+    // Parse it
+    const parsed = parseJavaDef(javaDef);
+    
+    // Verify the parsed structure
+    assert.strictEqual(parsed.name, 'SortedMap', 'Should parse SortedMap name');
+    assert.strictEqual(parsed.kind, 'interface', 'Should be an interface');
+    assert.strictEqual(parsed.package, 'java.util', 'Should be in java.util package');
+    
+    // Verify key methods exist
+    const methodNames = parsed.members.filter(m => m.kind === 'method').map(m => m.name);
+    assert.ok(methodNames.includes('entrySet'), 'Should have entrySet method');
+    assert.ok(methodNames.includes('keySet'), 'Should have keySet method');
+    assert.ok(methodNames.includes('values'), 'Should have values method');
+    
+    // Verify super types
+    assert.ok(parsed.super.length > 0, 'Should extend other interfaces');
+    assert.ok(parsed.super.some(s => s.includes('Map')), 'Should extend Map');
+    
+    // Check that type mappings are available for the key types
+    const typeMap = buildTypeMappings();
+    assert.ok(typeMap.has('java.util.Map'), 'Should have mapping for java.util.Map');
+    assert.ok(typeMap.has('java.util.Set'), 'Should have mapping for java.util.Set');
+    assert.ok(typeMap.has('java.util.Collection'), 'Should have mapping for java.util.Collection');
+    
+    // Verify the mappings
+    const mapMapping = typeMap.get('java.util.Map');
+    const setMapping = typeMap.get('java.util.Set');
+    const collectionMapping = typeMap.get('java.util.Collection');
+    
+    assert.ok(mapMapping?.kotlinType.includes('MutableMap'), 'Map should map to MutableMap');
+    assert.ok(setMapping?.kotlinType.includes('MutableSet'), 'Set should map to MutableSet');
+    assert.ok(collectionMapping?.kotlinType.includes('MutableCollection'), 'Collection should map to MutableCollection');
+    
+    console.log('\n=== SortedMap parsed successfully ===');
+    console.log('Package:', parsed.package);
+    console.log('Name:', parsed.name);
+    console.log('Kind:', parsed.kind);
+    console.log('Super types:', parsed.super);
+    console.log('Methods:', methodNames);
+    console.log('\n=== Type mappings verified ===');
+    console.log('Map ->', mapMapping?.kotlinType);
+    console.log('Set ->', setMapping?.kotlinType);
+    console.log('Collection ->', collectionMapping?.kotlinType);
+  });
+});

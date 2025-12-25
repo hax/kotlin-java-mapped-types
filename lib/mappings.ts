@@ -198,7 +198,7 @@ export function parseKotlinDef(content: string): ParsedType {
   }
  
   const members: ParsedMember[] = lines.map(line => {
-    const groups = /^(?<modifiers>.*?)\s+((?<kind>var|val|fun)\s+(?<name>.+?\b)|(?<kind>constructor))(?<type>.+)$/.exec(line)!.groups!;
+    const groups = /^(?<modifiers>.*?)\s+((?<kind>var|val|fun)\s+(?<name>.+?\b)|constructor)(?<type>.+)$/.exec(line)!.groups!;
     const modifiers = groups.modifiers.trim().split(/\s+/);
     const kind = groups.kind == 'var' || groups.kind == 'val' ? 'property' : groups.kind == 'fun' ? 'method' : 'constructor';
     const name = groups.name

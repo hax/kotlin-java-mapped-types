@@ -314,3 +314,31 @@ describe('transformTypesInAST - parameter and property mappings', () => {
     assert.strictEqual(boolReturn.path, 'ReturnType<Test["compare"]>');
   });
 });
+
+describe('SortedMap integration test', () => {
+  test('should correctly fetch and parse SortedMap from Android docs', async () => {
+    const getJavaDefModule = await import('./get-java-def.ts');
+    const { parseJavaDef } = await import('./mappings.ts');
+    
+    // Get the Java definition of SortedMap from Android docs
+    const javaDef = await getJavaDefModule.getJavaDef('java.util.SortedMap');
+    
+    // Parse it
+    const parsed = parseJavaDef(javaDef);
+    
+    // Verify the parsed structure
+    assert.strictEqual(parsed.name, 'SortedMap', 'Should parse SortedMap name');
+    assert.strictEqual(parsed.kind, 'interface', 'Should be an interface');
+    assert.strictEqual(parsed.package, 'java.util', 'Should be in java.util package');
+    
+    // Verify key methods exist
+    const methodNames = parsed.members.filter(m => m.kind === 'method').map(m => m.name);
+    assert.ok(methodNames.includes('entrySet'), 'Should have entrySet method');
+    assert.ok(methodNames.includes('keySet'), 'Should have keySet method');
+    assert.ok(methodNames.includes('values'), 'Should have values method');
+    
+    // Verify super types
+    assert.ok(parsed.super.length > 0, 'Should extend other interfaces');
+    assert.ok(parsed.super.some(s => s.includes('Map')), 'Should extend Map');
+  });
+});

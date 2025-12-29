@@ -315,8 +315,8 @@ describe('transformTypesInAST - parameter and property mappings', () => {
   });
 });
 
-describe('transformTypesInAST - SortedMap integration test', () => {
-  test('should correctly map SortedMap types when using getJavaDef', async () => {
+describe('SortedMap integration test', () => {
+  test('should correctly fetch and parse SortedMap from Android docs', async () => {
     const getJavaDefModule = await import('./get-java-def.ts');
     const { parseJavaDef } = await import('./mappings.ts');
     
@@ -340,15 +340,5 @@ describe('transformTypesInAST - SortedMap integration test', () => {
     // Verify super types
     assert.ok(parsed.super.length > 0, 'Should extend other interfaces');
     assert.ok(parsed.super.some(s => s.includes('Map')), 'Should extend Map');
-    
-    console.log('\n=== SortedMap parsed successfully ===');
-    console.log('Package:', parsed.package);
-    console.log('Name:', parsed.name);
-    console.log('Kind:', parsed.kind);
-    console.log('Super types:', parsed.super);
-    console.log('Methods:', methodNames);
-    console.log('\nTest demonstrates that SortedMap can be fetched from Android docs');
-    console.log('and parsed correctly. The type extends Map, so Map->MutableMap mappings');
-    console.log('would apply when transforming this type.');
   });
 });

@@ -592,34 +592,5 @@
         "kotlinSignature": "public override values: MutableCollection<V>"
       }
     ]
-  },
-  {
-    "javaType": "java.util.SortedMap<K, V>",
-    "kotlinType": "kotlin.collections.MutableMap<K, V>",
-    "members": [
-      {
-        "javaName": "entrySet",
-        "javaSignature": "public abstract entrySet(): Set<Entry<K, V>>",
-        "kotlinName": "entries",
-        "kotlinSignature": "public override entries: MutableSet<MutableMap.MutableEntry<K, V>>"
-      },
-      {
-        "javaName": "keySet",
-        "javaSignature": "public abstract keySet(): Set<K>",
-        "kotlinName": "keys",
-        "kotlinSignature": "public override keys: MutableSet<K>"
-      },
-      {
-        "javaName": "values",
-        "javaSignature": "public abstract values(): Collection<V>",
-        "kotlinName": "values",
-        "kotlinSignature": "public override values: MutableCollection<V>"
-      }
-    ]
-  },
-  {
-    "javaType": "java.util.SortedSet<E>",
-    "kotlinType": "kotlin.collections.MutableSet<E>",
-    "members": []
   }
 ]

@@ -23,7 +23,7 @@ This is a documentation generator for Kotlin-Java type mappings. The project gen
 .
 ├── src/                              # TypeScript source files
 │   ├── fetch-java-api.ts            # Fetch from Android docs
-│   ├── fetch-kotlin-api.ts          # Fetch from Kotlin docs  
+│   ├── fetch-kotlin-api.ts          # Fetch from Kotlin docs
 │   ├── fetch-java-definition.ts     # Generate Java definitions
 │   ├── fetch-kotlin-definition.ts   # Generate Kotlin definitions
 │   ├── generate-mapping-details.ts  # Create signature mappings
@@ -86,7 +86,7 @@ This is a documentation generator for Kotlin-Java type mappings. The project gen
 ### The 32 Mapped Types
 The project documents exactly 32 type mappings in 5 categories:
 1. **Primitive Types** (8): Byte, Short, Int, Long, Char, Float, Double, Boolean
-2. **Common Types** (4): Any, String, CharSequence, Throwable  
+2. **Common Types** (4): Any, String, CharSequence, Throwable
 3. **Interfaces** (4): Cloneable, Comparable, Enum, Annotation
 4. **Read-only Collections** (8): Iterator, Iterable, Collection, Set, List, ListIterator, Map, Map.Entry
 5. **Mutable Collections** (8): Mutable variants of the above

@@ -2,73 +2,103 @@
 
 ## Project Overview
 
-This is a documentation generator for Kotlin-Java type mappings. The project generates comprehensive documentation for the 32 type mappings between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types).
+This project generates comprehensive and precise documentation for type mappings between Kotlin and Java as specified in the [Kotlin documentation](https://kotlinlang.org/docs/java-interop.html#mapped-types). It automatically fetches type information from official documentation sources and produces structured, machine-readable member-to-member mappings.
 
-**Key purpose**: Fetch type signatures from official API documentation (Android Developer Docs and Kotlin API Reference) and create detailed mapping files showing how Kotlin types correspond to Java types.
+**Key purpose**: 
+- Fetch Kotlin-Java type mappings from official documentation
+- Generate detailed type definitions for both Java and Kotlin types
+- Calculate and document member-to-member correspondence between mapped types
+- Provide a tool to map Java type definitions to Kotlin equivalents in d.ts format
 
 ## Technology Stack
 
-- **Runtime**: Node.js >= 22.0.0 (uses native TypeScript support via `--experimental-strip-types`)
-- **Language**: TypeScript with strict mode enabled
+- **Runtime**: Node.js >= 24.0.0 (uses native TypeScript execution via `node` command)
+- **Language**: TypeScript with strict mode and verbatim module syntax
 - **Key Dependencies**:
   - `cheerio`: HTML parsing for web scraping API documentation
-  - `yaml`: YAML file generation (has built-in types)
-  - `typescript`: Type checking (dev dependency)
+  - `make-fetch-happen`: HTTP client with automatic caching
+  - `typescript`: Type checking and AST manipulation (production dependency)
+  - `tsx`: Test runner for TypeScript (dev dependency)
   - `@types/node`: Node.js type definitions (dev dependency)
-- **Build**: No build step required - uses Node's experimental native TypeScript stripping
+  - `@types/make-fetch-happen`: Type definitions for fetch client (dev dependency)
+- **Build**: No build step required - TypeScript files run directly via Node.js native support
 
 ## Project Structure
 
 ```
 .
-├── src/                              # TypeScript source files
-│   ├── fetch-java-api.ts            # Fetch from Android docs
-│   ├── fetch-kotlin-api.ts          # Fetch from Kotlin docs
-│   ├── fetch-java-definition.ts     # Generate Java definitions
-│   ├── fetch-kotlin-definition.ts   # Generate Kotlin definitions
-│   ├── generate-mapping-details.ts  # Create signature mappings
-│   ├── generate-mapped-types-yaml.ts # Aggregate all mappings
-│   ├── generate-all.ts              # Main orchestrator
-│   └── extract-mapped-types.ts      # Utility to create mapping directories
-├── mappings/                         # Generated output (gitignored)
-│   └── <kotlin_Type>_to_<java_Type>/
-│       ├── java-definition.java
-│       ├── kotlin-definition.kt
-│       └── mapping-details.yaml
-└── mapped-types.yaml                 # Master mapping file (generated)
+├── lib/                              # TypeScript source files
+│   ├── cli/                          # Command-line entry points
+│   │   ├── get-mapped-types.ts      # Fetch mapped types list from Kotlin docs
+│   │   ├── gen-defs.ts              # Generate type definitions for all mappings
+│   │   ├── calc-mappings.ts         # Calculate member mappings
+│   │   ├── gen-mapped-types.ts      # Generate mapped-types.md documentation
+│   │   ├── get-def.ts               # Get single type definition
+│   │   └── map-java-to-kotlin.ts    # CLI tool to map Java types to Kotlin
+│   ├── config.ts                     # Path configuration (cache, defs, outputs)
+│   ├── utils.ts                      # Shared utilities
+│   ├── fetch-text.ts                 # HTTP fetch with automatic caching
+│   ├── get-java-def.ts               # Fetch and parse Java type definitions
+│   ├── get-kotlin-def.ts             # Fetch and parse Kotlin type definitions
+│   ├── get-mapped-types.ts           # Extract type mapping list from Kotlin docs
+│   ├── mappings.ts                   # Parse definitions and calculate mappings
+│   ├── map-java-to-kotlin.ts         # Map Java types to Kotlin (programmatic API)
+│   ├── apply-type-mappings.ts        # AST transformation to apply type mappings
+│   └── *.test.ts                     # Test files
+├── .cache/                            # HTTP response cache (auto-generated, gitignored)
+├── .defs/                             # Generated type definitions (gitignored)
+│   └── <java.type.Name>/
+│       ├── def.java                   # Java type definition
+│       └── kotlin.Type.kt             # Kotlin type definition
+├── mapped-types.json                  # Type mappings in JSON format (generated)
+├── mapped-types.md                    # Human-readable mapping documentation (generated)
+├── TECHNICAL.md                       # Technical documentation (bilingual EN/CN)
+├── MAPPER.md                          # Documentation for Java-to-Kotlin mapping tool (CN)
+└── REMAINING_WORK.md                  # Project status and remaining tasks
 ```
 
 ## Commands
 
-### Development
+### Main Workflow
+- `npm start` - Generate all documentation (runs `gen:defs` then `gen:mt`)
 - `npm install` - Install dependencies
+
+### Individual Commands
 - `npm run typecheck` - Run TypeScript type checking (no emit)
-- `npm run generate` - Generate all type mappings (main command)
-- `npm run generate:mapping-details` - Generate only mapping details from existing definitions
-- `npm run generate:mapped-types` - Aggregate all mappings into mapped-types.yaml
+- `npm test` - Run tests with Node.js native test runner
+- `npm run get:mt` - Fetch mapped types list from Kotlin documentation (supports `--offline`)
+- `npm run gen:defs` - Generate Java and Kotlin type definitions for all mappings
+- `npm run calc:mappings` - Calculate member mappings between types
+- `npm run gen:mt` - Generate mapped-types.md with detailed mappings
+- `npm run get:def` - Get a single type definition (supports `--offline`)
+- `npm run map` - Map Java type definition to Kotlin d.ts format
+
+### Flags
+- `--offline` - Use cached content only (no HTTP requests)
+- `--dry-run` - Preview operations without writing files
 
 ### CI/CD
 - GitHub Actions CI runs on push/PR to main/master
-- Tests Node.js versions: 22.x, 24.x
-- Runs: `npm ci`, `npm run typecheck`, timeout-limited `npm run generate`
+- Tests Node.js version: 24.x
+- Runs: `npm cit` (clean install + test)
 
 ## Coding Conventions
 
 ### TypeScript Style
 - **Strict mode**: All TypeScript strict checks enabled
-- **Module system**: ES modules (`"type": "module"` in package.json)
-- **Target**: ES2022
+- **Module system**: ES modules with `verbatimModuleSyntax: true`
+- **Target**: ESNext
 - **Import extensions**: Use `.ts` extensions in imports (required for `allowImportingTsExtensions`)
 - **Comments**: Use JSDoc-style comments for exported functions
 - **No build artifacts**: `noEmit: true` - type checking only
 
 ### Common Patterns
-- **File headers**: Include shebang (`#!/usr/bin/env node`) and description comment for executable scripts
-- **Error handling**: Use try-catch for network operations, log errors to console
-- **Async/await**: Prefer async/await over raw promises
-- **File operations**: Use `fs/promises` for async file operations
-- **Path handling**: Use `path.join()` for cross-platform compatibility
-- **Main module check**: Use `if (import.meta.url.endsWith(process.argv[1]))` for script entry points
+- **File operations**: Use Node.js `fs` module with async operations
+- **HTTP requests**: All HTTP requests automatically cached via `make-fetch-happen`
+- **Path handling**: Use `fileURLToPath(import.meta.resolve(...))` for resolving paths
+- **Error handling**: Use try-catch for I/O operations, log errors to console
+- **CLI parsing**: Use `process.argv` for command-line argument parsing
+- **Test framework**: Use Node.js native test runner with `node --test`
 
 ### Naming Conventions
 - **Variables/functions**: camelCase
@@ -78,79 +108,142 @@ This is a documentation generator for Kotlin-Java type mappings. The project gen
 
 ### Type Definitions
 - **Prefer interfaces** for object shapes
-- **Define explicit types** for function return values
+- **Export types** that are part of public API
+- **Use explicit return types** for public functions
 - **Use union types** for variants (e.g., `'class' | 'interface'`)
 
 ## Important Implementation Details
 
-### The 32 Mapped Types
-The project documents exactly 32 type mappings in 5 categories:
-1. **Primitive Types** (8): Byte, Short, Int, Long, Char, Float, Double, Boolean
-2. **Common Types** (4): Any, String, CharSequence, Throwable
-3. **Interfaces** (4): Cloneable, Comparable, Enum, Annotation
-4. **Read-only Collections** (8): Iterator, Iterable, Collection, Set, List, ListIterator, Map, Map.Entry
-5. **Mutable Collections** (8): Mutable variants of the above
+### Core Workflow
+
+The project follows a 4-phase pipeline:
+
+1. **Phase 1: Fetch Mapped Types List**
+   - Scrape Kotlin documentation tables for type mappings
+   - Extract Java and Kotlin fully qualified type names
+   - Output: Array of `[javaType, kotlinType]` tuples saved to `mapped-types.json`
+
+2. **Phase 2: Generate Type Definitions**
+   - For each type pair, fetch from official documentation
+   - Java: Extract API signatures from Android Developer docs
+   - Kotlin: Fetch source code from GitHub via Kotlin API reference
+   - Output: `.java` and `.kt` files in `.defs/` directory
+
+3. **Phase 3: Calculate Mappings**
+   - Parse definition files to extract members
+   - Match corresponding members using mapping rules:
+     - Nullary getters → properties (e.g., `length()` → `length`)
+     - Accessor patterns (e.g., `getMessage()` → `message`)
+     - Collection conventions (e.g., `keySet()` → `keys`)
+     - Special operators (e.g., `charAt(int)` → `get(index: Int)`)
+     - Conversion methods (e.g., `intValue()` → `toInt()`)
+   - Output: Structured mapping data
+
+4. **Phase 4: Generate Documentation**
+   - Create `mapped-types.md` with member-by-member mappings
+   - Format: Markdown with type pair headings and member lists
+
+### Java-to-Kotlin Mapping Tool
+
+The project includes a tool (`map-java-to-kotlin.ts`) that maps Java type definitions to Kotlin equivalents:
+
+- **Input**: Java type definition (source file or stdin)
+- **Process**: 
+  1. Parse Java definition to extract structure
+  2. Convert to TypeScript d.ts format
+  3. Apply type mappings (Java types → Kotlin types)
+  4. Apply member mappings (getters → properties, etc.)
+  5. Handle generic type parameters and nullability
+- **Output**: d.ts file with Kotlin type names
+- **Use cases**: Converting Java APIs to Kotlin-compatible TypeScript definitions
 
 ### Data Sources
-- **Java types**: Android Developer Documentation (`https://developer.android.com/reference/`)
+
 - **Kotlin types**: Kotlin API Reference (`https://kotlinlang.org/api/core/kotlin-stdlib/`)
+- **Java types**: Android Developer Documentation (`https://developer.android.com/reference/`)
+- **Kotlin source**: GitHub (`https://github.com/JetBrains/kotlin`) via references from API docs
+- **Type mappings**: Kotlin documentation (`https://kotlinlang.org/docs/java-interop.html`)
 
-### Key Mapping Patterns
-- Kotlin properties → Java getter methods (e.g., `length: Int` → `int length()`)
-- Kotlin operator functions → Java methods (e.g., `get(index)` → `charAt(index)`)
-- Read-only vs Mutable collections map to same Java types but with different available operations
+### Caching Strategy
 
-### Generated Files
-- **java-definition.java**: Complete Java type with all method signatures
-- **kotlin-definition.kt**: Kotlin type with available operations for that type variant
-- **mapping-details.yaml**: Signature-to-signature mappings
-- **mapped-types.yaml**: Aggregated master file with kind and name only
+All HTTP requests are automatically cached in `.cache/` directory using `make-fetch-happen`:
+- Enables offline mode after initial fetch
+- Speeds up repeated operations
+- Cache directory is gitignored
+
+### URL Generation Patterns
+
+**Kotlin Types:**
+```typescript
+// kotlin.collections.MutableMap
+// → https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-map/
+```
+Package and type names are kebab-cased with proper path structure.
+
+**Java Types:**
+```typescript
+// java.util.Map
+// → https://developer.android.com/reference/java/util/Map
+```
+Direct path mapping from package + type name.
 
 ## Development Workflow
 
-1. Make changes to TypeScript source files in `src/`
+1. Make changes to TypeScript source files in `lib/`
 2. Run `npm run typecheck` to verify types
-3. Test execution with `npm run generate` (may timeout in CI due to network calls - this is expected)
-4. Generated files go to `mappings/` directory (gitignored)
-5. Commit only source changes, not generated output
+3. Run `npm test` to run tests
+4. Test execution with individual commands (e.g., `npm run gen:defs -- --dry-run`)
+5. Generated files go to `.defs/` and root directory (some are gitignored)
+6. Commit source changes and generated documentation files
 
 ## Common Tasks
 
-### Adding New Mapped Type
-1. Add entry to `MAPPED_TYPES` array in `src/generate-all.ts`
-2. Ensure both Kotlin and Java type names are fully qualified
-3. Run `npm run generate` to create mapping files
+### Adding New CLI Command
+1. Create new file in `lib/cli/` directory
+2. Add script entry in `package.json` under `scripts`
+3. Use existing utilities from `lib/` for common operations
+4. Follow existing patterns for argument parsing and output
 
 ### Modifying Parsing Logic
-- Java parsing: Edit `src/fetch-java-api.ts` or `src/fetch-java-definition.ts`
-- Kotlin parsing: Edit `src/fetch-kotlin-api.ts` or `src/fetch-kotlin-definition.ts`
-- Mapping logic: Edit `src/generate-mapping-details.ts`
+- Java parsing: Edit `lib/get-java-def.ts`
+- Kotlin parsing: Edit `lib/get-kotlin-def.ts`
+- Mapping logic: Edit `lib/mappings.ts`
+- Type transformation: Edit `lib/apply-type-mappings.ts`
 
 ### Updating Documentation
 - Main README: `README.md` (English) and `README.zh-CN.md` (Chinese)
-- Implementation details: `SUMMARY.md`
+- Technical details: `TECHNICAL.md` (bilingual)
+- Mapping tool: `MAPPER.md` (Chinese)
+- Project status: `REMAINING_WORK.md`
 
-## Testing Notes
-
-- No formal test suite currently (`npm test` shows "no test specified")
-- CI validates script can execute without crashing
-- Manual verification involves checking generated mapping files
-- Network timeouts in CI are expected and allowed (exit code 124)
+### Testing
+- Test files: `lib/*.test.ts`
+- Run tests: `npm test`
+- Tests use Node.js native test runner with TypeScript support via `tsx`
 
 ## What NOT to Do
 
-- Don't commit files in `mappings/` directory - these are generated
+- Don't commit files in `.cache/` directory - these are HTTP cache files
+- Don't commit files in `.defs/` directory - these are generated type definitions
 - Don't commit `node_modules/` or `dist/` directories
-- Don't add build steps - the project intentionally uses native TS stripping
-- Don't change TypeScript strict mode settings
-- Don't modify the list of 32 mapped types without careful consideration of Kotlin spec
+- Don't change Node.js version requirement (requires >= 24.0.0)
+- Don't add build steps - the project uses native TypeScript execution
+- Don't modify TypeScript strict mode settings
 
 ## Dependencies
 
 When adding dependencies:
 - Prefer minimal, well-maintained packages
-- Check compatibility with Node.js 22+
-- Add type definitions (`@types/*`) as devDependencies if the package doesn't include built-in types
+- Check compatibility with Node.js 24+
+- Add type definitions (`@types/*`) as devDependencies if needed
 - Use `npm install` (updates package-lock.json)
-- Note: The project uses the `yaml` package (which has built-in types), not `js-yaml`
-  - `@types/js-yaml` is a leftover dev dependency from previous implementation and can be ignored
+- Production dependencies include `typescript` (used for AST manipulation, not just type checking)
+
+## Key Files to Understand
+
+- `lib/config.ts` - Path configuration using `import.meta.resolve`
+- `lib/fetch-text.ts` - HTTP client wrapper with caching
+- `lib/mappings.ts` - Core mapping logic and d.ts conversion
+- `lib/apply-type-mappings.ts` - TypeScript AST transformation for type mappings
+- `TECHNICAL.md` - Comprehensive technical documentation with examples
+- `REMAINING_WORK.md` - Project status and planned improvements

@@ -60,20 +60,21 @@ This project generates comprehensive and precise documentation for type mappings
 ## Commands
 
 ### Main Workflow
-- `npm start` - Generate all documentation (runs `gen:defs` then `gen:mt`)
+- `npm start` - Generate all documentation (runs `gen:defs` then `gen:mt` via `node --run`)
 - `npm install` - Install dependencies
 
 ### Individual Commands
 - `npm run typecheck` - Run TypeScript type checking (no emit)
-- `npm test` - Run tests with Node.js native test runner
-- `npm run get:mt` - Fetch mapped types list from Kotlin documentation (supports `--offline`)
+- `npm test` - Run type checking then tests using tsx with Node.js test runner
+- `npm run get:mt` - Fetch mapped types list from Kotlin documentation (runs in offline mode)
+- `npm run get:def` - Get a single type definition (runs in offline mode)
 - `npm run gen:defs` - Generate Java and Kotlin type definitions for all mappings
 - `npm run calc:mappings` - Calculate member mappings between types
 - `npm run gen:mt` - Generate mapped-types.md with detailed mappings
-- `npm run get:def` - Get a single type definition (supports `--offline`)
 - `npm run map` - Map Java type definition to Kotlin d.ts format
 
 ### Flags
+Commands support various flags when called directly (not via npm scripts):
 - `--offline` - Use cached content only (no HTTP requests)
 - `--dry-run` - Preview operations without writing files
 
@@ -98,7 +99,7 @@ This project generates comprehensive and precise documentation for type mappings
 - **Path handling**: Use `fileURLToPath(import.meta.resolve(...))` for resolving paths
 - **Error handling**: Use try-catch for I/O operations, log errors to console
 - **CLI parsing**: Use `process.argv` for command-line argument parsing
-- **Test framework**: Use Node.js native test runner with `node --test`
+- **Test framework**: Use tsx with Node.js native test runner (via `node --import tsx --test`)
 
 ### Naming Conventions
 - **Variables/functions**: camelCase
@@ -218,8 +219,8 @@ Direct path mapping from package + type name.
 
 ### Testing
 - Test files: `lib/*.test.ts`
-- Run tests: `npm test`
-- Tests use Node.js native test runner with TypeScript support via `tsx`
+- Run tests: `npm test` (runs type checking first, then tests via tsx)
+- Tests use Node.js native test runner with TypeScript support via tsx loader
 
 ## What NOT to Do
 
